@@ -37,7 +37,7 @@ const CONFIG = {
 
      Enquanto estiver como está, o site usa os dados de reserva do item 4.
   */
-  planilhaId:  'COLE_O_ID_DA_PLANILHA_AQUI',
+  planilhaId:  '1-RLhGWQlNl64BDa4kfpCRz1dgagQgoZB9cSce8Ob0jU',
   abaServicos: 'servicos',
   abaAvisos:   'avisos',
 
