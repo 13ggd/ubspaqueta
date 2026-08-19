@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>UBS Paquetá — Está aberta agora?</title>
+<meta name="description" content="Horários, avisos e telefones da Unidade Básica de Saúde do bairro Paquetá, em Brusque, Santa Catarina.">
+<meta name="theme-color" content="#02301A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ===========================================================================
+   UBS Paquetá — estilos
+   Escrito MOBILE FIRST: as regras base valem para celular, e só depois
+   crescem para telas maiores. A maioria das pessoas vai abrir no celular.
+   Fonte: Atkinson Hyperlegible, criada pelo Braille Institute para baixa visão.
+   =========================================================================== */
+
+:root{
+  --esc:1;                    /* multiplicador do tamanho da letra (botões A A A) */
+  --verde:#016B2E;
+  --verde-escuro:#02301A;
+  --verde-claro:#E6F2E9;
+  --aberto:#0A6E36;
+  --fechado:#4B5563;
+  --alerta:#B3120F;
+  --alerta-claro:#FDECEA;
+  --atencao:#8A4E00;
+  --atencao-claro:#FDF2E0;
+  --papel:#FFFFFF;
+  --fundo:#F0F3F0;
+  --tinta:#0F1611;
+  --tinta2:#414B44;
+  --linha:#C9D3CB;
+  --raio:14px;
+  --toque:56px;               /* altura mínima de qualquer coisa clicável */
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+html{-webkit-text-size-adjust:100%}
+
+body{
+  background:var(--fundo);
+  color:var(--tinta);
+  font-family:'Atkinson Hyperlegible',Verdana,system-ui,sans-serif;
+  font-size:calc(18px * var(--esc));
+  line-height:1.55;
+  overflow-wrap:break-word;
+  padding-bottom:calc(24px + env(safe-area-inset-bottom));
+}
+body.com-teste{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+
+.wrap{
+  width:100%;
+  max-width:720px;
+  margin:0 auto;
+  padding-left:max(16px, env(safe-area-inset-left));
+  padding-right:max(16px, env(safe-area-inset-right));
+}
+
+img,svg{max-width:100%;height:auto}
+a{color:inherit}
+
+:focus-visible{outline:4px solid var(--verde);outline-offset:3px;border-radius:6px}
+
+/* ---------------------------------------------------------------- TOPO -- */
+.topo{
+  background:var(--verde-escuro);color:#fff;
+  padding:calc(18px + env(safe-area-inset-top)) 0 18px;
+}
+.topo .orgao{font-size:calc(14px * var(--esc));opacity:.85;margin-bottom:5px;line-height:1.35}
+.topo h1{font-size:calc(32px * var(--esc));font-weight:700;line-height:1.06;letter-spacing:-.015em}
+.topo .subtitulo{font-size:calc(17px * var(--esc));opacity:.88;margin-top:7px;line-height:1.35}
+
+.letra{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  margin-top:16px;padding-top:14px;
+  border-top:2px solid rgba(255,255,255,.2);
+}
+.letra-rot{font-size:calc(15px * var(--esc));opacity:.85}
+.letra-btns{display:flex;gap:8px}
+.letra button{
+  font-family:inherit;font-weight:700;cursor:pointer;
+  background:rgba(255,255,255,.14);border:2px solid rgba(255,255,255,.35);
+  color:#fff;border-radius:10px;
+  min-width:var(--toque);min-height:var(--toque);
+  display:flex;align-items:center;justify-content:center;
+}
+.letra button.a1{font-size:17px}
+.letra button.a2{font-size:22px}
+.letra button.a3{font-size:28px}
+.letra button[aria-pressed="true"]{background:#fff;color:var(--verde-escuro);border-color:#fff}
+.topo :focus-visible{outline-color:#63D68F}
+
+/* --------------------------------------------------- RESPOSTA PRINCIPAL -- */
+.resposta{padding:20px 0 0}
+
+.cartao-status{
+  border-radius:16px;padding:24px 18px;text-align:center;color:#fff;
+  border:4px solid transparent;
+}
+.cartao-status.sim{background:var(--aberto);border-color:#04562A}
+.cartao-status.nao{background:var(--fechado);border-color:#374151}
+.cartao-status.carregando{background:#5B6B60;border-color:#44514A}
+
+.marca{
+  width:calc(66px * var(--esc));height:calc(66px * var(--esc));
+  border-radius:50%;background:rgba(255,255,255,.2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:calc(38px * var(--esc));font-weight:700;line-height:1;
+  margin:0 auto 12px;
+}
+.status-palavra{
+  font-size:calc(32px * var(--esc));font-weight:700;
+  line-height:1.1;letter-spacing:-.015em;text-transform:uppercase;
+}
+.status-detalhe{font-size:calc(20px * var(--esc));margin-top:9px;line-height:1.35}
+.status-hoje{
+  font-size:calc(15px * var(--esc));margin-top:13px;padding-top:13px;
+  border-top:2px solid rgba(255,255,255,.28);opacity:.92;line-height:1.4;
+}
+
+/* ------------------------------------------------------------- BOTÕES -- */
+.botoes{display:grid;grid-template-columns:1fr;gap:10px;margin-top:14px}
+.botao{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  text-decoration:none;background:var(--papel);color:var(--tinta);
+  border:3px solid var(--verde);border-radius:var(--raio);
+  padding:16px 14px;min-height:66px;
+  font-size:calc(19px * var(--esc));font-weight:700;text-align:center;
+}
+.botao .icone{font-size:calc(24px * var(--esc));line-height:1}
+.botao.cheio{background:var(--verde);color:#fff}
+
+/* -------------------------------------------------------------- SEÇÕES -- */
+.secao{padding-top:30px}
+.secao h2{
+  font-size:calc(24px * var(--esc));font-weight:700;
+  line-height:1.2;margin-bottom:5px;letter-spacing:-.015em;
+}
+.secao .ajuda{font-size:calc(16px * var(--esc));color:var(--tinta2);margin-bottom:13px;line-height:1.4}
+
+/* -------------------------------------------------------------- AVISOS -- */
+.aviso{
+  background:var(--alerta-claro);border:3px solid var(--alerta);
+  border-radius:var(--raio);padding:16px;margin-bottom:12px;
+}
+.aviso.atencao{background:var(--atencao-claro);border-color:var(--atencao)}
+.aviso.recado{background:var(--verde-claro);border-color:var(--verde)}
+
+.av-tarja{
+  display:inline-flex;align-items:center;gap:7px;
+  background:var(--alerta);color:#fff;border-radius:8px;padding:6px 11px;
+  font-size:calc(14px * var(--esc));font-weight:700;
+  text-transform:uppercase;letter-spacing:.04em;margin-bottom:11px;
+}
+.aviso.atencao .av-tarja{background:var(--atencao)}
+.aviso.recado .av-tarja{background:var(--verde)}
+
+.av-titulo{font-size:calc(21px * var(--esc));font-weight:700;line-height:1.25;margin-bottom:7px}
+.av-texto{font-size:calc(17px * var(--esc));line-height:1.5}
+.av-quando{
+  font-size:calc(15px * var(--esc));color:var(--tinta2);
+  margin-top:11px;padding-top:11px;border-top:2px solid rgba(0,0,0,.12);line-height:1.4;
+}
+
+.tudo-certo{
+  background:var(--verde-claro);border:3px solid var(--verde);
+  border-radius:var(--raio);padding:16px;
+  display:flex;gap:12px;align-items:flex-start;
+}
+.tudo-certo .ok{font-size:calc(28px * var(--esc));line-height:1.1;color:var(--verde);flex:0 0 auto}
+.tudo-certo p{font-size:calc(18px * var(--esc));line-height:1.45}
+
+/* ------------------------------------------------------------ SERVIÇOS -- */
+.servico{
+  background:var(--papel);border:2px solid var(--linha);
+  border-radius:var(--raio);margin-bottom:11px;overflow:hidden;
+}
+.servico.fechado-hoje{border-color:var(--alerta);border-width:3px}
+.sv-topo{padding:16px}
+.sv-nome{font-size:calc(21px * var(--esc));font-weight:700;line-height:1.2}
+.sv-para{font-size:calc(16px * var(--esc));color:var(--tinta2);margin-top:5px;line-height:1.4}
+
+.sv-estado{
+  display:flex;align-items:center;gap:10px;
+  margin-top:13px;padding:12px;border-radius:10px;
+}
+.sv-estado.on{background:#E3F3E9;border:2px solid var(--aberto)}
+.sv-estado.off{background:#EEF0F1;border:2px solid var(--fechado)}
+.sv-estado.alerta{background:var(--alerta-claro);border:2px solid var(--alerta)}
+.sv-estado.atencao{background:var(--atencao-claro);border:2px solid var(--atencao)}
+
+.sv-sinal{font-size:calc(24px * var(--esc));font-weight:700;line-height:1;flex:0 0 auto}
+.sv-estado.on .sv-sinal{color:var(--aberto)}
+.sv-estado.off .sv-sinal{color:var(--fechado)}
+.sv-estado.alerta .sv-sinal{color:var(--alerta)}
+.sv-estado.atencao .sv-sinal{color:var(--atencao)}
+
+.sv-txt{flex:1;min-width:0}
+.sv-palavra{font-size:calc(18px * var(--esc));font-weight:700;line-height:1.25;display:block}
+.sv-estado.on .sv-palavra{color:var(--aberto)}
+.sv-estado.off .sv-palavra{color:var(--fechado)}
+.sv-estado.alerta .sv-palavra{color:var(--alerta)}
+.sv-estado.atencao .sv-palavra{color:var(--atencao)}
+.sv-hora{font-size:calc(17px * var(--esc));margin-top:3px;display:block;line-height:1.35}
+.sv-hora s{color:var(--fechado)}
+
+.sv-motivo{
+  background:var(--alerta-claro);border-top:2px solid var(--alerta);
+  padding:13px 16px;font-size:calc(16px * var(--esc));line-height:1.45;
+}
+.sv-motivo.atencao{background:var(--atencao-claro);border-top-color:var(--atencao)}
+
+details.semana{border-top:2px solid var(--linha)}
+details.semana summary{
+  list-style:none;cursor:pointer;padding:14px 16px;min-height:var(--toque);
+  font-size:calc(17px * var(--esc));font-weight:700;color:var(--verde);
+  display:flex;align-items:center;gap:8px;
+}
+details.semana summary::-webkit-details-marker{display:none}
+details.semana summary::after{content:"▼";font-size:calc(12px * var(--esc));transition:transform .2s}
+details.semana[open] summary::after{transform:rotate(180deg)}
+@media (prefers-reduced-motion:reduce){
+  details.semana summary::after{transition:none}
+}
+
+.semana-lista{padding:0 16px 14px}
+.semana-l{
+  display:flex;justify-content:space-between;gap:10px;
+  padding:10px 0;font-size:calc(17px * var(--esc));
+  border-bottom:2px dotted var(--linha);
+}
+.semana-l:last-child{border-bottom:none}
+.semana-l .dia{color:var(--tinta2)}
+.semana-l .val{font-weight:700;text-align:right;flex:0 0 auto}
+.semana-l.hoje{
+  background:var(--verde-claro);margin:0 -8px;
+  padding-left:8px;padding-right:8px;border-radius:8px;
+}
+.semana-l.hoje .dia,.semana-l.hoje .val{color:var(--verde)}
+
+/* ------------------------------------------------------------ URGÊNCIA -- */
+.urgencia{background:var(--verde-escuro);color:#fff;border-radius:16px;padding:20px 16px}
+.urgencia h2{font-size:calc(22px * var(--esc));font-weight:700;margin-bottom:5px}
+.urgencia .sub{font-size:calc(16px * var(--esc));opacity:.85;margin-bottom:16px;line-height:1.4}
+.urgencia :focus-visible{outline-color:#63D68F}
+
+.samu{
+  display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;
+  background:#fff;color:var(--verde-escuro);border-radius:var(--raio);
+  padding:18px 14px;text-decoration:none;margin-bottom:14px;min-height:78px;
+}
+.samu .num{font-size:calc(42px * var(--esc));font-weight:700;line-height:1}
+.samu .lab{font-size:calc(17px * var(--esc));font-weight:700;text-align:left;line-height:1.3}
+
+.lugar{padding:14px 0;border-top:2px solid rgba(255,255,255,.18)}
+.lugar-nome{font-size:calc(19px * var(--esc));font-weight:700;line-height:1.25}
+.lugar-det{font-size:calc(16px * var(--esc));opacity:.85;margin-top:5px;line-height:1.4}
+.lugar-hora{
+  display:inline-block;font-size:calc(15px * var(--esc));font-weight:700;
+  background:rgba(255,255,255,.16);border-radius:8px;padding:5px 10px;margin-top:8px;
+}
+
+/* -------------------------------------------------------- ONDE FICA --- */
+.cartao{background:var(--papel);border:2px solid var(--linha);border-radius:var(--raio);padding:18px}
+.info{padding:13px 0;border-bottom:2px solid var(--linha)}
+.info:first-child{padding-top:0}
+.info:last-child{border-bottom:none;padding-bottom:0}
+.info-rot{font-size:calc(15px * var(--esc));color:var(--tinta2);margin-bottom:4px}
+.info-val{font-size:calc(19px * var(--esc));font-weight:700;line-height:1.35}
+.info-val a{color:var(--verde)}
+
+.fonte-dados{
+  background:#EEF1EE;border:2px solid var(--linha);border-radius:12px;
+  padding:13px 15px;margin-top:14px;
+  font-size:calc(14px * var(--esc));color:var(--tinta2);line-height:1.5;
+}
+.fonte-dados.erro{background:var(--atencao-claro);border-color:var(--atencao);color:#5A3400}
+
+.rodape{
+  font-size:calc(15px * var(--esc));color:var(--tinta2);
+  text-align:center;padding:26px 0 8px;line-height:1.6;
+}
+
+/* ------------------------------------------------- BARRA DE TESTE ----- */
+/* Só aparece se o endereço tiver ?teste no final. Fora isso, fica oculta. */
+.teste{
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;z-index:40;
+  background:#0F1611;color:#fff;border-top:3px solid #33413A;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+body.com-teste .teste{display:block}
+.teste-in{
+  max-width:720px;margin:0 auto;padding:10px 16px 11px;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.teste-selo{
+  font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  background:#33413A;padding:4px 8px;border-radius:6px;
+}
+.teste-ct{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1}
+.teste input[type=date]{
+  background:#33413A;color:#fff;border:2px solid #4A5A50;border-radius:8px;
+  padding:7px 8px;font-family:inherit;font-size:14px;min-height:44px;
+}
+.teste input[type=range]{flex:1;min-width:90px;accent-color:#63D68F;min-height:44px}
+.teste-h{font-size:15px;font-weight:700;min-width:50px;text-align:right;color:#63D68F}
+.teste button{
+  background:#33413A;color:#fff;border:2px solid #4A5A50;border-radius:8px;
+  padding:8px 12px;font-family:inherit;font-size:13px;cursor:pointer;min-height:44px;
+}
+.teste :focus-visible{outline-color:#63D68F}
+
+/* ================================================= TELAS MAIORES ====== */
+@media (min-width:600px){
+  body{font-size:calc(19px * var(--esc))}
+  .wrap{padding-left:20px;padding-right:20px}
+  .topo{padding:24px 0 22px}
+  .topo h1{font-size:calc(38px * var(--esc))}
+  .cartao-status{padding:28px 22px}
+  .marca{width:calc(74px * var(--esc));height:calc(74px * var(--esc));font-size:calc(44px * var(--esc))}
+  .status-palavra{font-size:calc(38px * var(--esc))}
+  .botoes{grid-template-columns:1fr 1fr;gap:12px}
+  .urgencia{padding:22px 20px}
+  .sv-topo{padding:18px}
+  .secao h2{font-size:calc(26px * var(--esc))}
+}
+
+/* Telas bem estreitas (celular antigo, 320px) */
+@media (max-width:360px){
+  .status-palavra{font-size:calc(27px * var(--esc))}
+  .samu .num{font-size:calc(36px * var(--esc))}
+  .topo h1{font-size:calc(28px * var(--esc))}
+}
+
+/* Modo paisagem em celular: encurta o cartão para não ocupar a tela toda */
+@media (max-height:480px) and (orientation:landscape){
+  .cartao-status{padding:16px}
+  .marca{display:none}
+}
+
+/* ====================================================== IMPRESSÃO ===== */
+/* Para a equipe imprimir e colar na porta da unidade. */
+@media print{
+  body{background:#fff;padding:0;font-size:14px}
+  .teste,.letra,.botoes,details.semana,.fonte-dados{display:none!important}
+  .topo,.urgencia{background:#fff;color:#000;border:2px solid #000}
+  .cartao-status{border:3px solid #000;color:#000!important;background:#fff!important}
+  .secao{page-break-inside:avoid}
+}
+
+</style>
+</head>
+<body>
+
+<!-- ============================ TOPO ============================ -->
+<header class="topo">
+  <div class="wrap">
+    <p class="orgao" id="orgao"></p>
+    <h1 id="nome-unidade">UBS Paquetá</h1>
+    <p class="subtitulo" id="subtitulo"></p>
+
+    <div class="letra">
+      <span class="letra-rot">Tamanho da letra:</span>
+      <div class="letra-btns" role="group" aria-label="Escolher o tamanho da letra">
+        <button type="button" class="a1" data-esc="1"    aria-pressed="true"  aria-label="Letra normal">A</button>
+        <button type="button" class="a2" data-esc="1.22" aria-pressed="false" aria-label="Letra grande">A</button>
+        <button type="button" class="a3" data-esc="1.45" aria-pressed="false" aria-label="Letra muito grande">A</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ==================== RESPOSTA PRINCIPAL ====================== -->
+<section class="resposta">
+  <div class="wrap">
+    <div id="status" aria-live="polite"></div>
+
+    <div class="botoes">
+      <a class="botao cheio" id="bt-ligar" href="#">
+        <span class="icone" aria-hidden="true">☎</span> Ligar para o posto
+      </a>
+      <a class="botao" id="bt-mapa" href="#" target="_blank" rel="noopener">
+        <span class="icone" aria-hidden="true">📍</span> Ver no mapa
+      </a>
+    </div>
+  </div>
+</section>
+
+<main class="wrap">
+
+  <!-- ---------------------------- AVISOS ------------------------ -->
+  <section class="secao">
+    <h2>Avisos de hoje</h2>
+    <p class="ajuda">Coisas que mudaram e você precisa saber antes de vir.</p>
+    <div id="avisos"></div>
+  </section>
+
+  <!-- --------------------------- SERVIÇOS ----------------------- -->
+  <section class="secao">
+    <h2>O que você precisa?</h2>
+    <p class="ajuda">Toque em “Ver os dias da semana” para saber quando cada serviço atende.</p>
+    <div id="servicos"></div>
+  </section>
+
+  <!-- --------------------------- URGÊNCIA ----------------------- -->
+  <section class="secao">
+    <h2>Passando mal? Precisa de ajuda agora?</h2>
+    <p class="ajuda">O posto não atende emergência. Nestes casos, procure um destes lugares.</p>
+
+    <div class="urgencia">
+      <h2>Atendimento a qualquer hora</h2>
+      <p class="sub">Aberto de dia e de noite, inclusive sábado e domingo.</p>
+
+      <a class="samu" id="samu" href="#">
+        <span class="num" id="samu-num">192</span>
+        <span class="lab" id="samu-lab"></span>
+      </a>
+
+      <div id="lugares"></div>
+    </div>
+  </section>
+
+  <!-- -------------------------- ONDE FICA ----------------------- -->
+  <section class="secao">
+    <h2>Onde fica e telefones</h2>
+    <div class="cartao">
+      <div class="info">
+        <p class="info-rot">Endereço</p>
+        <p class="info-val" id="info-endereco"></p>
+      </div>
+      <div class="info">
+        <p class="info-rot">Telefone do posto</p>
+        <p class="info-val" id="info-telefone"></p>
+      </div>
+      <div class="info">
+        <p class="info-rot">Secretaria de Saúde</p>
+        <p class="info-val" id="info-secretaria"></p>
+      </div>
+      <div class="info">
+        <p class="info-rot">Localização</p>
+        <p class="info-val" id="info-mapa"></p>
+      </div>
+    </div>
+
+    <div class="fonte-dados" id="fonte-dados">Carregando horários…</div>
+  </section>
+
+  <p class="rodape" id="rodape"></p>
+</main>
+
+<!-- =================== BARRA DE TESTE ===========================
+     Fica escondida no site normal.
+     Para testar outros dias e horários, acesse o site com ?teste
+     no final do endereço. Exemplo:  meusite.vercel.app/?teste
+     ============================================================== -->
+<div class="teste">
+  <div class="teste-in">
+    <span class="teste-selo">Teste</span>
+    <div class="teste-ct">
+      <input type="date" id="data" aria-label="Data para testar">
+      <input type="range" id="hora" min="0" max="1425" step="15" value="600" aria-label="Hora para testar">
+      <span class="teste-h" id="lbl">10:00</span>
+      <button type="button" id="bt-agora">Agora</button>
+    </div>
+  </div>
+</div>
+
+<noscript>
+  <div class="wrap" style="padding-top:24px">
+    <div class="cartao">
+      <p class="info-val">UBS Paquetá — Rua Waldemar Hoffmann, sem número, bairro Paquetá, Brusque/SC.</p>
+      <p class="info-val" style="margin-top:12px">Telefone: (47) 2017-0548</p>
+      <p class="info-val" style="margin-top:12px">Atendimento de segunda a sexta, das 7h às 19h.</p>
+      <p class="info-val" style="margin-top:12px">Emergência a qualquer hora: ligue 192.</p>
+    </div>
+  </div>
+</noscript>
+
+<script>
+/* ======================================================================
+   TUDO DO SITE ESTA NESTE UNICO ARQUIVO.
+   Voce so precisa mexer no bloco CONFIG logo abaixo.
+   Da linha "FIM DA PARTE QUE VOCE EDITA" para baixo, nao precisa mexer.
+   ====================================================================== */
+
+/* ============================================================================
+   CONFIGURACAO DA UNIDADE
+   ----------------------------------------------------------------------------
+   ESTE É O ÚNICO ARQUIVO QUE VOCÊ PRECISA EDITAR.
+
+   Aqui ficam: o nome da unidade, endereço, telefones, o link da planilha
+   e os dados de reserva (usados se a planilha estiver fora do ar).
+
+   Para fazer o site de OUTRA UBS: copie a pasta inteira e mude só este arquivo.
+   ========================================================================== */
+
+const CONFIG = {
+
+  /* ---- 1. IDENTIFICAÇÃO DA UNIDADE ------------------------------------- */
+  unidade: {
+    orgao:    'Prefeitura de Brusque · Secretaria de Saúde',
+    nome:     'UBS Paquetá',
+    subtitulo:'Posto de saúde do bairro Paquetá',
+    endereco: 'Rua Waldemar Hoffmann, sem número',
+    bairro:   'Bairro Paquetá — Brusque/SC',
+    telefone: '(47) 2017-0548',
+    telefoneLink: '+554720170548',
+    secretaria:     '(47) 2017-0620',
+    secretariaLink: '+554720170620',
+    mapa: 'https://www.google.com/maps/search/?api=1&query=-27.141149,-48.923052'
+  },
+
+  /* ---- 2. PLANILHA DO GOOGLE ------------------------------------------- */
+  /*
+     Cole aqui só o ID da planilha (o pedaço do meio do endereço):
+
+     https://docs.google.com/spreadsheets/d/ 1AbC...XyZ /edit#gid=0
+                                             ^^^^^^^^^^ este pedaço
+
+     A planilha precisa ter duas abas: "servicos" e "avisos"
+     e estar compartilhada como "Qualquer pessoa com o link" → Leitor.
+
+     Enquanto estiver como está, o site usa os dados de reserva do item 4.
+  */
+  planilhaId:  'COLE_O_ID_DA_PLANILHA_AQUI',
+  abaServicos: 'servicos',
+  abaAvisos:   'avisos',
+
+  /* De quanto em quanto tempo o site relê a planilha (em minutos) */
+  recarregarACada: 5,
+
+  /* ---- 3. ONDE IR EM CASO DE URGÊNCIA ---------------------------------- */
+  urgencia: {
+    telefone: '192',
+    chamada:  'Ligue para o SAMU<br>em caso grave',
+    lugares: [
+      {
+        nome: 'Pronto Atendimento 24 horas',
+        det:  'Rua Vendelino Maffezzolli, 215 — bairro Santa Terezinha. Tem farmácia no local.',
+        hora: 'Aberto todos os dias, 24 horas'
+      },
+      {
+        nome: 'Hospital Azambuja e Hospital Dom Joaquim',
+        det:  'Atendem pelo SUS.',
+        hora: 'Aberto todos os dias, 24 horas'
+      },
+      {
+        nome: 'Sala de vacina da Policlínica',
+        det:  'Rua Prefeito Germano Schaefer, 66 — Centro. Se a sala do posto estiver fechada, você pode vacinar aqui.',
+        hora: 'Das 8 às 19 horas'
+      }
+    ]
+  },
+
+  /* ---- 4. DADOS DE RESERVA --------------------------------------------- */
+  /*
+     Usados quando a planilha ainda não foi configurada ou está fora do ar.
+     Mantenha estes dados razoavelmente atualizados: eles são a rede de
+     segurança para o site nunca aparecer vazio.
+  */
+  servicosReserva: [
+    { id:'consulta',   nome:'Consulta com médico',
+      para:'Para consultar quando está doente ou fazer acompanhamento.',
+      h:{seg:'07:00-19:00',ter:'07:00-19:00',qua:'07:00-19:00',qui:'07:00-19:00',sex:'07:00-19:00',sab:'',dom:''} },
+
+    { id:'enfermagem', nome:'Enfermagem',
+      para:'Para medir a pressão, tirar dúvidas e receber orientação.',
+      h:{seg:'07:00-19:00',ter:'07:00-19:00',qua:'07:00-19:00',qui:'07:00-19:00',sex:'07:00-19:00',sab:'',dom:''} },
+
+    { id:'vacina',     nome:'Sala de vacina',
+      para:'Para tomar vacina. Leve documento e a carteirinha de vacinação.',
+      h:{seg:'08:00-17:00',ter:'08:00-17:00',qua:'08:00-17:00',qui:'08:00-17:00',sex:'08:00-17:00',sab:'',dom:''} },
+
+    { id:'farmacia',   nome:'Farmácia',
+      para:'Para pegar remédio. Leve a receita e o cartão do SUS.',
+      h:{seg:'07:00-19:00',ter:'07:00-19:00',qua:'07:00-19:00',qui:'07:00-19:00',sex:'07:00-19:00',sab:'',dom:''} },
+
+    { id:'curativo',   nome:'Curativo e injeção',
+      para:'Para fazer curativo, tomar injeção ou tirar pontos.',
+      h:{seg:'07:00-19:00',ter:'07:00-19:00',qua:'07:00-19:00',qui:'07:00-19:00',sex:'07:00-19:00',sab:'',dom:''} },
+
+    { id:'exame',      nome:'Coleta de exame de sangue',
+      para:'Venha em jejum, sem comer. Só de manhã cedo.',
+      h:{seg:'07:00-09:30',ter:'07:00-09:30',qua:'07:00-09:30',qui:'07:00-09:30',sex:'07:00-09:30',sab:'',dom:''} },
+
+    { id:'dentista',   nome:'Dentista',
+      para:'Precisa marcar antes. Ligue ou venha até o posto.',
+      h:{seg:'08:00-17:00',ter:'',qua:'08:00-17:00',qui:'',sex:'08:00-17:00',sab:'',dom:''} },
+
+    { id:'mulher',     nome:'Saúde da mulher',
+      para:'Preventivo, pré-natal e planejamento familiar.',
+      h:{seg:'',ter:'13:00-17:00',qua:'',qui:'13:00-17:00',sex:'',sab:'',dom:''} }
+  ],
+
+  avisosReserva: [
+    { tipo:'recado', servico:'',
+      titulo:'Neste sábado o posto do Paquetá não abre',
+      texto:'No sábado, dia 22 de agosto, tem Dia D de vacinação das 7 às 13 horas, mas só nos postos Águas Claras, Limeira Baixa, Dom Joaquim e São Luiz, e também na Policlínica. Leve documento e a carteirinha de vacinação. Não precisa marcar: é por ordem de chegada.',
+      inicio:'2026-08-22', fim:'2026-08-22', novo:'', atualizado:'18/08 às 9h' },
+
+    { tipo:'fechado', servico:'dentista',
+      titulo:'O dentista não vai atender',
+      texto:'A cadeira do dentista está quebrada e o conserto ainda não terminou. Se estiver com muita dor de dente, procure a Policlínica, no Centro.',
+      inicio:'2026-08-19', fim:'2026-08-21', novo:'', atualizado:'19/08 às 7h15' },
+
+    { tipo:'atencao', servico:'exame',
+      titulo:'Exame de sangue termina mais cedo na quinta',
+      texto:'Na quinta-feira a coleta encerra às 8 horas e 30 minutos, porque a equipe tem reunião. Chegue cedo.',
+      inicio:'2026-08-20', fim:'2026-08-20', novo:'07:00-08:30', atualizado:'19/08 às 7h30' }
+  ]
+};
+
+/* ======================================================================
+   FIM DA PARTE QUE VOCE EDITA
+   Daqui para baixo e a logica do site.
+   ====================================================================== */
+
+/* ===========================================================================
+   UBS Paquetá — lógica do site
+   ---------------------------------------------------------------------------
+   Você normalmente NÃO precisa mexer neste arquivo.
+   Para mudar textos, endereço, telefone ou a planilha, edite js/config.js
+   =========================================================================== */
+
+(function(){
+'use strict';
+
+/* --------------------------------------------------------- constantes -- */
+var K     = ['dom','seg','ter','qua','qui','sex','sab'];
+var NOME  = {seg:'Segunda-feira',ter:'Terça-feira',qua:'Quarta-feira',
+             qui:'Quinta-feira',sex:'Sexta-feira',sab:'Sábado',dom:'Domingo'};
+var CURTO = {seg:'segunda',ter:'terça',qua:'quarta',qui:'quinta',
+             sex:'sexta',sab:'sábado',dom:'domingo'};
+var ORD   = ['seg','ter','qua','qui','sex','sab','dom'];
+
+var SERVICOS = CONFIG.servicosReserva;
+var AVISOS   = CONFIG.avisosReserva;
+var ORIGEM   = 'reserva';   /* 'planilha' | 'reserva' | 'erro' */
+
+/* ------------------------------------------------------------ ajudas -- */
+function mm(t){ var p = t.split(':'); return Number(p[0])*60 + Number(p[1]); }
+function hh(v){
+  return String(Math.floor(v/60)).padStart(2,'0') + ':' + String(v%60).padStart(2,'0');
+}
+/* "07:00" vira "7h"; "08:30" vira "8h30" — jeito que as pessoas falam */
+function hf(t){
+  var p = t.split(':');
+  return p[1] === '00' ? Number(p[0]) + 'h' : Number(p[0]) + 'h' + p[1];
+}
+function fala(f){
+  return f ? 'das ' + hf(f.split('-')[0]) + ' às ' + hf(f.split('-')[1]) : 'Fechado';
+}
+function iso(d){
+  return d.getFullYear() + '-' +
+         String(d.getMonth()+1).padStart(2,'0') + '-' +
+         String(d.getDate()).padStart(2,'0');
+}
+function brData(s){ return s.split('-').reverse().join('/'); }
+
+/* Evita que texto vindo da planilha quebre a página */
+function limpo(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+/* ------------------------------------------------------- leitor de CSV -- */
+/* Respeita vírgulas dentro de aspas, para os textos longos dos avisos. */
+function lerCSV(txt){
+  var linhas = [], campo = '', linha = [], aspas = false, i, c;
+  for(i = 0; i < txt.length; i++){
+    c = txt[i];
+    if(aspas){
+      if(c === '"'){
+        if(txt[i+1] === '"'){ campo += '"'; i++; } else { aspas = false; }
+      } else { campo += c; }
+    } else {
+      if(c === '"'){ aspas = true; }
+      else if(c === ','){ linha.push(campo); campo = ''; }
+      else if(c === '\n'){ linha.push(campo); linhas.push(linha); linha = []; campo = ''; }
+      else if(c !== '\r'){ campo += c; }
+    }
+  }
+  if(campo !== '' || linha.length){ linha.push(campo); linhas.push(linha); }
+  return linhas;
+}
+
+/* Primeira linha do CSV vira o nome das colunas */
+function paraObjetos(txt){
+  var l = lerCSV(txt).filter(function(x){
+    return x.some(function(c){ return c.trim() !== ''; });
+  });
+  if(l.length < 2) return [];
+  var cab = l[0].map(function(c){ return c.trim().toLowerCase(); });
+  return l.slice(1).map(function(linha){
+    var o = {};
+    cab.forEach(function(nome, i){ o[nome] = (linha[i] || '').trim(); });
+    return o;
+  });
+}
+
+/* Aceita 19/08/2026, 19-08-2026 ou 2026-08-19 e devolve sempre 2026-08-19 */
+function normalizaData(s){
+  s = (s || '').trim();
+  if(!s) return null;
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  var m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if(m) return m[3] + '-' + m[2].padStart(2,'0') + '-' + m[1].padStart(2,'0');
+  var d = new Date(s);
+  return isNaN(d.getTime()) ? null : iso(d);
+}
+
+/* Aceita "7h às 19h", "07:00-19:00", "7-19", "Fechado" — devolve "07:00-19:00" */
+function normalizaHorario(s){
+  s = (s || '').trim();
+  if(!s) return '';
+  if(/^fechado|^n[aã]o|^-$/i.test(s)) return '';
+  var n = s.replace(/h(?!\s*\d)/gi, ':00')
+           .replace(/h/gi, ':')
+           .replace(/\s*(às|as|até|ate|–|—|a)\s*/gi, '-')
+           .replace(/[^\d:\-]/g, '');
+  var p = n.split('-').filter(Boolean);
+  if(p.length < 2) return '';
+  function arruma(t){
+    var q = t.split(':');
+    var h = Number(q[0]), m = Number(q[1] || 0);
+    if(isNaN(h) || h > 23 || isNaN(m) || m > 59) return null;
+    return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+  }
+  var a = arruma(p[0]), b = arruma(p[1]);
+  return (a && b) ? a + '-' + b : '';
+}
+
+/* -------------------------------------------------- buscar a planilha -- */
+function urlCSV(aba){
+  return 'https://docs.google.com/spreadsheets/d/' + CONFIG.planilhaId +
+         '/gviz/tq?tqx=out:csv&sheet=' + encodeURIComponent(aba) +
+         '&t=' + Date.now();
+}
+
+function planilhaConfigurada(){
+  return CONFIG.planilhaId &&
+         CONFIG.planilhaId.indexOf('COLE_O_ID') !== 0 &&
+         CONFIG.planilhaId.length > 20;
+}
+
+function buscarPlanilha(){
+  if(!planilhaConfigurada()){
+    ORIGEM = 'reserva';
+    return Promise.resolve();
+  }
+  return Promise.all([
+    fetch(urlCSV(CONFIG.abaServicos)),
+    fetch(urlCSV(CONFIG.abaAvisos))
+  ]).then(function(r){
+    if(!r[0].ok || !r[1].ok) throw new Error('planilha não respondeu');
+    return Promise.all([r[0].text(), r[1].text()]);
+  }).then(function(t){
+    var servicos = paraObjetos(t[0]);
+    var avisos   = paraObjetos(t[1]);
+
+    var listaS = servicos.map(function(r){
+      return {
+        id:   r.id || r.nome,
+        nome: r.nome,
+        para: r.para || r.descricao || '',
+        h: {
+          seg:normalizaHorario(r.seg), ter:normalizaHorario(r.ter),
+          qua:normalizaHorario(r.qua), qui:normalizaHorario(r.qui),
+          sex:normalizaHorario(r.sex), sab:normalizaHorario(r.sab),
+          dom:normalizaHorario(r.dom)
+        }
+      };
+    }).filter(function(s){ return s.nome; });
+
+    /* Só troca se a planilha realmente trouxe serviços.
+       Assim uma planilha vazia por engano não apaga o site. */
+    if(listaS.length) SERVICOS = listaS;
+
+    AVISOS = avisos.map(function(r){
+      var ini = normalizaData(r.inicio || r.data_inicio);
+      return {
+        tipo:       (r.tipo || 'recado').toLowerCase().trim(),
+        servico:    (r.servico || r.servico_id || '').trim(),
+        titulo:     r.titulo || '',
+        texto:      r.texto || '',
+        inicio:     ini,
+        fim:        normalizaData(r.fim || r.data_fim) || ini,
+        novo:       normalizaHorario(r.novo || r.novo_horario),
+        atualizado: r.atualizado || ''
+      };
+    }).filter(function(a){ return a.titulo && a.inicio; });
+
+    ORIGEM = 'planilha';
+  }).catch(function(e){
+    console.error('Não consegui ler a planilha:', e);
+    ORIGEM = 'erro';
+  });
+}
+
+/* --------------------------------------------------- regras de horário -- */
+function avisosDoDia(dataISO){
+  return AVISOS.filter(function(a){
+    return a.inicio <= dataISO && dataISO <= (a.fim || a.inicio);
+  });
+}
+function avisoDe(id, dataISO){
+  var r = avisosDoDia(dataISO).filter(function(a){ return a.servico === id; });
+  return r.length ? r[0] : null;
+}
+
+function situacao(s, diaKey, dataISO, agora){
+  var av = avisoDe(s.id, dataISO);
+  var padrao = s.h[diaKey];
+
+  if(av && av.tipo === 'fechado')
+    return {cls:'alerta', sinal:'✕', palavra:'Fechado hoje', faixa:padrao, nova:null, av:av};
+
+  var f = (av && av.tipo === 'atencao' && av.novo) ? av.novo : padrao;
+  if(!f)
+    return {cls:'off', sinal:'✕', palavra:'Não atende hoje', faixa:null, nova:null, av:null};
+
+  var p = f.split('-');
+  var ini = mm(p[0]), fim = mm(p[1]);
+  var aberto = agora >= ini && agora < fim;
+  var antes  = agora < ini;
+
+  if(av && av.tipo === 'atencao' && av.novo)
+    return {
+      cls: aberto ? 'atencao' : 'off',
+      sinal: aberto ? '!' : '✕',
+      palavra: aberto ? 'Aberto, mas fecha mais cedo'
+                      : (antes ? 'Abre às ' + hf(p[0]) : 'Já fechou hoje'),
+      faixa:padrao, nova:f, av:av
+    };
+
+  return {
+    cls: aberto ? 'on' : 'off',
+    sinal: aberto ? '✓' : '✕',
+    palavra: aberto ? 'Aberto agora' : (antes ? 'Abre às ' + hf(p[0]) : 'Já fechou hoje'),
+    faixa:f, nova:null, av:null
+  };
+}
+
+function proximoDia(s, data){
+  for(var k = 1; k <= 7; k++){
+    var d = new Date(data.getTime());
+    d.setDate(d.getDate() + k);
+    var key = K[d.getDay()];
+    var a = avisoDe(s.id, iso(d));
+    if(s.h[key] && (!a || a.tipo !== 'fechado'))
+      return {key:key, faixa:s.h[key], amanha:(k === 1)};
+  }
+  return null;
+}
+
+/* ------------------------------------------- partes fixas (do config) -- */
+function montarFixos(){
+  var u = CONFIG.unidade;
+
+  document.getElementById('orgao').textContent     = u.orgao;
+  document.getElementById('nome-unidade').textContent = u.nome;
+  document.getElementById('subtitulo').textContent = u.subtitulo;
+  document.title = u.nome + ' — Está aberta agora?';
+
+  var bt = document.getElementById('bt-ligar');
+  bt.href = 'tel:' + u.telefoneLink;
+  document.getElementById('bt-mapa').href = u.mapa;
+
+  document.getElementById('info-endereco').innerHTML =
+    limpo(u.endereco) + '<br>' + limpo(u.bairro);
+  document.getElementById('info-telefone').innerHTML =
+    '<a href="tel:' + limpo(u.telefoneLink) + '">' + limpo(u.telefone) + '</a>';
+  document.getElementById('info-secretaria').innerHTML =
+    '<a href="tel:' + limpo(u.secretariaLink) + '">' + limpo(u.secretaria) + '</a>';
+  document.getElementById('info-mapa').innerHTML =
+    '<a href="' + limpo(u.mapa) + '" target="_blank" rel="noopener">Abrir o mapa no celular</a>';
+
+  var ur = CONFIG.urgencia;
+  document.getElementById('samu').href = 'tel:' + ur.telefone;
+  document.getElementById('samu-num').textContent = ur.telefone;
+  document.getElementById('samu-lab').innerHTML = ur.chamada;
+
+  document.getElementById('lugares').innerHTML = ur.lugares.map(function(l){
+    return '<div class="lugar">' +
+      '<p class="lugar-nome">' + limpo(l.nome) + '</p>' +
+      '<p class="lugar-det">' + limpo(l.det) + '</p>' +
+      '<span class="lugar-hora">' + limpo(l.hora) + '</span></div>';
+  }).join('');
+
+  document.getElementById('rodape').textContent =
+    'Página cuidada pela equipe da ' + u.nome + '.';
+}
+
+/* --------------------------------------------------- desenhar a página -- */
+function desenhar(data, agora){
+  var diaKey  = K[data.getDay()];
+  var dataISO = iso(data);
+  var base = SERVICOS[0];
+  if(!base) return;
+
+  var st = situacao(base, diaKey, dataISO, agora);
+  var aberta = (st.cls === 'on');
+  var cx = document.getElementById('status');
+
+  if(aberta){
+    cx.innerHTML =
+      '<div class="cartao-status sim">' +
+        '<div class="marca" aria-hidden="true">✓</div>' +
+        '<p class="status-palavra">O posto está aberto</p>' +
+        '<p class="status-detalhe">Fecha hoje às ' + hf(st.faixa.split('-')[1]) + '</p>' +
+        '<p class="status-hoje">Hoje é ' + NOME[diaKey].toLowerCase() + ', ' + hf(hh(agora)) + '</p>' +
+      '</div>';
+  } else {
+    var p = proximoDia(base, data);
+    var antes = st.faixa && agora < mm(st.faixa.split('-')[0]);
+    var quando = '';
+    if(antes) quando = 'Abre hoje às ' + hf(st.faixa.split('-')[0]);
+    else if(p) quando = 'Abre ' + (p.amanha ? 'amanhã' : 'na ' + CURTO[p.key]) +
+                        ' às ' + hf(p.faixa.split('-')[0]);
+    cx.innerHTML =
+      '<div class="cartao-status nao">' +
+        '<div class="marca" aria-hidden="true">✕</div>' +
+        '<p class="status-palavra">O posto está fechado</p>' +
+        '<p class="status-detalhe">' + quando + '</p>' +
+        '<p class="status-hoje">Hoje é ' + NOME[diaKey].toLowerCase() + ', ' + hf(hh(agora)) +
+        '. Se for urgente, ligue ' + CONFIG.urgencia.telefone + '.</p>' +
+      '</div>';
+  }
+
+  /* avisos */
+  var ativos = avisosDoDia(dataISO);
+  var box = document.getElementById('avisos');
+  if(!ativos.length){
+    box.innerHTML =
+      '<div class="tudo-certo"><span class="ok" aria-hidden="true">✓</span>' +
+      '<p>Hoje está tudo funcionando no horário de sempre. Nenhum serviço fechado.</p></div>';
+  } else {
+    box.innerHTML = ativos.map(function(a){
+      var cls  = a.tipo === 'atencao' ? 'atencao' : (a.tipo === 'recado' ? 'recado' : '');
+      var selo = a.tipo === 'atencao' ? '⚠ Mudou o horário'
+               : (a.tipo === 'recado' ? 'ⓘ Recado' : '✕ Fechado');
+      var per  = (a.fim && a.fim !== a.inicio)
+               ? 'De ' + brData(a.inicio) + ' até ' + brData(a.fim)
+               : 'Dia ' + brData(a.inicio);
+      return '<div class="aviso ' + cls + '">' +
+        '<span class="av-tarja">' + selo + '</span>' +
+        '<p class="av-titulo">' + limpo(a.titulo) + '</p>' +
+        '<p class="av-texto">' + limpo(a.texto) +
+          (a.novo ? ' Novo horário: <strong>' + fala(a.novo) + '</strong>.' : '') + '</p>' +
+        '<p class="av-quando">Quando: ' + per +
+          (a.atualizado ? ' · Avisado em ' + limpo(a.atualizado) : '') + '</p>' +
+      '</div>';
+    }).join('');
+  }
+
+  /* serviços */
+  document.getElementById('servicos').innerHTML = SERVICOS.map(function(s){
+    var t = situacao(s, diaKey, dataISO, agora);
+    var hora;
+    if(t.cls === 'alerta')      hora = '<s>' + fala(t.faixa) + '</s>';
+    else if(t.nova)             hora = '<s>' + fala(t.faixa) + '</s> → <strong>' + fala(t.nova) + '</strong>';
+    else if(t.faixa)            hora = 'Hoje ' + fala(t.faixa);
+    else {
+      var pr = proximoDia(s, data);
+      hora = pr ? 'Volta a atender ' + (pr.amanha ? 'amanhã' : 'na ' + CURTO[pr.key]) : '';
+    }
+
+    var motivo = t.av
+      ? '<div class="sv-motivo ' + (t.av.tipo === 'atencao' ? 'atencao' : '') + '">' +
+        limpo(t.av.texto) + '</div>'
+      : '';
+
+    var semana = ORD.map(function(k){
+      var v = s.h[k] ? fala(s.h[k]) : 'Não atende';
+      return '<div class="semana-l ' + (k === diaKey ? 'hoje' : '') + '">' +
+        '<span class="dia">' + NOME[k] + (k === diaKey ? ' — hoje' : '') + '</span>' +
+        '<span class="val">' + v + '</span></div>';
+    }).join('');
+
+    return '<article class="servico ' + (t.cls === 'alerta' ? 'fechado-hoje' : '') + '">' +
+      '<div class="sv-topo">' +
+        '<h3 class="sv-nome">' + limpo(s.nome) + '</h3>' +
+        '<p class="sv-para">' + limpo(s.para) + '</p>' +
+        '<div class="sv-estado ' + t.cls + '">' +
+          '<span class="sv-sinal" aria-hidden="true">' + t.sinal + '</span>' +
+          '<span class="sv-txt">' +
+            '<span class="sv-palavra">' + t.palavra + '</span>' +
+            '<span class="sv-hora">' + hora + '</span>' +
+          '</span>' +
+        '</div>' +
+      '</div>' + motivo +
+      '<details class="semana"><summary>Ver os dias da semana</summary>' +
+        '<div class="semana-lista">' + semana + '</div></details>' +
+    '</article>';
+  }).join('');
+
+  /* de onde vieram os dados */
+  var fd = document.getElementById('fonte-dados');
+  var agoraTxt = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+  if(ORIGEM === 'planilha'){
+    fd.className = 'fonte-dados';
+    fd.textContent = 'Horários e avisos carregados da planilha da unidade às ' + agoraTxt + '.';
+  } else if(ORIGEM === 'erro'){
+    fd.className = 'fonte-dados erro';
+    fd.textContent = 'Não foi possível carregar a planilha agora. A página está mostrando os ' +
+      'últimos horários conhecidos. Em caso de dúvida, ligue para o posto: ' +
+      CONFIG.unidade.telefone + '.';
+  } else {
+    fd.className = 'fonte-dados';
+    fd.textContent = 'Esta página está usando os dados internos do site. ' +
+      'A planilha da unidade ainda não foi configurada.';
+  }
+}
+
+/* ------------------------------------------------------- os controles -- */
+var campoData, campoHora, lbl;
+
+function atualiza(){
+  var v = Number(campoHora.value);
+  lbl.textContent = hh(v);
+  var p = campoData.value.split('-').map(Number);
+  desenhar(new Date(p[0], p[1]-1, p[2]), v);
+}
+
+function usarAgora(){
+  var d = new Date();
+  campoData.value = iso(d);
+  campoHora.value = Math.round((d.getHours()*60 + d.getMinutes())/15)*15;
+  atualiza();
+}
+
+function iniciar(){
+  montarFixos();
+
+  /* botões de tamanho de letra */
+  var botoes = document.querySelectorAll('.letra button');
+  Array.prototype.forEach.call(botoes, function(b){
+    b.addEventListener('click', function(){
+      Array.prototype.forEach.call(botoes, function(o){
+        o.setAttribute('aria-pressed','false');
+      });
+      b.setAttribute('aria-pressed','true');
+      document.documentElement.style.setProperty('--esc', b.dataset.esc);
+    });
+  });
+
+  campoData = document.getElementById('data');
+  campoHora = document.getElementById('hora');
+  lbl       = document.getElementById('lbl');
+
+  /* A barra de teste só aparece se o endereço terminar com ?teste */
+  if(location.search.indexOf('teste') !== -1){
+    document.body.classList.add('com-teste');
+    campoData.addEventListener('input', atualiza);
+    campoHora.addEventListener('input', atualiza);
+    document.getElementById('bt-agora').addEventListener('click', usarAgora);
+  }
+
+  document.getElementById('status').innerHTML =
+    '<div class="cartao-status carregando">' +
+      '<div class="marca" aria-hidden="true">…</div>' +
+      '<p class="status-palavra">Carregando horários</p>' +
+      '<p class="status-detalhe">Um momento, por favor.</p>' +
+    '</div>';
+
+  buscarPlanilha().then(function(){
+    usarAgora();
+
+    /* relê a planilha de tempos em tempos, para pegar avisos novos */
+    setInterval(function(){
+      buscarPlanilha().then(atualiza);
+    }, (CONFIG.recarregarACada || 5) * 60 * 1000);
+
+    /* atualiza o relógio na virada de cada minuto, se não estiver testando */
+    setInterval(function(){
+      if(!document.body.classList.contains('com-teste')) usarAgora();
+    }, 60 * 1000);
+
+    /* quando a pessoa volta para a aba, recalcula na hora */
+    document.addEventListener('visibilitychange', function(){
+      if(!document.hidden && !document.body.classList.contains('com-teste')){
+        buscarPlanilha().then(usarAgora);
+      }
+    });
+  });
+}
+
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', iniciar);
+} else {
+  iniciar();
+}
+
+})();
+
+</script>
+</body>
+</html>
