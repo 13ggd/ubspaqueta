@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>UBS Paquetá — Está aberta agora?</title>
+<meta name="description" content="Horários, avisos e telefones da Unidade Básica de Saúde do bairro Paquetá, em Brusque, Santa Catarina.">
+<meta name="theme-color" content="#02301A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/estilo.css">
+</head>
+<body>
+
+<!-- ============================ TOPO ============================ -->
+<header class="topo">
+  <div class="wrap">
+    <p class="orgao" id="orgao"></p>
+    <h1 id="nome-unidade">UBS Paquetá</h1>
+    <p class="subtitulo" id="subtitulo"></p>
+
+    <div class="letra">
+      <span class="letra-rot">Tamanho da letra:</span>
+      <div class="letra-btns" role="group" aria-label="Escolher o tamanho da letra">
+        <button type="button" class="a1" data-esc="1"    aria-pressed="true"  aria-label="Letra normal">A</button>
+        <button type="button" class="a2" data-esc="1.22" aria-pressed="false" aria-label="Letra grande">A</button>
+        <button type="button" class="a3" data-esc="1.45" aria-pressed="false" aria-label="Letra muito grande">A</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ==================== RESPOSTA PRINCIPAL ====================== -->
+<section class="resposta">
+  <div class="wrap">
+    <div id="status" aria-live="polite"></div>
+
+    <div class="botoes">
+      <a class="botao cheio" id="bt-ligar" href="#">
+        <span class="icone" aria-hidden="true">☎</span> Ligar para o posto
+      </a>
+      <a class="botao" id="bt-mapa" href="#" target="_blank" rel="noopener">
+        <span class="icone" aria-hidden="true">📍</span> Ver no mapa
+      </a>
+    </div>
+  </div>
+</section>
+
+<main class="wrap">
+
+  <!-- ---------------------------- AVISOS ------------------------ -->
+  <section class="secao">
+    <h2>Avisos de hoje</h2>
+    <p class="ajuda">Coisas que mudaram e você precisa saber antes de vir.</p>
+    <div id="avisos"></div>
+  </section>
+
+  <!-- --------------------------- SERVIÇOS ----------------------- -->
+  <section class="secao">
+    <h2>O que você precisa?</h2>
+    <p class="ajuda">Toque em “Ver os dias da semana” para saber quando cada serviço atende.</p>
+    <div id="servicos"></div>
+  </section>
+
+  <!-- --------------------------- URGÊNCIA ----------------------- -->
+  <section class="secao">
+    <h2>Passando mal? Precisa de ajuda agora?</h2>
+    <p class="ajuda">O posto não atende emergência. Nestes casos, procure um destes lugares.</p>
+
+    <div class="urgencia">
+      <h2>Atendimento a qualquer hora</h2>
+      <p class="sub">Aberto de dia e de noite, inclusive sábado e domingo.</p>
+
+      <a class="samu" id="samu" href="#">
+        <span class="num" id="samu-num">192</span>
+        <span class="lab" id="samu-lab"></span>
+      </a>
+
+      <div id="lugares"></div>
+    </div>
+  </section>
+
+  <!-- -------------------------- ONDE FICA ----------------------- -->
+  <section class="secao">
+    <h2>Onde fica e telefones</h2>
+    <div class="cartao">
+      <div class="info">
+        <p class="info-rot">Endereço</p>
+        <p class="info-val" id="info-endereco"></p>
+      </div>
+      <div class="info">
+        <p class="info-rot">Telefone do posto</p>
+        <p class="info-val" id="info-telefone"></p>
+      </div>
+      <div class="info">
+        <p class="info-rot">Secretaria de Saúde</p>
+        <p class="info-val" id="info-secretaria"></p>
+      </div>
+      <div class="info">
+        <p class="info-rot">Localização</p>
+        <p class="info-val" id="info-mapa"></p>
+      </div>
+    </div>
+
+    <div class="fonte-dados" id="fonte-dados">Carregando horários…</div>
+  </section>
+
+  <p class="rodape" id="rodape"></p>
+</main>
+
+<!-- =================== BARRA DE TESTE ===========================
+     Fica escondida no site normal.
+     Para testar outros dias e horários, acesse o site com ?teste
+     no final do endereço. Exemplo:  meusite.vercel.app/?teste
+     ============================================================== -->
+<div class="teste">
+  <div class="teste-in">
+    <span class="teste-selo">Teste</span>
+    <div class="teste-ct">
+      <input type="date" id="data" aria-label="Data para testar">
+      <input type="range" id="hora" min="0" max="1425" step="15" value="600" aria-label="Hora para testar">
+      <span class="teste-h" id="lbl">10:00</span>
+      <button type="button" id="bt-agora">Agora</button>
+    </div>
+  </div>
+</div>
+
+<noscript>
+  <div class="wrap" style="padding-top:24px">
+    <div class="cartao">
+      <p class="info-val">UBS Paquetá — Rua Waldemar Hoffmann, sem número, bairro Paquetá, Brusque/SC.</p>
+      <p class="info-val" style="margin-top:12px">Telefone: (47) 2017-0548</p>
+      <p class="info-val" style="margin-top:12px">Atendimento de segunda a sexta, das 7h às 19h.</p>
+      <p class="info-val" style="margin-top:12px">Emergência a qualquer hora: ligue 192.</p>
+    </div>
+  </div>
+</noscript>
+
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

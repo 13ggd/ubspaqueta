@@ -1,0 +1,9 @@
+id,nome,para,seg,ter,qua,qui,sex,sab,dom
+consulta,Consulta com médico,Para consultar quando está doente ou fazer acompanhamento.,07:00-19:00,07:00-19:00,07:00-19:00,07:00-19:00,07:00-19:00,,
+enfermagem,Enfermagem,"Para medir a pressão, tirar dúvidas e receber orientação.",07:00-19:00,07:00-19:00,07:00-19:00,07:00-19:00,07:00-19:00,,
+vacina,Sala de vacina,Para tomar vacina. Leve documento e a carteirinha de vacinação.,08:00-17:00,08:00-17:00,08:00-17:00,08:00-17:00,08:00-17:00,,
+farmacia,Farmácia,Para pegar remédio. Leve a receita e o cartão do SUS.,07:00-19:00,07:00-19:00,07:00-19:00,07:00-19:00,07:00-19:00,,
+curativo,Curativo e injeção,"Para fazer curativo, tomar injeção ou tirar pontos.",07:00-19:00,07:00-19:00,07:00-19:00,07:00-19:00,07:00-19:00,,
+exame,Coleta de exame de sangue,"Venha em jejum, sem comer. Só de manhã cedo.",07:00-09:30,07:00-09:30,07:00-09:30,07:00-09:30,07:00-09:30,,
+dentista,Dentista,Precisa marcar antes. Ligue ou venha até o posto.,08:00-17:00,,08:00-17:00,,08:00-17:00,,
+mulher,Saúde da mulher,"Preventivo, pré-natal e planejamento familiar.",,13:00-17:00,,13:00-17:00,,,
