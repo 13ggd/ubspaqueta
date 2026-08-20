@@ -390,6 +390,11 @@ body.alto-contraste .pessoa-foto{background:#052012;color:#00E676}
 .pessoa-nome{font-size:calc(19px * var(--esc));font-weight:700;line-height:1.25}
 .pessoa-funcao{font-size:calc(16px * var(--esc));color:var(--tinta2);margin-top:2px;line-height:1.35}
 .pessoa-obs{font-size:calc(14.5px * var(--esc));color:var(--tinta2);margin-top:4px;line-height:1.4}
+.pessoa-ausente{
+  font-size:calc(14.5px * var(--esc));font-weight:700;color:var(--alerta-cartao);
+  margin-top:6px;line-height:1.4;
+}
+.pessoa-com-falta{border-color:var(--alerta);border-width:3px}
 
 /* ------------------------------------------------------------ URGÊNCIA -- */
 .urgencia{background:var(--verde-escuro);color:#fff;border-radius:16px;padding:20px 16px}
@@ -770,15 +775,28 @@ const CONFIG = {
      https://docs.google.com/spreadsheets/d/ 1AbC...XyZ /edit#gid=0
                                              ^^^^^^^^^^ este pedaço
 
-     A planilha precisa ter três abas: "servicos", "avisos" e "equipe"
-     e estar compartilhada como "Qualquer pessoa com o link" → Leitor.
+     A planilha precisa ter quatro abas: "servicos", "mudancas-horario",
+     "recados" e "equipe" — e estar compartilhada como "Qualquer pessoa
+     com o link" → Leitor.
+
+     Por que "mudancas-horario" e "recados" são abas separadas (em vez de
+     uma única aba "avisos" com um tipo pra escolher): assim ninguém
+     precisa decidir entre palavras parecidas tipo "atenção" e "recado" —
+     cada aba já diz pra que serve. E o nome "mudancas-horario" (em vez de
+     só "horarios") é de propósito: o horário padrão de cada dia mora na
+     aba "servicos" — esta aqui é só sobre o que muda hoje em relação a
+     ele. Na aba "mudancas-horario", nem precisa escolher se é fechamento
+     ou mudança de horário: se a coluna "novo" tiver um horário, mudou;
+     se estiver vazia, fechou o dia todo.
 
      Enquanto estiver como está, o site usa os dados de reserva do item 4.
   */
   planilhaId:  '1-RLhGWQlNl64BDa4kfpCRz1dgagQgoZB9cSce8Ob0jU',
   abaServicos: 'servicos',
-  abaAvisos:   'avisos',
+  abaHorarios: 'mudancas-horario',
+  abaRecados:  'recados',
   abaEquipe:   'equipe',
+  abaFaltas:   'faltas',
 
   /* De quanto em quanto tempo o site relê a planilha (em minutos) */
   recarregarACada: 5,
@@ -879,18 +897,30 @@ const CONFIG = {
      O campo "equipe" agrupa as pessoas por time (Equipe 1, Equipe 2...).
      Se você deixar esse campo vazio para todo mundo, o site mostra uma
      lista única, sem separar por time.
+
+     O campo "setor" liga a pessoa a um id da aba "servicos" (o mesmo id
+     usado em "mudancas-horario"). É o que permite o fechamento automático
+     quando alguém falta — veja a aba "faltas" logo abaixo. Pode ter mais
+     de um setor, separado por vírgula. Deixe vazio se a pessoa não estiver
+     ligada a nenhum setor específico (ex: recepção).
   */
   equipeReserva: [
-    { nome:'(nome de exemplo)', funcao:'Médica de família', equipe:'Equipe 1', foto:'', obs:'' },
-    { nome:'(nome de exemplo)', funcao:'Enfermeira',        equipe:'Equipe 1', foto:'', obs:'' },
-    { nome:'(nome de exemplo)', funcao:'Técnica de enfermagem', equipe:'Equipe 1', foto:'', obs:'' },
+    { nome:'(nome de exemplo)', funcao:'Médica de família', equipe:'Equipe 1', setor:'consulta',   foto:'', obs:'' },
+    { nome:'(nome de exemplo)', funcao:'Enfermeira',        equipe:'Equipe 1', setor:'enfermagem', foto:'', obs:'' },
+    { nome:'(nome de exemplo)', funcao:'Técnica de enfermagem', equipe:'Equipe 1', setor:'enfermagem', foto:'', obs:'' },
 
-    { nome:'(nome de exemplo)', funcao:'Médico de família', equipe:'Equipe 2', foto:'', obs:'' },
-    { nome:'(nome de exemplo)', funcao:'Enfermeiro',        equipe:'Equipe 2', foto:'', obs:'' },
+    { nome:'(nome de exemplo)', funcao:'Médico de família', equipe:'Equipe 2', setor:'consulta', foto:'', obs:'' },
+    { nome:'(nome de exemplo)', funcao:'Enfermeiro',        equipe:'Equipe 2', setor:'',          foto:'', obs:'' },
 
-    { nome:'(nome de exemplo)', funcao:'Dentista', equipe:'Equipe 3', foto:'', obs:'Atende às segundas, quartas e sextas' },
-    { nome:'(nome de exemplo)', funcao:'Recepção e acolhimento', equipe:'', foto:'', obs:'' }
-  ]
+    { nome:'(nome de exemplo)', funcao:'Dentista', equipe:'Equipe 3', setor:'dentista', foto:'', obs:'Atende às segundas, quartas e sextas' },
+    { nome:'(nome de exemplo)', funcao:'Recepção e acolhimento', equipe:'', setor:'', foto:'', obs:'' }
+  ],
+
+  /* ---- 6. FALTAS (EXEMPLO) ----------------------------------------------
+     Vazio por padrão — só é usado se a planilha estiver fora do ar.
+     Veja a aba "faltas" na planilha para o uso real.
+  */
+  faltasReserva: []
 };
 
 /* ======================================================================
@@ -919,7 +949,9 @@ var ORD   = ['seg','ter','qua','qui','sex','sab','dom'];
 var SERVICOS = CONFIG.servicosReserva;
 var AVISOS   = CONFIG.avisosReserva;
 var EQUIPE   = CONFIG.equipeReserva;
+var FALTAS   = CONFIG.faltasReserva;
 var ORIGEM   = 'reserva';   /* 'planilha' | 'reserva' | 'erro' */
+var AVISOS_DA_PLANILHA = false;   /* true só quando horarios ou recados vieram da planilha de verdade */
 
 /* --------------------------------------------------------- favicon -- */
 /* Troca o ícone da aba do navegador por um emoji. Desenha o emoji num
@@ -965,7 +997,13 @@ function hf(t){
   return p[1] === '00' ? Number(p[0]) + 'h' : Number(p[0]) + 'h' + p[1];
 }
 function fala(f){
-  return f ? 'das ' + hf(f.split('-')[0]) + ' às ' + hf(f.split('-')[1]) : 'Fechado';
+  if(!f) return 'Fechado';
+  /* Um serviço pode ter mais de um bloco no dia (ex: fecha pro almoço).
+     Cada bloco vem separado por vírgula: "07:00-12:00,13:00-19:00". */
+  return f.split(',').map(function(bloco){
+    var p = bloco.split('-');
+    return 'das ' + hf(p[0]) + ' às ' + hf(p[1]);
+  }).join(' e ');
 }
 function iso(d){
   return d.getFullYear() + '-' +
@@ -1027,25 +1065,33 @@ function normalizaData(s){
   return isNaN(d.getTime()) ? null : iso(d);
 }
 
-/* Aceita "7h às 19h", "07:00-19:00", "7-19", "Fechado" — devolve "07:00-19:00" */
+/* Aceita "7h às 19h", "07:00-19:00", "7-19", "Fechado" — devolve "07:00-19:00".
+   Também aceita mais de um bloco no mesmo dia, separados por vírgula —
+   útil pra representar horário de almoço: "7h às 12h, 13h às 19h" vira
+   "07:00-12:00,13:00-19:00". */
 function normalizaHorario(s){
   s = (s || '').trim();
   if(!s) return '';
   if(/^fechado|^n[aã]o|^-$/i.test(s)) return '';
-  var n = s.replace(/h(?!\s*\d)/gi, ':00')
-           .replace(/h/gi, ':')
-           .replace(/\s*(às|as|até|ate|–|—|a)\s*/gi, '-')
-           .replace(/[^\d:\-]/g, '');
-  var p = n.split('-').filter(Boolean);
-  if(p.length < 2) return '';
-  function arruma(t){
-    var q = t.split(':');
-    var h = Number(q[0]), m = Number(q[1] || 0);
-    if(isNaN(h) || h > 23 || isNaN(m) || m > 59) return null;
-    return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+
+  function normalizaUmBloco(bloco){
+    var n = bloco.replace(/h(?!\s*\d)/gi, ':00')
+                  .replace(/h/gi, ':')
+                  .replace(/\s*(às|as|até|ate|–|—|a)\s*/gi, '-')
+                  .replace(/[^\d:\-]/g, '');
+    var p = n.split('-').filter(Boolean);
+    if(p.length < 2) return '';
+    function arruma(t){
+      var q = t.split(':');
+      var h = Number(q[0]), m = Number(q[1] || 0);
+      if(isNaN(h) || h > 23 || isNaN(m) || m > 59) return null;
+      return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+    }
+    var a = arruma(p[0]), b = arruma(p[1]);
+    return (a && b) ? a + '-' + b : '';
   }
-  var a = arruma(p[0]), b = arruma(p[1]);
-  return (a && b) ? a + '-' + b : '';
+
+  return s.split(',').map(normalizaUmBloco).filter(Boolean).join(',');
 }
 
 /* -------------------------------------------------- buscar a planilha -- */
@@ -1071,13 +1117,6 @@ function planilhaConfigurada(){
          CONFIG.planilhaId.length > 20;
 }
 
-/* Tira acentos para comparar texto sem depender de como a pessoa digitou.
-   "Atenção", "atencao", "ATENÇÃO" viram todos "atencao". */
-function semAcento(s){
-  return String(s || '').toLowerCase().trim()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-}
-
 /* Lê a caixinha de marcar (checkbox) da planilha. O Google Sheets exporta
    como TRUE/FALSE ou, em planilhas em português, VERDADEIRO/FALSO —
    aceitamos os dois. Se a coluna estiver vazia ou não existir, considera
@@ -1095,17 +1134,13 @@ function buscarPlanilha(){
     return Promise.resolve();
   }
 
-  var principal = Promise.all([
-    buscarComLimite(urlCSV(CONFIG.abaServicos)),
-    buscarComLimite(urlCSV(CONFIG.abaAvisos))
-  ]).then(function(r){
-    if(!r[0].ok || !r[1].ok) throw new Error('planilha não respondeu');
-    return Promise.all([r[0].text(), r[1].text()]);
-  }).then(function(t){
-    var servicos = paraObjetos(t[0]);
-    var avisos   = paraObjetos(t[1]);
-
-    var listaS = servicos.map(function(r){
+  /* servicos é a única aba obrigatória — sem ela o site não sabe nada
+     sobre horários, então um erro aqui marca ORIGEM como 'erro'. */
+  var principal = buscarComLimite(urlCSV(CONFIG.abaServicos)).then(function(r){
+    if(!r.ok) throw new Error('planilha não respondeu');
+    return r.text();
+  }).then(function(txt){
+    var listaS = paraObjetos(txt).map(function(r){
       return {
         id:   r.id || r.nome,
         nome: r.nome,
@@ -1122,26 +1157,62 @@ function buscarPlanilha(){
     /* Só troca se a planilha realmente trouxe serviços.
        Assim uma planilha vazia por engano não apaga o site. */
     if(listaS.length) SERVICOS = listaS;
+    ORIGEM = 'planilha';
+  }).catch(function(e){
+    console.error('Não consegui ler servicos da planilha:', e);
+    ORIGEM = 'erro';
+  });
 
-    AVISOS = avisos.map(function(r){
-      var ini = normalizaData(r.inicio || r.data_inicio);
+  /* Aba "mudancas-horario": cada linha é sobre UM serviço específico. Se a coluna
+     "novo" tiver um horário, é mudança de horário; se estiver vazia, é
+     fechamento do dia todo. Não existe coluna "tipo" aqui de propósito —
+     tira a chance de escolher a opção errada. */
+  var horarios = buscarComLimite(urlCSV(CONFIG.abaHorarios)).then(function(r){
+    if(!r.ok) throw new Error('sem aba horarios');
+    return r.text();
+  }).then(function(txt){
+    return paraObjetos(txt).map(function(r){
+      var ini  = normalizaData(r.inicio || r.data_inicio);
+      var novo = normalizaHorario(r.novo || r.novo_horario);
       return {
-        tipo:       semAcento(r.tipo) || 'recado',
+        tipo:       novo ? 'atencao' : 'fechado',
         servico:    (r.servico || r.servico_id || '').trim(),
         titulo:     r.titulo || '',
         texto:      r.texto || '',
         inicio:     ini,
         fim:        normalizaData(r.fim || r.data_fim) || ini,
-        novo:       normalizaHorario(r.novo || r.novo_horario),
+        novo:       novo,
+        atualizado: r.atualizado || '',
+        ativo:      paraBooleano(r.ativo)
+      };
+    }).filter(function(a){ return a.titulo && a.servico; });
+  }).catch(function(e){
+    console.error('Não consegui ler horarios da planilha:', e);
+    return null;   /* null = "não deu pra ler", diferente de [] = "leu e está vazia" */
+  });
+
+  /* Aba "recados": avisos gerais, sem ligação com nenhum serviço. */
+  var recados = buscarComLimite(urlCSV(CONFIG.abaRecados)).then(function(r){
+    if(!r.ok) throw new Error('sem aba recados');
+    return r.text();
+  }).then(function(txt){
+    return paraObjetos(txt).map(function(r){
+      var ini = normalizaData(r.inicio || r.data_inicio);
+      return {
+        tipo:       'recado',
+        servico:    '',
+        titulo:     r.titulo || '',
+        texto:      r.texto || '',
+        inicio:     ini,
+        fim:        normalizaData(r.fim || r.data_fim) || ini,
+        novo:       '',
         atualizado: r.atualizado || '',
         ativo:      paraBooleano(r.ativo)
       };
     }).filter(function(a){ return a.titulo; });
-
-    ORIGEM = 'planilha';
   }).catch(function(e){
-    console.error('Não consegui ler servicos/avisos da planilha:', e);
-    ORIGEM = 'erro';
+    console.error('Não consegui ler recados da planilha:', e);
+    return null;
   });
 
   /* A aba "equipe" é buscada à parte: se ela ainda não existir, isso não
@@ -1155,6 +1226,7 @@ function buscarPlanilha(){
         nome:   r.nome || '',
         funcao: r.funcao || r['função'] || '',
         equipe: r.equipe || r.time || r.grupo || '',
+        setor:  r.setor || r.servico || '',
         foto:   r.foto || r.imagem || r.foto_url || '',
         obs:    r.obs || r.observacao || r['observação'] || ''
       };
@@ -1167,7 +1239,44 @@ function buscarPlanilha(){
     /* Sem aba equipe ainda — mantém os dados de reserva, sem barulho. */
   });
 
-  return Promise.all([principal, equipe]);
+  /* Aba "faltas": pessoa, motivo, inicio, fim, atualizado, ativo. Serve pra
+     duas coisas — mostrar "ausente hoje" no card da pessoa, e (só quando
+     ela for a ÚNICA pessoa ligada àquele setor) fechar o setor sozinho. */
+  var faltas = buscarComLimite(urlCSV(CONFIG.abaFaltas)).then(function(r){
+    if(!r.ok) throw new Error('sem aba faltas');
+    return r.text();
+  }).then(function(txt){
+    var lista = paraObjetos(txt).map(function(r){
+      var ini = normalizaData(r.inicio || r.data_inicio);
+      return {
+        pessoa:     (r.pessoa || r.nome || '').trim(),
+        motivo:     r.motivo || '',
+        inicio:     ini,
+        fim:        normalizaData(r.fim || r.data_fim) || ini,
+        atualizado: r.atualizado || '',
+        ativo:      paraBooleano(r.ativo)
+      };
+    }).filter(function(f){ return f.pessoa && f.inicio; });
+    FALTAS = lista;
+  }).catch(function(){
+    /* Sem aba faltas ainda — mantém os dados de reserva (vazio), sem barulho. */
+  });
+
+  return Promise.all([principal, horarios, recados, equipe, faltas]).then(function(res){
+    var h = res[1], r = res[2];
+    /* Só substitui os avisos de reserva se pelo menos uma das duas abas
+       (horarios ou recados) respondeu de verdade. Se as duas ainda não
+       existirem, mantém os avisos de exemplo, sem apagar nada. */
+    if(h !== null || r !== null){
+      AVISOS = (h || []).concat(r || []);
+      AVISOS_DA_PLANILHA = true;
+    } else {
+      AVISOS_DA_PLANILHA = false;
+    }
+    /* Depois de já ter AVISOS, EQUIPE e FALTAS todos atualizados, gera os
+       fechamentos automáticos de setor com uma só pessoa responsável. */
+    AVISOS = AVISOS.concat(sintetizarFechamentosPorFalta());
+  });
 }
 
 /* --------------------------------------------------- regras de horário -- */
@@ -1183,6 +1292,70 @@ function avisoDe(id, dataISO){
   return r.length ? r[0] : null;
 }
 
+/* Mesma ideia de avisosDoDia, mas para a aba "faltas". */
+function faltasDoDia(dataISO){
+  return FALTAS.filter(function(f){
+    if(f.ativo === false) return false;
+    return f.inicio <= dataISO && dataISO <= (f.fim || f.inicio);
+  });
+}
+function faltaDe(nomePessoa, dataISO){
+  var r = faltasDoDia(dataISO).filter(function(f){ return f.pessoa === nomePessoa; });
+  return r.length ? r[0] : null;
+}
+
+/* Lista os ids de setor de uma pessoa (o campo aceita mais de um,
+   separado por vírgula). */
+function setoresDe(pessoa){
+  return String(pessoa.setor || '').split(',')
+    .map(function(s){ return s.trim(); }).filter(Boolean);
+}
+
+/* O coração do fechamento automático por falta.
+   Regra: só fecha um setor sozinho quando ele tem EXATAMENTE uma pessoa
+   da equipe ligada a ele. Com duas ou mais, o site não tem como saber se
+   as outras estão cobrindo o dia — nesse caso só mostra "ausente hoje"
+   no card da pessoa, sem mexer no horário do setor (fica por conta de
+   alguém confirmar e, se for o caso, fechar manualmente pela aba
+   "mudancas-horario"). */
+function sintetizarFechamentosPorFalta(){
+  var sinteticos = [];
+
+  FALTAS.forEach(function(f){
+    if(f.ativo === false) return;
+
+    var pessoa = EQUIPE.filter(function(p){ return p.nome.trim() === f.pessoa; })[0];
+    if(!pessoa) return;
+
+    setoresDe(pessoa).forEach(function(setorId){
+      var cobertura = EQUIPE.filter(function(p){
+        return setoresDe(p).indexOf(setorId) !== -1;
+      });
+      if(cobertura.length !== 1) return;   /* mais de uma pessoa cobre esse setor */
+
+      /* já existe um aviso manual pro mesmo setor no mesmo período? não duplica */
+      var jaTem = AVISOS.some(function(a){
+        return a.servico === setorId && a.inicio === f.inicio && (a.fim || a.inicio) === (f.fim || f.inicio);
+      });
+      if(jaTem) return;
+
+      var servico = SERVICOS.filter(function(s){ return s.id === setorId; })[0];
+      var nomeServico = servico ? servico.nome : setorId;
+
+      sinteticos.push({
+        tipo:'fechado', servico:setorId,
+        titulo: nomeServico + ' não vai atender',
+        texto: pessoa.nome + ' está ausente hoje' + (f.motivo ? ' (' + f.motivo + ')' : '') +
+               '. Como é a única pessoa responsável por esse setor, não há atendimento.',
+        inicio: f.inicio, fim: f.fim || f.inicio,
+        novo:'', atualizado: f.atualizado || '', ativo:true
+      });
+    });
+  });
+
+  return sinteticos;
+}
+
 function situacao(s, diaKey, dataISO, agora){
   var av = avisoDe(s.id, dataISO);
   var padrao = s.h[diaKey];
@@ -1194,24 +1367,32 @@ function situacao(s, diaKey, dataISO, agora){
   if(!f)
     return {cls:'off', sinal:'✕', palavra:'Não atende hoje', faixa:null, nova:null, av:null};
 
-  var p = f.split('-');
-  var ini = mm(p[0]), fim = mm(p[1]);
-  var aberto = agora >= ini && agora < fim;
-  var antes  = agora < ini;
+  /* f pode ter mais de um bloco no dia (ex: fecha pro almoço) — olha
+     todos pra saber se está aberto agora, e qual é o próximo horário
+     de abertura (pode ser depois do almoço, não só amanhã). */
+  var blocos = f.split(',').map(function(b){
+    var p = b.split('-');
+    return {ini: mm(p[0]), fim: mm(p[1])};
+  });
+  var aberto = blocos.some(function(b){ return agora >= b.ini && agora < b.fim; });
+  var proximaAbertura = null;
+  blocos.forEach(function(b){
+    if(agora < b.ini && (proximaAbertura === null || b.ini < proximaAbertura)) proximaAbertura = b.ini;
+  });
 
   if(av && av.tipo === 'atencao' && av.novo)
     return {
       cls: aberto ? 'atencao' : 'off',
       sinal: aberto ? '!' : '✕',
-      palavra: aberto ? 'Aberto, mas fecha mais cedo'
-                      : (antes ? 'Abre às ' + hf(p[0]) : 'Já fechou hoje'),
+      palavra: aberto ? 'Aberto, com horário diferente hoje'
+                      : (proximaAbertura !== null ? 'Abre às ' + hf(hh(proximaAbertura)) : 'Já fechou hoje'),
       faixa:padrao, nova:f, av:av
     };
 
   return {
     cls: aberto ? 'on' : 'off',
     sinal: aberto ? '✓' : '✕',
-    palavra: aberto ? 'Aberto agora' : (antes ? 'Abre às ' + hf(p[0]) : 'Já fechou hoje'),
+    palavra: aberto ? 'Aberto agora' : (proximaAbertura !== null ? 'Abre às ' + hf(hh(proximaAbertura)) : 'Já fechou hoje'),
     faixa:f, nova:null, av:null
   };
 }
@@ -1240,15 +1421,18 @@ function statusGeral(diaKey, dataISO, agora){
     var faixa = t.nova || t.faixa;
     if(!faixa) return;                       /* setor não atende hoje */
 
-    var partes = faixa.split('-');
-    var ini = mm(partes[0]), fim = mm(partes[1]);
+    /* pode ter mais de um bloco no dia (ex: fecha pro almoço) */
+    faixa.split(',').forEach(function(bloco){
+      var partes = bloco.split('-');
+      var ini = mm(partes[0]), fim = mm(partes[1]);
 
-    if(agora >= ini && agora < fim){
-      abertoAgora = true;
-      if(fechaAs === null || fim > fechaAs) fechaAs = fim;
-    } else if(agora < ini){
-      if(abreAs === null || ini < abreAs) abreAs = ini;
-    }
+      if(agora >= ini && agora < fim){
+        abertoAgora = true;
+        if(fechaAs === null || fim > fechaAs) fechaAs = fim;
+      } else if(agora < ini){
+        if(abreAs === null || ini < abreAs) abreAs = ini;
+      }
+    });
   });
 
   return {abertoAgora:abertoAgora, fechaAs:fechaAs, abreAs:abreAs};
@@ -1270,8 +1454,10 @@ function proximaAberturaGeral(data){
       if(av && av.tipo === 'fechado') return;
       var faixa = (av && av.tipo === 'atencao' && av.novo) ? av.novo : s.h[key];
       if(!faixa) return;
-      var ini = mm(faixa.split('-')[0]);
-      if(menor === null || ini < menor) menor = ini;
+      faixa.split(',').forEach(function(bloco){
+        var ini = mm(bloco.split('-')[0]);
+        if(menor === null || ini < menor) menor = ini;
+      });
     });
 
     if(menor !== null) return {key:key, minutos:menor, amanha:(k === 1)};
@@ -1346,7 +1532,7 @@ function urlFoto(f){
   return (CONFIG.pastaFotos || 'fotos/') + f;
 }
 
-function cartaoPessoa(p){
+function cartaoPessoa(p, dataISO){
   var iniciais = iniciaisDe(p.nome);
   var src = urlFoto(p.foto);
   var fotoHtml;
@@ -1360,11 +1546,18 @@ function cartaoPessoa(p){
   } else {
     fotoHtml = '<div class="pessoa-foto" aria-hidden="true">' + limpo(iniciais || '?') + '</div>';
   }
-  return '<div class="pessoa">' + fotoHtml +
+
+  var falta = dataISO ? faltaDe(p.nome.trim(), dataISO) : null;
+  var faltaHtml = falta
+    ? '<p class="pessoa-ausente">🔴 Ausente hoje' + (falta.motivo ? ': ' + limpo(falta.motivo) : '') + '</p>'
+    : '';
+
+  return '<div class="pessoa' + (falta ? ' pessoa-com-falta' : '') + '">' + fotoHtml +
     '<div class="pessoa-txt">' +
       '<p class="pessoa-nome">' + limpo(p.nome) + '</p>' +
       '<p class="pessoa-funcao">' + limpo(p.funcao) + '</p>' +
       (p.obs ? '<p class="pessoa-obs">' + limpo(p.obs) + '</p>' : '') +
+      faltaHtml +
     '</div>' +
   '</div>';
 }
@@ -1516,7 +1709,7 @@ function desenhar(data, agora){
   } else {
     var grupos = agruparPorEquipe(EQUIPE);
     equipeEl.innerHTML = grupos.map(function(g){
-      var cartoes = g.pessoas.map(cartaoPessoa).join('');
+      var cartoes = g.pessoas.map(function(p){ return cartaoPessoa(p, dataISO); }).join('');
       if(g.nome === null) return '<div class="pessoas">' + cartoes + '</div>';
       var conta = g.pessoas.length === 1 ? '1 pessoa' : g.pessoas.length + ' pessoas';
       return '<div class="time">' +
@@ -1531,7 +1724,10 @@ function desenhar(data, agora){
   var agoraTxt = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
   if(ORIGEM === 'planilha'){
     fd.className = 'fonte-dados';
-    fd.textContent = 'Horários e avisos carregados da planilha da unidade às ' + agoraTxt + '.';
+    fd.textContent = (AVISOS_DA_PLANILHA
+      ? 'Horários e avisos carregados da planilha da unidade às '
+      : 'Horários carregados da planilha da unidade às ') + agoraTxt +
+      (AVISOS_DA_PLANILHA ? '.' : '. As abas "mudancas-horario" e "recados" ainda não foram criadas.');
   } else if(ORIGEM === 'erro'){
     fd.className = 'fonte-dados erro';
     fd.textContent = 'Não foi possível carregar a planilha agora. A página está mostrando os ' +
