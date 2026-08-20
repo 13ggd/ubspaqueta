@@ -319,6 +319,19 @@ details.semana[open] summary::after{transform:rotate(180deg)}
 .semana-l.hoje .dia,.semana-l.hoje .val{color:var(--verde)}
 
 /* -------------------------------------------------------------- EQUIPE -- */
+.time{margin-bottom:20px}
+.time:last-child{margin-bottom:0}
+.time-nome{
+  font-size:calc(17px * var(--esc));font-weight:700;color:var(--verde-escuro);
+  margin-bottom:10px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+}
+body.alto-contraste .time-nome{color:var(--tinta)}
+.time-conta{
+  font-size:calc(13px * var(--esc));font-weight:600;color:var(--verde-escuro);
+  background:var(--verde-claro);padding:3px 10px;border-radius:99px;
+}
+body.alto-contraste .time-conta{background:#052012;color:#00E676}
+
 .pessoas{display:flex;flex-direction:column;gap:10px}
 .pessoa{
   background:var(--papel);border:2px solid var(--linha);border-radius:var(--raio);
@@ -329,6 +342,7 @@ details.semana[open] summary::after{transform:rotate(180deg)}
   background:var(--verde-claro);color:var(--verde-escuro);
   display:flex;align-items:center;justify-content:center;
   font-size:calc(18px * var(--esc));font-weight:700;
+  object-fit:cover;               /* só tem efeito na versão <img> (foto de verdade) */
 }
 body.alto-contraste .pessoa-foto{background:#052012;color:#00E676}
 .pessoa-txt{flex:1;min-width:0}
@@ -687,6 +701,12 @@ const CONFIG = {
   /* De quanto em quanto tempo o site relê a planilha (em minutos) */
   recarregarACada: 5,
 
+  /* Onde ficam as fotos da equipe. Coloque os arquivos de foto numa pasta
+     chamada "fotos" no mesmo repositório do GitHub (instruções no guia).
+     Na planilha, a coluna "foto" pode ter só o nome do arquivo
+     (ex: cleber.jpg) ou um link completo (https://...) — os dois funcionam. */
+  pastaFotos: 'fotos/',
+
   /* ---- 3. ONDE IR EM CASO DE URGÊNCIA ---------------------------------- */
   urgencia: {
     telefone: '192',
@@ -772,14 +792,21 @@ const CONFIG = {
      ESTES NOMES SÃO EXEMPLO — troque pelos nomes e funções reais da equipe,
      de preferência editando a aba "equipe" na planilha (assim como servicos
      e avisos). Isso aqui só é usado se a planilha estiver fora do ar.
+
+     O campo "equipe" agrupa as pessoas por time (Equipe 1, Equipe 2...).
+     Se você deixar esse campo vazio para todo mundo, o site mostra uma
+     lista única, sem separar por time.
   */
   equipeReserva: [
-    { nome:'(nome de exemplo)', funcao:'Médica de família', obs:'' },
-    { nome:'(nome de exemplo)', funcao:'Enfermeira', obs:'' },
-    { nome:'(nome de exemplo)', funcao:'Técnica de enfermagem', obs:'' },
-    { nome:'(nome de exemplo)', funcao:'Dentista', obs:'Atende às segundas, quartas e sextas' },
-    { nome:'(nome de exemplo)', funcao:'Recepção e acolhimento', obs:'' },
-    { nome:'(nome de exemplo)', funcao:'Agente comunitário de saúde', obs:'' }
+    { nome:'(nome de exemplo)', funcao:'Médica de família', equipe:'Equipe 1', foto:'', obs:'' },
+    { nome:'(nome de exemplo)', funcao:'Enfermeira',        equipe:'Equipe 1', foto:'', obs:'' },
+    { nome:'(nome de exemplo)', funcao:'Técnica de enfermagem', equipe:'Equipe 1', foto:'', obs:'' },
+
+    { nome:'(nome de exemplo)', funcao:'Médico de família', equipe:'Equipe 2', foto:'', obs:'' },
+    { nome:'(nome de exemplo)', funcao:'Enfermeiro',        equipe:'Equipe 2', foto:'', obs:'' },
+
+    { nome:'(nome de exemplo)', funcao:'Dentista', equipe:'Equipe 3', foto:'', obs:'Atende às segundas, quartas e sextas' },
+    { nome:'(nome de exemplo)', funcao:'Recepção e acolhimento', equipe:'', foto:'', obs:'' }
   ]
 };
 
@@ -999,6 +1026,8 @@ function buscarPlanilha(){
       return {
         nome:   r.nome || '',
         funcao: r.funcao || r['função'] || '',
+        equipe: r.equipe || r.time || r.grupo || '',
+        foto:   r.foto || r.imagem || r.foto_url || '',
         obs:    r.obs || r.observacao || r['observação'] || ''
       };
     }).filter(function(p){ return p.nome; });
@@ -1110,6 +1139,61 @@ function montarFixos(){
 /* --------------------------------------------------- desenhar a página -- */
 var ULTIMA_DATA = null, ULTIMA_AGORA = null;
 
+/* ------------------------------------------------------------- EQUIPE -- */
+function iniciaisDe(nome){
+  return String(nome || '').trim().split(/\s+/).filter(Boolean).slice(0,2)
+    .map(function(w){ var m = w.match(/[A-Za-zÀ-ÿ]/); return m ? m[0] : ''; })
+    .join('').toUpperCase();
+}
+
+/* Aceita tanto um link completo (https://...) quanto só o nome do arquivo,
+   caso em que a foto é procurada na pasta configurada em CONFIG.pastaFotos. */
+function urlFoto(f){
+  f = String(f || '').trim();
+  if(!f) return '';
+  if(/^https?:\/\//i.test(f)) return f;
+  return (CONFIG.pastaFotos || 'fotos/') + f;
+}
+
+function cartaoPessoa(p){
+  var iniciais = iniciaisDe(p.nome);
+  var src = urlFoto(p.foto);
+  var fotoHtml;
+  if(src){
+    /* Mostra a foto; se o arquivo não existir ou o link estiver quebrado,
+       o onerror troca pela bolinha com as iniciais, sem deixar buraco. */
+    fotoHtml =
+      '<img class="pessoa-foto" src="' + limpo(src) + '" alt="" loading="lazy" ' +
+        'onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
+      '<div class="pessoa-foto" aria-hidden="true" style="display:none">' + limpo(iniciais || '?') + '</div>';
+  } else {
+    fotoHtml = '<div class="pessoa-foto" aria-hidden="true">' + limpo(iniciais || '?') + '</div>';
+  }
+  return '<div class="pessoa">' + fotoHtml +
+    '<div class="pessoa-txt">' +
+      '<p class="pessoa-nome">' + limpo(p.nome) + '</p>' +
+      '<p class="pessoa-funcao">' + limpo(p.funcao) + '</p>' +
+      (p.obs ? '<p class="pessoa-obs">' + limpo(p.obs) + '</p>' : '') +
+    '</div>' +
+  '</div>';
+}
+
+/* Agrupa por equipe só se pelo menos uma pessoa tiver o campo preenchido.
+   Assim, quem ainda não usa times vê a lista simples de sempre — o número
+   de pessoas em cada equipe nunca é fixo, é sempre o que está na planilha. */
+function agruparPorEquipe(lista){
+  var temEquipes = lista.some(function(p){ return p.equipe && p.equipe.trim(); });
+  if(!temEquipes) return [{ nome: null, pessoas: lista }];
+
+  var mapa = {}, ordem = [];
+  lista.forEach(function(p){
+    var chave = (p.equipe && p.equipe.trim()) || 'Sem equipe definida';
+    if(!mapa[chave]){ mapa[chave] = []; ordem.push(chave); }
+    mapa[chave].push(p);
+  });
+  return ordem.map(function(nome){ return { nome: nome, pessoas: mapa[nome] }; });
+}
+
 function desenhar(data, agora){
   ULTIMA_DATA = data; ULTIMA_AGORA = agora;
   var diaKey  = K[data.getDay()];
@@ -1218,17 +1302,14 @@ function desenhar(data, agora){
   if(!EQUIPE || !EQUIPE.length){
     equipeEl.innerHTML = '<p class="ajuda">Em breve, informações da equipe.</p>';
   } else {
-    equipeEl.innerHTML = EQUIPE.map(function(p){
-      var iniciais = String(p.nome || '').trim().split(/\s+/).filter(Boolean).slice(0,2)
-        .map(function(w){ var m = w.match(/[A-Za-zÀ-ÿ]/); return m ? m[0] : ''; })
-        .join('').toUpperCase();
-      return '<div class="pessoa">' +
-        '<div class="pessoa-foto" aria-hidden="true">' + limpo(iniciais || '?') + '</div>' +
-        '<div class="pessoa-txt">' +
-          '<p class="pessoa-nome">' + limpo(p.nome) + '</p>' +
-          '<p class="pessoa-funcao">' + limpo(p.funcao) + '</p>' +
-          (p.obs ? '<p class="pessoa-obs">' + limpo(p.obs) + '</p>' : '') +
-        '</div>' +
+    var grupos = agruparPorEquipe(EQUIPE);
+    equipeEl.innerHTML = grupos.map(function(g){
+      var cartoes = g.pessoas.map(cartaoPessoa).join('');
+      if(g.nome === null) return '<div class="pessoas">' + cartoes + '</div>';
+      var conta = g.pessoas.length === 1 ? '1 pessoa' : g.pessoas.length + ' pessoas';
+      return '<div class="time">' +
+        '<h3 class="time-nome">' + limpo(g.nome) + '<span class="time-conta">' + conta + '</span></h3>' +
+        '<div class="pessoas">' + cartoes + '</div>' +
       '</div>';
     }).join('');
   }
