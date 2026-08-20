@@ -213,22 +213,34 @@ body.alto-contraste .a11y-topo h2{color:var(--tinta)}
 .botao .icone{font-size:calc(24px * var(--esc));line-height:1}
 .botao.cheio{background:var(--verde);color:#fff}
 
-/* -------------------------------------------------------------- ATALHOS -- */
-/* Fileira de links que pulam direto para uma parte da página — a página
-   continua sendo uma rolagem só (mais simples e sem "voltar" confuso),
-   isso só ajuda quem não quer rolar tudo até achar o que quer. */
-.atalhos{
-  display:flex;gap:8px;overflow-x:auto;margin-top:14px;
-  padding-bottom:2px;-webkit-overflow-scrolling:touch;
+/* ---------------------------------------------------- MENU (ir para...) -- */
+/* Botão flutuante no canto superior direito — em cima, oposto ao de
+   acessibilidade (que fica embaixo). Abre uma lista de atalhos para pular
+   direto a uma parte da página — a página continua sendo uma rolagem só
+   (sem "voltar" confuso de menu por abas), isso só ajuda quem não quer
+   rolar tudo até achar o que quer. */
+.nav-fab{
+  position:fixed;right:14px;top:calc(14px + env(safe-area-inset-top));
+  z-index:50;width:60px;height:60px;border-radius:50%;
+  background:var(--verde);color:#fff;border:3px solid #fff;
+  box-shadow:0 4px 14px rgba(0,0,0,.28);
+  font-size:26px;line-height:1;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
 }
-.atalho{
-  flex:0 0 auto;text-decoration:none;
-  background:var(--papel);color:var(--verde-escuro);
-  border:2px solid var(--verde);border-radius:99px;
-  padding:9px 16px;font-size:calc(15.5px * var(--esc));font-weight:700;
-  white-space:nowrap;min-height:40px;display:flex;align-items:center;
+body.alto-contraste .nav-fab{background:#00E676;color:#000;border-color:#fff}
+
+.nav-lista{list-style:none}
+.nav-lista li{margin-bottom:10px}
+.nav-lista li:last-child{margin-bottom:0}
+.nav-item{
+  width:100%;text-align:left;text-decoration:none;
+  display:flex;align-items:center;gap:12px;
+  background:var(--fundo);border:2px solid var(--linha);border-radius:12px;
+  padding:14px 16px;min-height:var(--toque);
+  font-size:calc(18px * var(--esc));font-weight:700;color:var(--tinta);
 }
-.atalho:hover{background:var(--verde-claro)}
+.nav-item:hover{background:var(--verde-claro)}
+.nav-item .ic{font-size:calc(21px * var(--esc));flex:0 0 auto}
 
 /* -------------------------------------------------------------- SEÇÕES -- */
 .secao{padding-top:30px}
@@ -393,6 +405,10 @@ body.alto-contraste .pessoa-foto{background:#052012;color:#00E676}
 }
 
 /* -------------------------------------------------------- ONDE FICA --- */
+.foto-unidade{
+  display:block;width:100%;max-height:260px;object-fit:cover;
+  border-radius:var(--raio);border:2px solid var(--linha);margin-bottom:14px;
+}
 .cartao{background:var(--papel);border:2px solid var(--linha);border-radius:var(--raio);padding:18px}
 .info{padding:13px 0;border-bottom:2px solid var(--linha)}
 .info:first-child{padding-top:0}
@@ -475,7 +491,7 @@ body.com-teste .teste{display:block}
 /* Para a equipe imprimir e colar na porta da unidade. */
 @media print{
   body{background:#fff;padding:0;font-size:14px}
-  .teste,.a11y-fab,.a11y-painel,.a11y-fundo,.pular-link,.botoes,.atalhos,details.semana,.fonte-dados{display:none!important}
+  .teste,.a11y-fab,.a11y-painel,.a11y-fundo,.nav-fab,.nav-painel,.pular-link,.botoes,details.semana,.fonte-dados{display:none!important}
   .topo,.urgencia{background:#fff;color:#000;border:2px solid #000}
   .cartao-status{border:3px solid #000;color:#000!important;background:#fff!important}
   .secao{page-break-inside:avoid}
@@ -509,14 +525,6 @@ body.com-teste .teste{display:block}
         <span class="icone" aria-hidden="true">📍</span> Ver no mapa
       </a>
     </div>
-
-    <nav class="atalhos" aria-label="Ir direto para uma parte da página">
-      <a href="#avisos-secao" class="atalho">Avisos</a>
-      <a href="#servicos-secao" class="atalho">Horários</a>
-      <a href="#equipe-secao" class="atalho">Equipe</a>
-      <a href="#urgencia-secao" class="atalho">Urgência</a>
-      <a href="#contato-secao" class="atalho">Contato</a>
-    </nav>
   </div>
 </section>
 
@@ -564,6 +572,8 @@ body.com-teste .teste{display:block}
   <!-- -------------------------- ONDE FICA ----------------------- -->
   <section class="secao" id="contato-secao">
     <h2>Onde fica e telefones</h2>
+    <img id="foto-unidade" class="foto-unidade" alt="" hidden
+         onerror="this.hidden=true;">
     <div class="cartao">
       <div class="info">
         <p class="info-rot">Endereço</p>
@@ -660,6 +670,35 @@ body.com-teste .teste{display:block}
   </div>
 </div>
 
+<!-- ====================== MENU (ir para uma parte da página) ============
+     Botão flutuante no canto superior direito, em cima — o de
+     acessibilidade fica embaixo. Assim os dois não competem no mesmo canto.
+     Abre uma lista de atalhos; a página continua sendo uma rolagem só.
+     ======================================================================= -->
+<button type="button" id="nav-fab" class="nav-fab"
+        aria-haspopup="dialog" aria-expanded="false" aria-controls="nav-painel"
+        aria-label="Abrir menu para ir direto a uma parte da página">
+  <span aria-hidden="true">☰</span>
+</button>
+
+<div id="nav-fundo" class="a11y-fundo" hidden></div>
+
+<div id="nav-painel" class="a11y-painel" role="dialog" aria-modal="true"
+     aria-labelledby="nav-titulo" hidden>
+  <div class="a11y-topo">
+    <h2 id="nav-titulo">Ir para</h2>
+    <button type="button" id="nav-fechar" class="a11y-fechar" aria-label="Fechar">✕</button>
+  </div>
+
+  <ul class="nav-lista">
+    <li><a class="nav-item" href="#avisos-secao"><span class="ic" aria-hidden="true">📣</span> Avisos de hoje</a></li>
+    <li><a class="nav-item" href="#servicos-secao"><span class="ic" aria-hidden="true">🕒</span> Horários dos serviços</a></li>
+    <li><a class="nav-item" href="#equipe-secao"><span class="ic" aria-hidden="true">👥</span> Quem trabalha aqui</a></li>
+    <li><a class="nav-item" href="#urgencia-secao"><span class="ic" aria-hidden="true">🚑</span> Urgência</a></li>
+    <li><a class="nav-item" href="#contato-secao"><span class="ic" aria-hidden="true">📍</span> Onde fica e telefones</a></li>
+  </ul>
+</div>
+
 <!-- ================== LIBRAS (VLibras — widget oficial do Governo Federal)
      Gratuito, mantido pelo governo. Se não quiser esse recurso, apague
      este bloco inteiro (as 6 linhas abaixo) e o site funciona normalmente.
@@ -706,7 +745,13 @@ const CONFIG = {
     telefoneLink: '+554720170548',
     secretaria:     '(47) 2017-0620',
     secretariaLink: '+554720170620',
-    mapa: 'https://www.google.com/maps/search/?api=1&query=-27.141149,-48.923052'
+    mapa: 'https://www.google.com/maps/place/?q=place_id:ChIJV2DuZfVG35QRRnPgxVVeE5M',
+
+    /* Foto do prédio (fachada). Deixe vazio ('') para não mostrar nada.
+       Mesma regra das fotos da equipe: coloque o arquivo na pasta "fotos"
+       do repositório e escreva só o nome aqui — ex: 'fachada.jpg' —
+       ou cole um link completo (https://...). */
+    foto: ''
   },
 
   /* ---- 2. PLANILHA DO GOOGLE ------------------------------------------- */
@@ -1139,6 +1184,16 @@ function montarFixos(){
   bt.href = 'tel:' + u.telefoneLink;
   document.getElementById('bt-mapa').href = u.mapa;
 
+  /* Foto do prédio — só aparece se CONFIG.unidade.foto estiver preenchido.
+     Igual às fotos da equipe: nome de arquivo (na pasta fotos/) ou link
+     completo. Se o arquivo não carregar, o quadro some sozinho. */
+  var fotoEl = document.getElementById('foto-unidade');
+  if(u.foto){
+    fotoEl.src = urlFoto(u.foto);
+    fotoEl.alt = 'Foto da ' + u.nome;
+    fotoEl.hidden = false;
+  }
+
   document.getElementById('info-endereco').innerHTML =
     limpo(u.endereco) + '<br>' + limpo(u.bairro);
   document.getElementById('info-telefone').innerHTML =
@@ -1490,32 +1545,51 @@ function iniciar(){
   var btOuvir = document.getElementById('a11y-ouvir');
   btOuvir.addEventListener('click', function(){ alternarOuvir(btOuvir); });
 
-  /* ---- abrir/fechar o painel de acessibilidade ---- */
-  var fab      = document.getElementById('a11y-fab');
-  var painel   = document.getElementById('a11y-painel');
-  var fundo    = document.getElementById('a11y-fundo');
-  var fechar   = document.getElementById('a11y-fechar');
+  /* ---- abre/fecha painéis flutuantes — mesmo código serve para o de
+     acessibilidade e para o menu "ir para"; abrir um fecha o outro. ---- */
+  var outrosPaineis = [];
+  function criarPainel(idBotao, idPainel, idFundo, idFechar){
+    var botao  = document.getElementById(idBotao);
+    var painel = document.getElementById(idPainel);
+    var fundo  = document.getElementById(idFundo);
+    var fechar = document.getElementById(idFechar);
 
-  function abrirPainel(){
-    painel.hidden = false;
-    fundo.hidden  = false;
-    fab.setAttribute('aria-expanded','true');
-    fechar.focus();
-    document.addEventListener('keydown', aoTeclar);
+    function aoTeclar(e){ if(e.key === 'Escape') fecharEste(); }
+
+    function abrirEste(){
+      outrosPaineis.forEach(function(p){ if(p !== controle) p.fechar(); });
+      painel.hidden = false;
+      fundo.hidden  = false;
+      botao.setAttribute('aria-expanded','true');
+      fechar.focus();
+      document.addEventListener('keydown', aoTeclar);
+    }
+    function fecharEste(){
+      if(painel.hidden) return;
+      painel.hidden = true;
+      fundo.hidden  = true;
+      botao.setAttribute('aria-expanded','false');
+      document.removeEventListener('keydown', aoTeclar);
+    }
+
+    botao.addEventListener('click', abrirEste);
+    fechar.addEventListener('click', function(){ fecharEste(); botao.focus(); });
+    fundo.addEventListener('click', function(){ fecharEste(); botao.focus(); });
+
+    var controle = { abrir:abrirEste, fechar:fecharEste };
+    outrosPaineis.push(controle);
+    return controle;
   }
-  function fecharPainel(){
-    painel.hidden = true;
-    fundo.hidden  = true;
-    fab.setAttribute('aria-expanded','false');
-    fab.focus();
-    document.removeEventListener('keydown', aoTeclar);
-  }
-  function aoTeclar(e){
-    if(e.key === 'Escape') fecharPainel();
-  }
-  fab.addEventListener('click', abrirPainel);
-  fechar.addEventListener('click', fecharPainel);
-  fundo.addEventListener('click', fecharPainel);
+
+  criarPainel('a11y-fab', 'a11y-painel', 'a11y-fundo', 'a11y-fechar');
+  var painelNav = criarPainel('nav-fab', 'nav-painel', 'nav-fundo', 'nav-fechar');
+
+  /* cada link do menu fecha o painel ao ser clicado — a rolagem suave até
+     a seção acontece sozinha, via CSS (scroll-behavior), sem precisar de JS */
+  var linksMenu = document.querySelectorAll('.nav-item');
+  Array.prototype.forEach.call(linksMenu, function(link){
+    link.addEventListener('click', function(){ painelNav.fechar(); });
+  });
 
   campoData = document.getElementById('data');
   campoHora = document.getElementById('hora');
