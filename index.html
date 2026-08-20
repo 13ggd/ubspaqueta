@@ -69,6 +69,9 @@ body.alto-contraste .pessoa{ border-width:3px }
 *{box-sizing:border-box;margin:0;padding:0}
 
 html{-webkit-text-size-adjust:100%}
+@media (prefers-reduced-motion:no-preference){
+  html{scroll-behavior:smooth}
+}
 
 body{
   background:var(--fundo);
@@ -209,6 +212,23 @@ body.alto-contraste .a11y-topo h2{color:var(--tinta)}
 }
 .botao .icone{font-size:calc(24px * var(--esc));line-height:1}
 .botao.cheio{background:var(--verde);color:#fff}
+
+/* -------------------------------------------------------------- ATALHOS -- */
+/* Fileira de links que pulam direto para uma parte da página — a página
+   continua sendo uma rolagem só (mais simples e sem "voltar" confuso),
+   isso só ajuda quem não quer rolar tudo até achar o que quer. */
+.atalhos{
+  display:flex;gap:8px;overflow-x:auto;margin-top:14px;
+  padding-bottom:2px;-webkit-overflow-scrolling:touch;
+}
+.atalho{
+  flex:0 0 auto;text-decoration:none;
+  background:var(--papel);color:var(--verde-escuro);
+  border:2px solid var(--verde);border-radius:99px;
+  padding:9px 16px;font-size:calc(15.5px * var(--esc));font-weight:700;
+  white-space:nowrap;min-height:40px;display:flex;align-items:center;
+}
+.atalho:hover{background:var(--verde-claro)}
 
 /* -------------------------------------------------------------- SEÇÕES -- */
 .secao{padding-top:30px}
@@ -455,7 +475,7 @@ body.com-teste .teste{display:block}
 /* Para a equipe imprimir e colar na porta da unidade. */
 @media print{
   body{background:#fff;padding:0;font-size:14px}
-  .teste,.a11y-fab,.a11y-painel,.a11y-fundo,.pular-link,.botoes,details.semana,.fonte-dados{display:none!important}
+  .teste,.a11y-fab,.a11y-painel,.a11y-fundo,.pular-link,.botoes,.atalhos,details.semana,.fonte-dados{display:none!important}
   .topo,.urgencia{background:#fff;color:#000;border:2px solid #000}
   .cartao-status{border:3px solid #000;color:#000!important;background:#fff!important}
   .secao{page-break-inside:avoid}
@@ -489,20 +509,28 @@ body.com-teste .teste{display:block}
         <span class="icone" aria-hidden="true">📍</span> Ver no mapa
       </a>
     </div>
+
+    <nav class="atalhos" aria-label="Ir direto para uma parte da página">
+      <a href="#avisos-secao" class="atalho">Avisos</a>
+      <a href="#servicos-secao" class="atalho">Horários</a>
+      <a href="#equipe-secao" class="atalho">Equipe</a>
+      <a href="#urgencia-secao" class="atalho">Urgência</a>
+      <a href="#contato-secao" class="atalho">Contato</a>
+    </nav>
   </div>
 </section>
 
 <main class="wrap" id="conteudo">
 
   <!-- ---------------------------- AVISOS ------------------------ -->
-  <section class="secao">
+  <section class="secao" id="avisos-secao">
     <h2>Avisos de hoje</h2>
     <p class="ajuda">Coisas que mudaram e você precisa saber antes de vir.</p>
     <div id="avisos"></div>
   </section>
 
   <!-- --------------------------- SERVIÇOS ----------------------- -->
-  <section class="secao">
+  <section class="secao" id="servicos-secao">
     <h2>O que você precisa?</h2>
     <p class="ajuda">Toque em “Ver os dias da semana” para saber quando cada serviço atende.</p>
     <div id="servicos"></div>
@@ -516,7 +544,7 @@ body.com-teste .teste{display:block}
   </section>
 
   <!-- --------------------------- URGÊNCIA ----------------------- -->
-  <section class="secao">
+  <section class="secao" id="urgencia-secao">
     <h2>Passando mal? Precisa de ajuda agora?</h2>
     <p class="ajuda">O posto não atende emergência. Nestes casos, procure um destes lugares.</p>
 
@@ -534,7 +562,7 @@ body.com-teste .teste{display:block}
   </section>
 
   <!-- -------------------------- ONDE FICA ----------------------- -->
-  <section class="secao">
+  <section class="secao" id="contato-secao">
     <h2>Onde fica e telefones</h2>
     <div class="cartao">
       <div class="info">
