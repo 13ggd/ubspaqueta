@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>UBS Paquetá — Está aberta agora?</title>
+<title>UBS Paquetá</title>
 <meta name="description" content="Horários, avisos e telefones da Unidade Básica de Saúde do bairro Paquetá, em Brusque, Santa Catarina.">
 <meta name="theme-color" content="#02301A">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1210,7 +1210,7 @@ function montarFixos(){
   document.getElementById('orgao').textContent     = u.orgao;
   document.getElementById('nome-unidade').textContent = u.nome;
   document.getElementById('subtitulo').textContent = u.subtitulo;
-  document.title = u.nome + ' — Está aberta agora?';
+  document.title = u.nome; /* desenhar() troca por "— Aberto agora" / "— Fechado agora" assim que carrega */
 
   var bt = document.getElementById('bt-ligar');
   bt.href = 'tel:' + u.telefoneLink;
@@ -1319,6 +1319,9 @@ function desenhar(data, agora){
   var st = situacao(base, diaKey, dataISO, agora);
   var aberta = (st.cls === 'on');
   var cx = document.getElementById('status');
+
+  /* título da aba: sempre com o nome da unidade, junto com o status atual */
+  document.title = CONFIG.unidade.nome + ' — ' + (aberta ? 'Aberto agora' : 'Fechado agora');
 
   if(aberta){
     cx.innerHTML =
