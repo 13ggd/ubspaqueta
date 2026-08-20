@@ -8,6 +8,7 @@
 <meta name="theme-color" content="#02301A">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="UBS Paquetá">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -300,6 +301,11 @@ body.alto-contraste .nav-fab{background:#00E676;color:#000;border-color:#fff}
 .sv-topo{padding:16px}
 .sv-nome{font-size:calc(21px * var(--esc));font-weight:700;line-height:1.2}
 .sv-para{font-size:calc(16px * var(--esc));color:var(--tinta2);margin-top:5px;line-height:1.4}
+.sv-levar{
+  font-size:calc(15px * var(--esc));color:var(--verde-escuro);margin-top:7px;
+  line-height:1.4;background:var(--verde-claro);border-radius:8px;padding:7px 10px;
+}
+body.alto-contraste .sv-levar{color:var(--tinta)}
 
 .sv-estado{
   display:flex;align-items:center;gap:10px;
@@ -540,6 +546,9 @@ body.com-teste .teste{display:block}
       <a class="botao" id="bt-mapa" href="#" target="_blank" rel="noopener">
         <span class="icone" aria-hidden="true">📍</span> Ver no mapa
       </a>
+      <a class="botao" id="bt-compartilhar" href="#" target="_blank" rel="noopener">
+        <span class="icone" aria-hidden="true">💬</span> Compartilhar
+      </a>
     </div>
   </div>
 </section>
@@ -682,7 +691,32 @@ body.com-teste .teste{display:block}
       <span class="ic" aria-hidden="true">🔊</span> Ouvir esta página
     </button>
   </div>
+
+  <div class="a11y-grupo">
+    <p class="a11y-grupo-tit">Idioma / Language</p>
+    <div class="a11y-letra-btns">
+      <button type="button" class="idioma-bt" data-lang="pt" aria-pressed="true">Português</button>
+      <button type="button" class="idioma-bt" data-lang="en" aria-pressed="false">English</button>
+      <button type="button" class="idioma-bt" data-lang="es" aria-pressed="false">Español</button>
+    </div>
+  </div>
 </div>
+
+<!-- Widget oficial do Google Tradutor — fica escondido, é só o motor que
+     os botões de idioma acima usam. Se não quiser esse recurso, apague
+     este bloco e o bloco de <script> logo abaixo dele. -->
+<div id="google_translate_element" style="display:none"></div>
+<script>
+  function googleTranslateElementInit(){
+    if(window.google && window.google.translate){
+      new google.translate.TranslateElement(
+        {pageLanguage:'pt', includedLanguages:'en,es', autoDisplay:false},
+        'google_translate_element'
+      );
+    }
+  }
+</script>
+<script async src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
 <!-- ====================== MENU (ir para uma parte da página) ============
      Botão flutuante no canto superior direito, em cima — o de
@@ -723,10 +757,8 @@ body.com-teste .teste{display:block}
     <div class="vw-plugin-top-wrapper"></div>
   </div>
 </div>
-<script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
-<script>
-  if(window.VLibras){ new window.VLibras.Widget('https://vlibras.gov.br/app'); }
-</script>
+<script async src="https://vlibras.gov.br/app/vlibras-plugin.js"
+  onload="if(window.VLibras){ new window.VLibras.Widget('https://vlibras.gov.br/app'); }"></script>
 
 <script>
 /* ======================================================================
@@ -839,34 +871,42 @@ const CONFIG = {
   servicosReserva: [
     { id:'consulta',   nome:'Consulta com médico',
       para:'Para consultar quando está doente ou fazer acompanhamento.',
+      levar:'Documento com foto e cartão do SUS.',
       h:{seg:'07:00-19:00',ter:'07:00-19:00',qua:'07:00-19:00',qui:'07:00-19:00',sex:'07:00-19:00',sab:'',dom:''} },
 
     { id:'enfermagem', nome:'Enfermagem',
       para:'Para medir a pressão, tirar dúvidas e receber orientação.',
+      levar:'Documento com foto.',
       h:{seg:'07:00-19:00',ter:'07:00-19:00',qua:'07:00-19:00',qui:'07:00-19:00',sex:'07:00-19:00',sab:'',dom:''} },
 
     { id:'vacina',     nome:'Sala de vacina',
-      para:'Para tomar vacina. Leve documento e a carteirinha de vacinação.',
+      para:'Para tomar vacina.',
+      levar:'Documento e a carteirinha de vacinação.',
       h:{seg:'08:00-17:00',ter:'08:00-17:00',qua:'08:00-17:00',qui:'08:00-17:00',sex:'08:00-17:00',sab:'',dom:''} },
 
     { id:'farmacia',   nome:'Farmácia',
-      para:'Para pegar remédio. Leve a receita e o cartão do SUS.',
+      para:'Para pegar remédio.',
+      levar:'Receita e o cartão do SUS.',
       h:{seg:'07:00-19:00',ter:'07:00-19:00',qua:'07:00-19:00',qui:'07:00-19:00',sex:'07:00-19:00',sab:'',dom:''} },
 
     { id:'curativo',   nome:'Curativo e injeção',
       para:'Para fazer curativo, tomar injeção ou tirar pontos.',
+      levar:'Documento e, se tiver, o pedido do médico.',
       h:{seg:'07:00-19:00',ter:'07:00-19:00',qua:'07:00-19:00',qui:'07:00-19:00',sex:'07:00-19:00',sab:'',dom:''} },
 
     { id:'exame',      nome:'Coleta de exame de sangue',
-      para:'Venha em jejum, sem comer. Só de manhã cedo.',
+      para:'Coleta de sangue para exames.',
+      levar:'Documento, cartão do SUS e o pedido do médico. Venha em jejum, sem comer.',
       h:{seg:'07:00-09:30',ter:'07:00-09:30',qua:'07:00-09:30',qui:'07:00-09:30',sex:'07:00-09:30',sab:'',dom:''} },
 
     { id:'dentista',   nome:'Dentista',
-      para:'Precisa marcar antes. Ligue ou venha até o posto.',
+      para:'Precisa marcar antes.',
+      levar:'Documento e cartão do SUS. Ligue ou venha até o posto pra marcar.',
       h:{seg:'08:00-17:00',ter:'',qua:'08:00-17:00',qui:'',sex:'08:00-17:00',sab:'',dom:''} },
 
     { id:'mulher',     nome:'Saúde da mulher',
       para:'Preventivo, pré-natal e planejamento familiar.',
+      levar:'Documento e cartão do SUS.',
       h:{seg:'',ter:'13:00-17:00',qua:'',qui:'13:00-17:00',sex:'',sab:'',dom:''} }
   ],
 
@@ -920,7 +960,37 @@ const CONFIG = {
      Vazio por padrão — só é usado se a planilha estiver fora do ar.
      Veja a aba "faltas" na planilha para o uso real.
   */
-  faltasReserva: []
+  faltasReserva: [],
+
+  /* ---- 7. FERIADOS ------------------------------------------------------
+     A unidade fecha sozinha nessas datas, sem precisar cadastrar nada na
+     planilha todo ano. São os feriados nacionais brasileiros.
+
+     Se Brusque tiver algum feriado municipal próprio (aniversário da
+     cidade, padroeiro etc), adicione no mesmo formato {data:'MM-DD',
+     nome:'...'} — não precisa saber o ano, só dia e mês.
+
+     Se a unidade NÃO fechar em algum feriado móvel (ligado à Páscoa —
+     Carnaval, Sexta-feira Santa, Corpus Christi), apague a linha
+     correspondente em "feriadosMoveis".
+  */
+  feriadosFixos: [
+    {data:'01-01', nome:'Confraternização Universal'},
+    {data:'04-21', nome:'Tiradentes'},
+    {data:'05-01', nome:'Dia do Trabalho'},
+    {data:'09-07', nome:'Independência do Brasil'},
+    {data:'10-12', nome:'Nossa Senhora Aparecida'},
+    {data:'11-02', nome:'Finados'},
+    {data:'11-15', nome:'Proclamação da República'},
+    {data:'11-20', nome:'Consciência Negra'},
+    {data:'12-25', nome:'Natal'}
+  ],
+  feriadosMoveis: [
+    {deslocamento:-48, nome:'Carnaval'},
+    {deslocamento:-47, nome:'Carnaval'},
+    {deslocamento:-2,  nome:'Sexta-feira Santa'},
+    {deslocamento:60,  nome:'Corpus Christi'}
+  ]
 };
 
 /* ======================================================================
@@ -983,6 +1053,51 @@ function definirFavicon(emoji){
   } catch(e){
     /* Se o navegador não suportar, o site continua funcionando
        normalmente — só não troca o ícone da aba. */
+  }
+}
+
+/* --------------------------------------------- ícone de instalação -- */
+/* Desenha um ícone simples (cruz de saúde) num canvas e usa como ícone
+   de "adicionar à tela inicial" — tanto para iPhone (apple-touch-icon)
+   quanto para Android (manifest, gerado na hora via Blob, sem precisar
+   de um arquivo manifest.json separado). Roda uma vez só, ao carregar. */
+function prepararInstalacao(){
+  try{
+    var canvas = document.createElement('canvas');
+    canvas.width = 180;
+    canvas.height = 180;
+    var ctx = canvas.getContext('2d');
+    if(!ctx) return;
+    ctx.fillStyle = '#02301A';
+    ctx.fillRect(0, 0, 180, 180);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(76, 34, 28, 112);   /* cruz — traço vertical */
+    ctx.fillRect(34, 76, 112, 28);   /* cruz — traço horizontal */
+    var url = canvas.toDataURL('image/png');
+
+    var iconeApple = document.createElement('link');
+    iconeApple.rel = 'apple-touch-icon';
+    iconeApple.href = url;
+    document.head.appendChild(iconeApple);
+
+    var manifest = {
+      name: CONFIG.unidade.nome,
+      short_name: CONFIG.unidade.nome,
+      description: 'Horários, avisos e telefones da ' + CONFIG.unidade.nome,
+      start_url: '.',
+      display: 'standalone',
+      background_color: '#F0F3F0',
+      theme_color: '#02301A',
+      icons: [{src: url, sizes: '180x180', type: 'image/png'}]
+    };
+    var blob = new Blob([JSON.stringify(manifest)], {type: 'application/manifest+json'});
+    var linkManifest = document.createElement('link');
+    linkManifest.rel = 'manifest';
+    linkManifest.href = URL.createObjectURL(blob);
+    document.head.appendChild(linkManifest);
+  } catch(e){
+    /* Sem suporte a isso, o site funciona normal — só não vai dar pra
+       "instalar" com esse ícone específico. */
   }
 }
 
@@ -1145,6 +1260,7 @@ function buscarPlanilha(){
         id:   r.id || r.nome,
         nome: r.nome,
         para: r.para || r.descricao || '',
+        levar: r.levar || r.trazer || '',
         h: {
           seg:normalizaHorario(r.seg), ter:normalizaHorario(r.ter),
           qua:normalizaHorario(r.qua), qui:normalizaHorario(r.qui),
@@ -1280,14 +1396,67 @@ function buscarPlanilha(){
 }
 
 /* --------------------------------------------------- regras de horário -- */
+/* --------------------------------------------------------- feriados -- */
+/* Calcula a data da Páscoa de um ano (algoritmo de Gauss/Meeus) — a
+   partir dela dá pra achar Carnaval, Sexta-feira Santa e Corpus Christi,
+   que mudam de data todo ano. Funciona pra qualquer ano, sem precisar
+   atualizar nada. */
+function calcularPascoa(ano){
+  var a = ano % 19, b = Math.floor(ano/100), c = ano % 100;
+  var d = Math.floor(b/4), e = b % 4;
+  var f = Math.floor((b+8)/25), g = Math.floor((b-f+1)/3);
+  var h = (19*a + b - d - g + 15) % 30;
+  var i = Math.floor(c/4), k = c % 4;
+  var l = (32 + 2*e + 2*i - h - k) % 7;
+  var m = Math.floor((a + 11*h + 22*l) / 451);
+  var mes = Math.floor((h + l - 7*m + 114) / 31);
+  var dia = ((h + l - 7*m + 114) % 31) + 1;
+  return new Date(ano, mes-1, dia);
+}
+function somaDias(data, n){
+  var r = new Date(data.getTime());
+  r.setDate(r.getDate() + n);
+  return r;
+}
+/* Lista dos feriados de um ano específico — junta os fixos (mesmo dia
+   todo ano) com os móveis (calculados a partir da Páscoa daquele ano). */
+function feriadosDoAno(ano){
+  var lista = CONFIG.feriadosFixos.map(function(f){
+    return {data: ano + '-' + f.data, nome: f.nome};
+  });
+  var pascoa = calcularPascoa(ano);
+  CONFIG.feriadosMoveis.forEach(function(f){
+    lista.push({data: iso(somaDias(pascoa, f.deslocamento)), nome: f.nome});
+  });
+  return lista;
+}
+/* Diz se uma data (formato AAAA-MM-DD) é feriado, e qual — ou null. */
+function feriadoInfo(dataISO){
+  var ano = Number(dataISO.slice(0,4));
+  var achado = feriadosDoAno(ano).filter(function(f){ return f.data === dataISO; });
+  return achado.length ? achado[0] : null;
+}
+
 function avisosDoDia(dataISO){
-  return AVISOS.filter(function(a){
+  var lista = AVISOS.filter(function(a){
     if(a.ativo === false) return false;      /* checkbox desmarcado = nunca aparece */
     if(!a.inicio) return true;                /* sem data = fica ativo enquanto marcado */
     return a.inicio <= dataISO && dataISO <= (a.fim || a.inicio);
   });
+  var fer = feriadoInfo(dataISO);
+  if(fer){
+    lista = [{
+      tipo:'recado', servico:'', titulo:'Hoje é feriado',
+      texto: fer.nome + '. A unidade não abre hoje.',
+      inicio: dataISO, fim: dataISO, novo:'', atualizado:'', ativo:true
+    }].concat(lista);
+  }
+  return lista;
 }
 function avisoDe(id, dataISO){
+  var fer = feriadoInfo(dataISO);
+  if(fer) return {tipo:'fechado', servico:id, titulo:'Fechado — feriado',
+                  texto: fer.nome + '. A unidade não abre em feriados.', ativo:true};
   var r = avisosDoDia(dataISO).filter(function(a){ return a.servico === id; });
   return r.length ? r[0] : null;
 }
@@ -1634,6 +1803,13 @@ function desenhar(data, agora){
      aviso hoje, vermelho = fechado agora (o mais urgente de saber) */
   definirFavicon(!aberta ? '🔴' : (ativos.length ? '🟡' : '🟢'));
 
+  /* botão de compartilhar no WhatsApp — a mensagem muda junto com o status */
+  var textoWhats = CONFIG.unidade.nome + ': ' +
+    (aberta ? 'aberta agora, fecha às ' + hf(hh(geral.fechaAs)) : 'fechada agora') +
+    '. Veja horários, avisos e telefone: ' + location.href;
+  document.getElementById('bt-compartilhar').href =
+    'https://wa.me/?text=' + encodeURIComponent(textoWhats);
+
   var box = document.getElementById('avisos');
   if(!ativos.length){
     box.innerHTML =
@@ -1689,6 +1865,7 @@ function desenhar(data, agora){
       '<div class="sv-topo">' +
         '<h3 class="sv-nome">' + limpo(s.nome) + '</h3>' +
         '<p class="sv-para">' + limpo(s.para) + '</p>' +
+        (s.levar ? '<p class="sv-levar">🎒 Leve: ' + limpo(s.levar) + '</p>' : '') +
         '<div class="sv-estado ' + t.cls + '">' +
           '<span class="sv-sinal" aria-hidden="true">' + t.sinal + '</span>' +
           '<span class="sv-txt">' +
@@ -1728,6 +1905,7 @@ function desenhar(data, agora){
       ? 'Horários e avisos carregados da planilha da unidade às '
       : 'Horários carregados da planilha da unidade às ') + agoraTxt +
       (AVISOS_DA_PLANILHA ? '.' : '. As abas "mudancas-horario" e "recados" ainda não foram criadas.');
+    fd.textContent += ' ' + textoContadorMudanca();
   } else if(ORIGEM === 'erro'){
     fd.className = 'fonte-dados erro';
     fd.textContent = 'Não foi possível carregar a planilha agora. A página está mostrando os ' +
@@ -1766,6 +1944,24 @@ function textoParaOuvir(){
 
   partes.push('Em caso de urgência, ligue ' + CONFIG.urgencia.telefone.split('').join(' ') + '.');
   return partes.join(' ');
+}
+
+/* Aciona o widget escondido do Google Tradutor. Ele demora um instante
+   pra carregar (vem de um script externo), então tenta de novo por
+   alguns segundos até o seletor aparecer na página. */
+function traduzirPagina(lang){
+  var tentativas = 0;
+  function tentar(){
+    var combo = document.querySelector('.goog-te-combo');
+    if(combo){
+      combo.value = lang;
+      combo.dispatchEvent(new Event('change'));
+    } else if(tentativas < 30){
+      tentativas++;
+      setTimeout(tentar, 300);
+    }
+  }
+  tentar();
 }
 
 var falando = false;
@@ -1826,8 +2022,40 @@ function lerGuardado(chave){
   try { return localStorage.getItem(chave); } catch(e){ return null; }
 }
 
+/* Compara os dados que acabaram de chegar da planilha com os que estavam
+   guardados da última vez que este mesmo aparelho visitou o site. Se
+   mudou algo (horário, aviso, equipe, falta), marca hoje como a "última
+   mudança". Serve como um lembrete simples pra equipe perceber se
+   ninguém mexe na planilha há muito tempo. */
+function textoContadorMudanca(){
+  try{
+    var atual = JSON.stringify({s:SERVICOS, a:AVISOS, e:EQUIPE, f:FALTAS});
+    var anterior = lerGuardado('ubs-conteudo-anterior');
+    var hojeISO = iso(new Date());
+    var dataMudanca = lerGuardado('ubs-data-mudanca');
+
+    if(atual !== anterior){
+      guardar('ubs-conteudo-anterior', atual);
+      guardar('ubs-data-mudanca', hojeISO);
+      dataMudanca = hojeISO;
+    }
+    if(!dataMudanca) return '';
+
+    var d1 = new Date(dataMudanca + 'T00:00:00');
+    var d2 = new Date(hojeISO + 'T00:00:00');
+    var dias = Math.round((d2 - d1) / 86400000);
+
+    if(dias <= 0) return 'Última mudança detectada neste aparelho: hoje.';
+    if(dias === 1) return 'Última mudança detectada neste aparelho: ontem.';
+    return 'Última mudança detectada neste aparelho: há ' + dias + ' dias.';
+  } catch(e){
+    return '';
+  }
+}
+
 function iniciar(){
   montarFixos();
+  prepararInstalacao();
 
   /* ---- tamanho da letra (dentro do painel de acessibilidade) ---- */
   var botoesLetra = document.querySelectorAll('.a11y-letra-btns button');
@@ -1866,6 +2094,16 @@ function iniciar(){
   /* ---- ouvir a página ---- */
   var btOuvir = document.getElementById('a11y-ouvir');
   btOuvir.addEventListener('click', function(){ alternarOuvir(btOuvir); });
+
+  /* ---- idioma (aciona o widget do Google Tradutor escondido) ---- */
+  var botoesIdioma = document.querySelectorAll('.idioma-bt');
+  Array.prototype.forEach.call(botoesIdioma, function(b){
+    b.addEventListener('click', function(){
+      Array.prototype.forEach.call(botoesIdioma, function(o){ o.setAttribute('aria-pressed','false'); });
+      b.setAttribute('aria-pressed','true');
+      traduzirPagina(b.dataset.lang);
+    });
+  });
 
   /* ---- abre/fecha painéis flutuantes — mesmo código serve para o de
      acessibilidade e para o menu "ir para"; abrir um fecha o outro. ---- */
