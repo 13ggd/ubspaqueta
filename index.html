@@ -26,19 +26,45 @@
   --verde-escuro:#02301A;
   --verde-claro:#E6F2E9;
   --aberto:#0A6E36;
+  --aberto-cartao:#0A6E36;    /* usado só no card "aberto agora" (fundo com texto branco) */
   --fechado:#4B5563;
+  --fechado-cartao:#4B5563;   /* usado só no card "fechado agora" (fundo com texto branco) */
   --alerta:#B3120F;
+  --alerta-cartao:#B3120F;    /* usado só na etiqueta do aviso (fundo com texto branco) */
   --alerta-claro:#FDECEA;
   --atencao:#8A4E00;
+  --atencao-cartao:#8A4E00;   /* mesma ideia, para o aviso tipo "atenção" */
   --atencao-claro:#FDF2E0;
   --papel:#FFFFFF;
   --fundo:#F0F3F0;
   --tinta:#0F1611;
   --tinta2:#414B44;
   --linha:#C9D3CB;
+  --on-bg:#E3F3E9;
+  --off-bg:#EEF0F1;
   --raio:14px;
   --toque:56px;               /* altura mínima de qualquer coisa clicável */
 }
+
+/* Modo de alto contraste — ativado pelo botão flutuante de acessibilidade.
+   Troca só as variáveis de cor; o resto do CSS não precisa saber disso. */
+body.alto-contraste{
+  --fundo:#000000; --papel:#0A0A0A;
+  --tinta:#FFFFFF; --tinta2:#E0E0E0; --linha:#707070;
+  --verde:#00E676; --verde-escuro:#000000; --verde-claro:#052012;
+  --on-bg:#052012; --off-bg:#1A1A1A;
+  --aberto:#00E676; --fechado:#BDBDBD; --fechado-cartao:#333333;
+  --alerta:#FF5252; --alerta-claro:#2B0000;
+  --atencao:#FFA726; --atencao-claro:#2B1B00;
+}
+body.alto-contraste .topo{ border-bottom:3px solid #fff }
+body.alto-contraste .cartao-status,
+body.alto-contraste .urgencia{ border:3px solid #fff }
+body.alto-contraste .servico,
+body.alto-contraste .cartao,
+body.alto-contraste .botao,
+body.alto-contraste .aviso,
+body.alto-contraste .pessoa{ border-width:3px }
 
 *{box-sizing:border-box;margin:0;padding:0}
 
@@ -77,25 +103,72 @@ a{color:inherit}
 .topo h1{font-size:calc(32px * var(--esc));font-weight:700;line-height:1.06;letter-spacing:-.015em}
 .topo .subtitulo{font-size:calc(17px * var(--esc));opacity:.88;margin-top:7px;line-height:1.35}
 
-.letra{
-  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
-  margin-top:16px;padding-top:14px;
-  border-top:2px solid rgba(255,255,255,.2);
+.topo :focus-visible{outline-color:#63D68F}
+
+/* ------------------------------------------------------ PULAR CONTEÚDO -- */
+/* Fica invisível até alguém navegar pelo teclado (tecla Tab) e focar nele. */
+.pular-link{
+  position:absolute;left:-9999px;top:0;z-index:100;
+  background:#fff;color:var(--verde-escuro);
+  padding:12px 18px;border-radius:0 0 10px 0;
+  font-weight:700;text-decoration:none;font-size:16px;
 }
-.letra-rot{font-size:calc(15px * var(--esc));opacity:.85}
-.letra-btns{display:flex;gap:8px}
-.letra button{
-  font-family:inherit;font-weight:700;cursor:pointer;
-  background:rgba(255,255,255,.14);border:2px solid rgba(255,255,255,.35);
-  color:#fff;border-radius:10px;
-  min-width:var(--toque);min-height:var(--toque);
+.pular-link:focus{left:0}
+
+/* ------------------------------------------------- ACESSIBILIDADE (FAB) -- */
+.a11y-fab{
+  position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));
+  z-index:50;width:60px;height:60px;border-radius:50%;
+  background:var(--verde-escuro);color:#fff;border:3px solid #fff;
+  box-shadow:0 4px 14px rgba(0,0,0,.28);
+  font-family:'Atkinson Hyperlegible',sans-serif;font-weight:700;font-size:19px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+}
+body.com-teste .a11y-fab{bottom:calc(94px + env(safe-area-inset-bottom))}
+body.alto-contraste .a11y-fab{background:#00E676;color:#000;border-color:#fff}
+
+.a11y-fundo{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:60}
+
+.a11y-painel{
+  position:fixed;left:0;right:0;bottom:0;z-index:70;
+  background:var(--papel);color:var(--tinta);
+  border-radius:18px 18px 0 0;
+  padding:16px 18px calc(20px + env(safe-area-inset-bottom));
+  max-width:720px;margin:0 auto;max-height:82vh;overflow-y:auto;
+  box-shadow:0 -6px 24px rgba(0,0,0,.22);
+  border-top:3px solid var(--linha);
+}
+.a11y-topo{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.a11y-topo h2{font-size:calc(21px * var(--esc));font-weight:700;color:var(--verde-escuro)}
+body.alto-contraste .a11y-topo h2{color:var(--tinta)}
+.a11y-fechar{
+  width:46px;height:46px;border-radius:50%;border:2px solid var(--linha);
+  background:var(--papel);font-size:19px;font-weight:700;cursor:pointer;color:var(--tinta);
+  flex:0 0 auto;
+}
+.a11y-grupo{margin-bottom:16px}
+.a11y-grupo:last-child{margin-bottom:0}
+.a11y-grupo-tit{font-size:calc(15px * var(--esc));font-weight:700;color:var(--tinta2);margin-bottom:8px}
+.a11y-letra-btns{display:flex;gap:8px}
+.a11y-letra-btns button{
+  font-family:inherit;font-weight:700;cursor:pointer;flex:1;
+  background:var(--fundo);border:2px solid var(--linha);
+  color:var(--tinta);border-radius:10px;
+  min-height:var(--toque);
   display:flex;align-items:center;justify-content:center;
 }
-.letra button.a1{font-size:17px}
-.letra button.a2{font-size:22px}
-.letra button.a3{font-size:28px}
-.letra button[aria-pressed="true"]{background:#fff;color:var(--verde-escuro);border-color:#fff}
-.topo :focus-visible{outline-color:#63D68F}
+.a11y-letra-btns button.a1{font-size:17px}
+.a11y-letra-btns button.a2{font-size:22px}
+.a11y-letra-btns button.a3{font-size:28px}
+.a11y-letra-btns button[aria-pressed="true"]{background:var(--verde);color:#fff;border-color:var(--verde)}
+.a11y-toggle{
+  width:100%;text-align:left;display:flex;align-items:center;gap:10px;
+  background:var(--fundo);border:2px solid var(--linha);border-radius:12px;
+  padding:14px 16px;min-height:var(--toque);font-family:inherit;
+  font-size:calc(17px * var(--esc));font-weight:600;color:var(--tinta);cursor:pointer;
+}
+.a11y-toggle[aria-pressed="true"]{background:var(--verde);border-color:var(--verde);color:#fff}
+.a11y-toggle .ic{font-size:calc(20px * var(--esc));flex:0 0 auto}
 
 /* --------------------------------------------------- RESPOSTA PRINCIPAL -- */
 .resposta{padding:20px 0 0}
@@ -104,8 +177,8 @@ a{color:inherit}
   border-radius:16px;padding:24px 18px;text-align:center;color:#fff;
   border:4px solid transparent;
 }
-.cartao-status.sim{background:var(--aberto);border-color:#04562A}
-.cartao-status.nao{background:var(--fechado);border-color:#374151}
+.cartao-status.sim{background:var(--aberto-cartao);border-color:#04562A}
+.cartao-status.nao{background:var(--fechado-cartao);border-color:#374151}
 .cartao-status.carregando{background:#5B6B60;border-color:#44514A}
 
 .marca{
@@ -155,11 +228,11 @@ a{color:inherit}
 
 .av-tarja{
   display:inline-flex;align-items:center;gap:7px;
-  background:var(--alerta);color:#fff;border-radius:8px;padding:6px 11px;
+  background:var(--alerta-cartao);color:#fff;border-radius:8px;padding:6px 11px;
   font-size:calc(14px * var(--esc));font-weight:700;
   text-transform:uppercase;letter-spacing:.04em;margin-bottom:11px;
 }
-.aviso.atencao .av-tarja{background:var(--atencao)}
+.aviso.atencao .av-tarja{background:var(--atencao-cartao)}
 .aviso.recado .av-tarja{background:var(--verde)}
 
 .av-titulo{font-size:calc(21px * var(--esc));font-weight:700;line-height:1.25;margin-bottom:7px}
@@ -191,8 +264,8 @@ a{color:inherit}
   display:flex;align-items:center;gap:10px;
   margin-top:13px;padding:12px;border-radius:10px;
 }
-.sv-estado.on{background:#E3F3E9;border:2px solid var(--aberto)}
-.sv-estado.off{background:#EEF0F1;border:2px solid var(--fechado)}
+.sv-estado.on{background:var(--on-bg);border:2px solid var(--aberto)}
+.sv-estado.off{background:var(--off-bg);border:2px solid var(--fechado)}
 .sv-estado.alerta{background:var(--alerta-claro);border:2px solid var(--alerta)}
 .sv-estado.atencao{background:var(--atencao-claro);border:2px solid var(--atencao)}
 
@@ -244,6 +317,24 @@ details.semana[open] summary::after{transform:rotate(180deg)}
   padding-left:8px;padding-right:8px;border-radius:8px;
 }
 .semana-l.hoje .dia,.semana-l.hoje .val{color:var(--verde)}
+
+/* -------------------------------------------------------------- EQUIPE -- */
+.pessoas{display:flex;flex-direction:column;gap:10px}
+.pessoa{
+  background:var(--papel);border:2px solid var(--linha);border-radius:var(--raio);
+  padding:14px 16px;display:flex;align-items:center;gap:13px;
+}
+.pessoa-foto{
+  flex:0 0 auto;width:52px;height:52px;border-radius:50%;
+  background:var(--verde-claro);color:var(--verde-escuro);
+  display:flex;align-items:center;justify-content:center;
+  font-size:calc(18px * var(--esc));font-weight:700;
+}
+body.alto-contraste .pessoa-foto{background:#052012;color:#00E676}
+.pessoa-txt{flex:1;min-width:0}
+.pessoa-nome{font-size:calc(19px * var(--esc));font-weight:700;line-height:1.25}
+.pessoa-funcao{font-size:calc(16px * var(--esc));color:var(--tinta2);margin-top:2px;line-height:1.35}
+.pessoa-obs{font-size:calc(14.5px * var(--esc));color:var(--tinta2);margin-top:4px;line-height:1.4}
 
 /* ------------------------------------------------------------ URGÊNCIA -- */
 .urgencia{background:var(--verde-escuro);color:#fff;border-radius:16px;padding:20px 16px}
@@ -350,7 +441,7 @@ body.com-teste .teste{display:block}
 /* Para a equipe imprimir e colar na porta da unidade. */
 @media print{
   body{background:#fff;padding:0;font-size:14px}
-  .teste,.letra,.botoes,details.semana,.fonte-dados{display:none!important}
+  .teste,.a11y-fab,.a11y-painel,.a11y-fundo,.pular-link,.botoes,details.semana,.fonte-dados{display:none!important}
   .topo,.urgencia{background:#fff;color:#000;border:2px solid #000}
   .cartao-status{border:3px solid #000;color:#000!important;background:#fff!important}
   .secao{page-break-inside:avoid}
@@ -360,21 +451,14 @@ body.com-teste .teste{display:block}
 </head>
 <body>
 
+<a href="#conteudo" class="pular-link">Pular para o conteúdo</a>
+
 <!-- ============================ TOPO ============================ -->
 <header class="topo">
   <div class="wrap">
     <p class="orgao" id="orgao"></p>
     <h1 id="nome-unidade">UBS Paquetá</h1>
     <p class="subtitulo" id="subtitulo"></p>
-
-    <div class="letra">
-      <span class="letra-rot">Tamanho da letra:</span>
-      <div class="letra-btns" role="group" aria-label="Escolher o tamanho da letra">
-        <button type="button" class="a1" data-esc="1"    aria-pressed="true"  aria-label="Letra normal">A</button>
-        <button type="button" class="a2" data-esc="1.22" aria-pressed="false" aria-label="Letra grande">A</button>
-        <button type="button" class="a3" data-esc="1.45" aria-pressed="false" aria-label="Letra muito grande">A</button>
-      </div>
-    </div>
   </div>
 </header>
 
@@ -394,7 +478,7 @@ body.com-teste .teste{display:block}
   </div>
 </section>
 
-<main class="wrap">
+<main class="wrap" id="conteudo">
 
   <!-- ---------------------------- AVISOS ------------------------ -->
   <section class="secao">
@@ -408,6 +492,13 @@ body.com-teste .teste{display:block}
     <h2>O que você precisa?</h2>
     <p class="ajuda">Toque em “Ver os dias da semana” para saber quando cada serviço atende.</p>
     <div id="servicos"></div>
+  </section>
+
+  <!-- ---------------------------- EQUIPE ------------------------ -->
+  <section class="secao" id="equipe-secao">
+    <h2>Quem trabalha aqui</h2>
+    <p class="ajuda">A equipe da unidade e o que cada pessoa faz.</p>
+    <div class="pessoas" id="equipe"></div>
   </section>
 
   <!-- --------------------------- URGÊNCIA ----------------------- -->
@@ -484,6 +575,64 @@ body.com-teste .teste{display:block}
   </div>
 </noscript>
 
+<!-- ================== ACESSIBILIDADE (botão flutuante) ==================
+     Substitui os botões A A A que ficavam no topo. Agora tudo isso mora
+     aqui dentro: tamanho da letra, alto contraste e ouvir a página.
+     ======================================================================= -->
+<button type="button" id="a11y-fab" class="a11y-fab"
+        aria-haspopup="dialog" aria-expanded="false" aria-controls="a11y-painel"
+        aria-label="Abrir opções de acessibilidade">
+  <span aria-hidden="true">Aa</span>
+</button>
+
+<div id="a11y-fundo" class="a11y-fundo" hidden></div>
+
+<div id="a11y-painel" class="a11y-painel" role="dialog" aria-modal="true"
+     aria-labelledby="a11y-titulo" hidden>
+  <div class="a11y-topo">
+    <h2 id="a11y-titulo">Acessibilidade</h2>
+    <button type="button" id="a11y-fechar" class="a11y-fechar" aria-label="Fechar">✕</button>
+  </div>
+
+  <div class="a11y-grupo">
+    <p class="a11y-grupo-tit">Tamanho da letra</p>
+    <div class="a11y-letra-btns" role="group" aria-label="Escolher o tamanho da letra">
+      <button type="button" class="a1" data-esc="1"    aria-pressed="true"  aria-label="Letra normal">A</button>
+      <button type="button" class="a2" data-esc="1.22" aria-pressed="false" aria-label="Letra grande">A</button>
+      <button type="button" class="a3" data-esc="1.45" aria-pressed="false" aria-label="Letra muito grande">A</button>
+    </div>
+  </div>
+
+  <div class="a11y-grupo">
+    <p class="a11y-grupo-tit">Contraste</p>
+    <button type="button" id="a11y-contraste" class="a11y-toggle" aria-pressed="false">
+      <span class="ic" aria-hidden="true">◐</span> Ativar alto contraste
+    </button>
+  </div>
+
+  <div class="a11y-grupo">
+    <p class="a11y-grupo-tit">Ouvir</p>
+    <button type="button" id="a11y-ouvir" class="a11y-toggle" aria-pressed="false">
+      <span class="ic" aria-hidden="true">🔊</span> Ouvir esta página
+    </button>
+  </div>
+</div>
+
+<!-- ================== LIBRAS (VLibras — widget oficial do Governo Federal)
+     Gratuito, mantido pelo governo. Se não quiser esse recurso, apague
+     este bloco inteiro (as 6 linhas abaixo) e o site funciona normalmente.
+     ======================================================================= -->
+<div vw class="enabled">
+  <div vw-access-button class="active"></div>
+  <div vw-plugin-wrapper>
+    <div class="vw-plugin-top-wrapper"></div>
+  </div>
+</div>
+<script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+<script>
+  if(window.VLibras){ new window.VLibras.Widget('https://vlibras.gov.br/app'); }
+</script>
+
 <script>
 /* ======================================================================
    TUDO DO SITE ESTA NESTE UNICO ARQUIVO.
@@ -525,14 +674,15 @@ const CONFIG = {
      https://docs.google.com/spreadsheets/d/ 1AbC...XyZ /edit#gid=0
                                              ^^^^^^^^^^ este pedaço
 
-     A planilha precisa ter duas abas: "servicos" e "avisos"
+     A planilha precisa ter três abas: "servicos", "avisos" e "equipe"
      e estar compartilhada como "Qualquer pessoa com o link" → Leitor.
 
      Enquanto estiver como está, o site usa os dados de reserva do item 4.
   */
-  planilhaId: '1-RLhGWQlNl64BDa4kfpCRz1dgagQgoZB9cSce8Ob0jU',
+  planilhaId:  '1-RLhGWQlNl64BDa4kfpCRz1dgagQgoZB9cSce8Ob0jU',
   abaServicos: 'servicos',
   abaAvisos:   'avisos',
+  abaEquipe:   'equipe',
 
   /* De quanto em quanto tempo o site relê a planilha (em minutos) */
   recarregarACada: 5,
@@ -615,6 +765,21 @@ const CONFIG = {
       titulo:'Exame de sangue termina mais cedo na quinta',
       texto:'Na quinta-feira a coleta encerra às 8 horas e 30 minutos, porque a equipe tem reunião. Chegue cedo.',
       inicio:'2026-08-20', fim:'2026-08-20', novo:'07:00-08:30', atualizado:'19/08 às 7h30' }
+  ],
+
+  /* ---- 5. EQUIPE (EXEMPLO) --------------------------------------------- */
+  /*
+     ESTES NOMES SÃO EXEMPLO — troque pelos nomes e funções reais da equipe,
+     de preferência editando a aba "equipe" na planilha (assim como servicos
+     e avisos). Isso aqui só é usado se a planilha estiver fora do ar.
+  */
+  equipeReserva: [
+    { nome:'(nome de exemplo)', funcao:'Médica de família', obs:'' },
+    { nome:'(nome de exemplo)', funcao:'Enfermeira', obs:'' },
+    { nome:'(nome de exemplo)', funcao:'Técnica de enfermagem', obs:'' },
+    { nome:'(nome de exemplo)', funcao:'Dentista', obs:'Atende às segundas, quartas e sextas' },
+    { nome:'(nome de exemplo)', funcao:'Recepção e acolhimento', obs:'' },
+    { nome:'(nome de exemplo)', funcao:'Agente comunitário de saúde', obs:'' }
   ]
 };
 
@@ -643,6 +808,7 @@ var ORD   = ['seg','ter','qua','qui','sex','sab','dom'];
 
 var SERVICOS = CONFIG.servicosReserva;
 var AVISOS   = CONFIG.avisosReserva;
+var EQUIPE   = CONFIG.equipeReserva;
 var ORIGEM   = 'reserva';   /* 'planilha' | 'reserva' | 'erro' */
 
 /* ------------------------------------------------------------ ajudas -- */
@@ -746,10 +912,27 @@ function urlCSV(aba){
          '&t=' + Date.now();
 }
 
+/* Busca com um limite de tempo. Sem isso, numa rede lenta ou instável,
+   a página podia ficar presa em "Carregando horários" para sempre —
+   depois de 8 segundos, desiste e segue com os dados que já tem. */
+function buscarComLimite(url, segundos){
+  var controle = ('AbortController' in window) ? new AbortController() : null;
+  var timer = controle ? setTimeout(function(){ controle.abort(); }, (segundos || 8) * 1000) : null;
+  return fetch(url, controle ? {signal: controle.signal} : undefined)
+    .finally(function(){ if(timer) clearTimeout(timer); });
+}
+
 function planilhaConfigurada(){
   return CONFIG.planilhaId &&
          CONFIG.planilhaId.indexOf('COLE_O_ID') !== 0 &&
          CONFIG.planilhaId.length > 20;
+}
+
+/* Tira acentos para comparar texto sem depender de como a pessoa digitou.
+   "Atenção", "atencao", "ATENÇÃO" viram todos "atencao". */
+function semAcento(s){
+  return String(s || '').toLowerCase().trim()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
 function buscarPlanilha(){
@@ -757,9 +940,10 @@ function buscarPlanilha(){
     ORIGEM = 'reserva';
     return Promise.resolve();
   }
-  return Promise.all([
-    fetch(urlCSV(CONFIG.abaServicos)),
-    fetch(urlCSV(CONFIG.abaAvisos))
+
+  var principal = Promise.all([
+    buscarComLimite(urlCSV(CONFIG.abaServicos)),
+    buscarComLimite(urlCSV(CONFIG.abaAvisos))
   ]).then(function(r){
     if(!r[0].ok || !r[1].ok) throw new Error('planilha não respondeu');
     return Promise.all([r[0].text(), r[1].text()]);
@@ -788,7 +972,7 @@ function buscarPlanilha(){
     AVISOS = avisos.map(function(r){
       var ini = normalizaData(r.inicio || r.data_inicio);
       return {
-        tipo:       (r.tipo || 'recado').toLowerCase().trim(),
+        tipo:       semAcento(r.tipo) || 'recado',
         servico:    (r.servico || r.servico_id || '').trim(),
         titulo:     r.titulo || '',
         texto:      r.texto || '',
@@ -801,9 +985,32 @@ function buscarPlanilha(){
 
     ORIGEM = 'planilha';
   }).catch(function(e){
-    console.error('Não consegui ler a planilha:', e);
+    console.error('Não consegui ler servicos/avisos da planilha:', e);
     ORIGEM = 'erro';
   });
+
+  /* A aba "equipe" é buscada à parte: se ela ainda não existir, isso não
+     pode derrubar horários e avisos, que são mais importantes. */
+  var equipe = buscarComLimite(urlCSV(CONFIG.abaEquipe)).then(function(r){
+    if(!r.ok) throw new Error('sem aba equipe');
+    return r.text();
+  }).then(function(txt){
+    var lista = paraObjetos(txt).map(function(r){
+      return {
+        nome:   r.nome || '',
+        funcao: r.funcao || r['função'] || '',
+        obs:    r.obs || r.observacao || r['observação'] || ''
+      };
+    }).filter(function(p){ return p.nome; });
+    /* Diferente de servicos: aqui uma planilha vazia É um resultado válido
+       (equipe ainda não cadastrada). Por isso troca mesmo que venha vazia —
+       só mantém os dados de exemplo se a aba "equipe" nem existir ainda. */
+    EQUIPE = lista;
+  }).catch(function(){
+    /* Sem aba equipe ainda — mantém os dados de reserva, sem barulho. */
+  });
+
+  return Promise.all([principal, equipe]);
 }
 
 /* --------------------------------------------------- regras de horário -- */
@@ -901,7 +1108,10 @@ function montarFixos(){
 }
 
 /* --------------------------------------------------- desenhar a página -- */
+var ULTIMA_DATA = null, ULTIMA_AGORA = null;
+
 function desenhar(data, agora){
+  ULTIMA_DATA = data; ULTIMA_AGORA = agora;
   var diaKey  = K[data.getDay()];
   var dataISO = iso(data);
   var base = SERVICOS[0];
@@ -1003,6 +1213,26 @@ function desenhar(data, agora){
     '</article>';
   }).join('');
 
+  /* equipe */
+  var equipeEl = document.getElementById('equipe');
+  if(!EQUIPE || !EQUIPE.length){
+    equipeEl.innerHTML = '<p class="ajuda">Em breve, informações da equipe.</p>';
+  } else {
+    equipeEl.innerHTML = EQUIPE.map(function(p){
+      var iniciais = String(p.nome || '').trim().split(/\s+/).filter(Boolean).slice(0,2)
+        .map(function(w){ var m = w.match(/[A-Za-zÀ-ÿ]/); return m ? m[0] : ''; })
+        .join('').toUpperCase();
+      return '<div class="pessoa">' +
+        '<div class="pessoa-foto" aria-hidden="true">' + limpo(iniciais || '?') + '</div>' +
+        '<div class="pessoa-txt">' +
+          '<p class="pessoa-nome">' + limpo(p.nome) + '</p>' +
+          '<p class="pessoa-funcao">' + limpo(p.funcao) + '</p>' +
+          (p.obs ? '<p class="pessoa-obs">' + limpo(p.obs) + '</p>' : '') +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
   /* de onde vieram os dados */
   var fd = document.getElementById('fonte-dados');
   var agoraTxt = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
@@ -1019,6 +1249,69 @@ function desenhar(data, agora){
     fd.textContent = 'Esta página está usando os dados internos do site. ' +
       'A planilha da unidade ainda não foi configurada.';
   }
+}
+
+/* ----------------------------------------------------- ouvir a página -- */
+function textoParaOuvir(){
+  if(ULTIMA_DATA == null) return '';
+  var diaKey  = K[ULTIMA_DATA.getDay()];
+  var dataISO = iso(ULTIMA_DATA);
+  var base = SERVICOS[0];
+  var partes = [CONFIG.unidade.nome + '.'];
+
+  if(base){
+    var st = situacao(base, diaKey, dataISO, ULTIMA_AGORA);
+    if(st.cls === 'on'){
+      partes.push('O posto está aberto agora. Fecha hoje às ' + hf(st.faixa.split('-')[1]) + '.');
+    } else {
+      partes.push('O posto está fechado agora.');
+    }
+  }
+
+  var ativos = avisosDoDia(dataISO);
+  if(!ativos.length){
+    partes.push('Não há nenhum aviso hoje. Todos os serviços funcionam no horário de sempre.');
+  } else {
+    partes.push(ativos.length === 1 ? 'Há um aviso hoje.' : 'Há ' + ativos.length + ' avisos hoje.');
+    ativos.forEach(function(a){
+      partes.push(a.titulo + '. ' + a.texto);
+    });
+  }
+
+  partes.push('Em caso de urgência, ligue ' + CONFIG.urgencia.telefone.split('').join(' ') + '.');
+  return partes.join(' ');
+}
+
+var falando = false;
+function alternarOuvir(botao){
+  if(!('speechSynthesis' in window)){
+    botao.disabled = true;
+    botao.querySelector('.ic').nextSibling.textContent = ' Leitura não é possível neste navegador';
+    return;
+  }
+  if(falando){
+    window.speechSynthesis.cancel();
+    falando = false;
+    botao.setAttribute('aria-pressed','false');
+    return;
+  }
+  var texto = textoParaOuvir();
+  if(!texto) return;
+  var fala = new SpeechSynthesisUtterance(texto);
+  fala.lang = 'pt-BR';
+  fala.rate = 0.95;
+  var vozes = window.speechSynthesis.getVoices();
+  var voz = vozes.find(function(v){ return v.lang === 'pt-BR'; }) ||
+            vozes.find(function(v){ return v.lang && v.lang.indexOf('pt') === 0; });
+  if(voz) fala.voice = voz;
+
+  fala.onend = function(){ falando = false; botao.setAttribute('aria-pressed','false'); };
+  fala.onerror = function(){ falando = false; botao.setAttribute('aria-pressed','false'); };
+
+  falando = true;
+  botao.setAttribute('aria-pressed','true');
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(fala);
 }
 
 /* ------------------------------------------------------- os controles -- */
@@ -1038,20 +1331,82 @@ function usarAgora(){
   atualiza();
 }
 
+/* Guarda uma preferência no aparelho da pessoa, sem quebrar se o navegador
+   bloquear (modo anônimo, por exemplo). */
+function guardar(chave, valor){
+  try { localStorage.setItem(chave, valor); } catch(e){}
+}
+function lerGuardado(chave){
+  try { return localStorage.getItem(chave); } catch(e){ return null; }
+}
+
 function iniciar(){
   montarFixos();
 
-  /* botões de tamanho de letra */
-  var botoes = document.querySelectorAll('.letra button');
-  Array.prototype.forEach.call(botoes, function(b){
-    b.addEventListener('click', function(){
-      Array.prototype.forEach.call(botoes, function(o){
-        o.setAttribute('aria-pressed','false');
-      });
-      b.setAttribute('aria-pressed','true');
-      document.documentElement.style.setProperty('--esc', b.dataset.esc);
+  /* ---- tamanho da letra (dentro do painel de acessibilidade) ---- */
+  var botoesLetra = document.querySelectorAll('.a11y-letra-btns button');
+  function aplicarLetra(botao, salvar){
+    Array.prototype.forEach.call(botoesLetra, function(o){
+      o.setAttribute('aria-pressed','false');
     });
+    botao.setAttribute('aria-pressed','true');
+    document.documentElement.style.setProperty('--esc', botao.dataset.esc);
+    if(salvar) guardar('ubs-letra', botao.dataset.esc);
+  }
+  Array.prototype.forEach.call(botoesLetra, function(b){
+    b.addEventListener('click', function(){ aplicarLetra(b, true); });
   });
+  var letraSalva = lerGuardado('ubs-letra');
+  if(letraSalva){
+    var alvo = Array.prototype.find.call(botoesLetra, function(b){
+      return b.dataset.esc === letraSalva;
+    });
+    if(alvo) aplicarLetra(alvo, false);
+  }
+
+  /* ---- alto contraste ---- */
+  var btContraste = document.getElementById('a11y-contraste');
+  function aplicarContraste(ligado, salvar){
+    document.body.classList.toggle('alto-contraste', ligado);
+    btContraste.setAttribute('aria-pressed', ligado ? 'true' : 'false');
+    btContraste.lastChild.textContent = ligado ? ' Desativar alto contraste' : ' Ativar alto contraste';
+    if(salvar) guardar('ubs-contraste', ligado ? '1' : '0');
+  }
+  btContraste.addEventListener('click', function(){
+    aplicarContraste(!document.body.classList.contains('alto-contraste'), true);
+  });
+  if(lerGuardado('ubs-contraste') === '1') aplicarContraste(true, false);
+
+  /* ---- ouvir a página ---- */
+  var btOuvir = document.getElementById('a11y-ouvir');
+  btOuvir.addEventListener('click', function(){ alternarOuvir(btOuvir); });
+
+  /* ---- abrir/fechar o painel de acessibilidade ---- */
+  var fab      = document.getElementById('a11y-fab');
+  var painel   = document.getElementById('a11y-painel');
+  var fundo    = document.getElementById('a11y-fundo');
+  var fechar   = document.getElementById('a11y-fechar');
+
+  function abrirPainel(){
+    painel.hidden = false;
+    fundo.hidden  = false;
+    fab.setAttribute('aria-expanded','true');
+    fechar.focus();
+    document.addEventListener('keydown', aoTeclar);
+  }
+  function fecharPainel(){
+    painel.hidden = true;
+    fundo.hidden  = true;
+    fab.setAttribute('aria-expanded','false');
+    fab.focus();
+    document.removeEventListener('keydown', aoTeclar);
+  }
+  function aoTeclar(e){
+    if(e.key === 'Escape') fecharPainel();
+  }
+  fab.addEventListener('click', abrirPainel);
+  fechar.addEventListener('click', fecharPainel);
+  fundo.addEventListener('click', fecharPainel);
 
   campoData = document.getElementById('data');
   campoHora = document.getElementById('hora');
