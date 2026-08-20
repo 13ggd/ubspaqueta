@@ -201,6 +201,15 @@ body.alto-contraste .a11y-topo h2{color:var(--tinta)}
   border-top:2px solid rgba(255,255,255,.28);opacity:.92;line-height:1.4;
 }
 
+.status-aviso-link{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-top:14px;padding:12px 16px;border-radius:99px;
+  background:#fff;color:var(--alerta-cartao);
+  font-size:calc(16px * var(--esc));font-weight:700;
+  text-decoration:none;min-height:48px;
+}
+.status-aviso-link:hover{opacity:.9}
+
 /* ------------------------------------------------------------- BOTÕES -- */
 .botoes{display:grid;grid-template-columns:1fr;gap:10px;margin-top:14px}
 .botao{
@@ -1320,6 +1329,16 @@ function desenhar(data, agora){
   var aberta = (st.cls === 'on');
   var cx = document.getElementById('status');
 
+  /* calculado aqui em cima porque o próprio card de status precisa saber
+     se tem aviso hoje, para avisar isso já na primeira tela — sem isso,
+     alguém podia ver "ABERTO" e nunca rolar a página até "Avisos de hoje" */
+  var ativos = avisosDoDia(dataISO);
+  var avisoResumo = ativos.length
+    ? '<a href="#avisos-secao" class="status-aviso-link">⚠ ' +
+        (ativos.length === 1 ? '1 aviso hoje' : ativos.length + ' avisos hoje') +
+        ' — toque para ver</a>'
+    : '';
+
   /* título da aba: sempre com o nome da unidade, junto com o status atual */
   document.title = CONFIG.unidade.nome + ' — ' + (aberta ? 'Aberto agora' : 'Fechado agora');
 
@@ -1330,6 +1349,7 @@ function desenhar(data, agora){
         '<p class="status-palavra">O posto está aberto</p>' +
         '<p class="status-detalhe">Fecha hoje às ' + hf(st.faixa.split('-')[1]) + '</p>' +
         '<p class="status-hoje">Hoje é ' + NOME[diaKey].toLowerCase() + ', ' + hf(hh(agora)) + '</p>' +
+        avisoResumo +
       '</div>';
   } else {
     var p = proximoDia(base, data);
@@ -1345,11 +1365,9 @@ function desenhar(data, agora){
         '<p class="status-detalhe">' + quando + '</p>' +
         '<p class="status-hoje">Hoje é ' + NOME[diaKey].toLowerCase() + ', ' + hf(hh(agora)) +
         '. Se for urgente, ligue ' + CONFIG.urgencia.telefone + '.</p>' +
+        avisoResumo +
       '</div>';
   }
-
-  /* avisos */
-  var ativos = avisosDoDia(dataISO);
 
   /* ícone da aba: verde = tudo certo, amarelo = aberto mas com algum
      aviso hoje, vermelho = fechado agora (o mais urgente de saber) */
