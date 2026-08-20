@@ -922,20 +922,36 @@ var EQUIPE   = CONFIG.equipeReserva;
 var ORIGEM   = 'reserva';   /* 'planilha' | 'reserva' | 'erro' */
 
 /* --------------------------------------------------------- favicon -- */
-/* Troca o ícone da aba do navegador por um emoji, gerado na hora como
-   uma imagem SVG — não precisa de nenhum arquivo de imagem. */
+/* Troca o ícone da aba do navegador por um emoji. Desenha o emoji num
+   canvas (uma área de desenho que fica invisível na página) e exporta
+   como PNG — isso funciona de forma bem mais confiável entre navegadores
+   diferentes (inclusive Safari do iPhone) do que gerar um SVG direto. */
 function definirFavicon(emoji){
-  var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">' +
-            '<text x="50" y="78" font-size="80" text-anchor="middle">' + emoji + '</text></svg>';
-  var url = 'data:image/svg+xml,' + encodeURIComponent(svg);
-  var link = document.getElementById('favicon-dinamico');
-  if(!link){
-    link = document.createElement('link');
-    link.id = 'favicon-dinamico';
-    link.rel = 'icon';
-    document.head.appendChild(link);
+  try{
+    var canvas = document.createElement('canvas');
+    canvas.width = 64;
+    canvas.height = 64;
+    var ctx = canvas.getContext('2d');
+    if(!ctx) return;
+    ctx.clearRect(0, 0, 64, 64);
+    ctx.font = '52px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(emoji, 32, 36);
+    var url = canvas.toDataURL('image/png');
+
+    var link = document.getElementById('favicon-dinamico');
+    if(!link){
+      link = document.createElement('link');
+      link.id = 'favicon-dinamico';
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
+    link.href = url;
+  } catch(e){
+    /* Se o navegador não suportar, o site continua funcionando
+       normalmente — só não troca o ícone da aba. */
   }
-  link.href = url;
 }
 
 /* ------------------------------------------------------------ ajudas -- */
@@ -1212,6 +1228,57 @@ function proximoDia(s, data){
   return null;
 }
 
+/* Olha TODOS os serviços (não só o primeiro da planilha) para decidir se
+   a unidade está aberta. Fica aberta enquanto qualquer setor estiver
+   funcionando, e "fecha" no horário do último setor a fechar no dia. */
+function statusGeral(diaKey, dataISO, agora){
+  var abertoAgora = false, fechaAs = null, abreAs = null;
+
+  SERVICOS.forEach(function(s){
+    var t = situacao(s, diaKey, dataISO, agora);
+    if(t.cls === 'alerta') return;           /* setor fechado por aviso hoje */
+    var faixa = t.nova || t.faixa;
+    if(!faixa) return;                       /* setor não atende hoje */
+
+    var partes = faixa.split('-');
+    var ini = mm(partes[0]), fim = mm(partes[1]);
+
+    if(agora >= ini && agora < fim){
+      abertoAgora = true;
+      if(fechaAs === null || fim > fechaAs) fechaAs = fim;
+    } else if(agora < ini){
+      if(abreAs === null || ini < abreAs) abreAs = ini;
+    }
+  });
+
+  return {abertoAgora:abertoAgora, fechaAs:fechaAs, abreAs:abreAs};
+}
+
+/* Mesma ideia do proximoDia, mas somando todos os serviços — usada quando
+   nenhum setor abre mais hoje, para saber a hora mais cedo entre todos
+   no próximo dia que tiver algo funcionando. */
+function proximaAberturaGeral(data){
+  for(var k = 1; k <= 7; k++){
+    var d = new Date(data.getTime());
+    d.setDate(d.getDate() + k);
+    var key = K[d.getDay()];
+    var dISO = iso(d);
+    var menor = null;
+
+    SERVICOS.forEach(function(s){
+      var av = avisoDe(s.id, dISO);
+      if(av && av.tipo === 'fechado') return;
+      var faixa = (av && av.tipo === 'atencao' && av.novo) ? av.novo : s.h[key];
+      if(!faixa) return;
+      var ini = mm(faixa.split('-')[0]);
+      if(menor === null || ini < menor) menor = ini;
+    });
+
+    if(menor !== null) return {key:key, minutos:menor, amanha:(k === 1)};
+  }
+  return null;
+}
+
 /* ------------------------------------------- partes fixas (do config) -- */
 function montarFixos(){
   var u = CONFIG.unidade;
@@ -1322,11 +1389,10 @@ function desenhar(data, agora){
   ULTIMA_DATA = data; ULTIMA_AGORA = agora;
   var diaKey  = K[data.getDay()];
   var dataISO = iso(data);
-  var base = SERVICOS[0];
-  if(!base) return;
+  if(!SERVICOS.length) return;
 
-  var st = situacao(base, diaKey, dataISO, agora);
-  var aberta = (st.cls === 'on');
+  var geral = statusGeral(diaKey, dataISO, agora);
+  var aberta = geral.abertoAgora;
   var cx = document.getElementById('status');
 
   /* calculado aqui em cima porque o próprio card de status precisa saber
@@ -1347,17 +1413,19 @@ function desenhar(data, agora){
       '<div class="cartao-status sim">' +
         '<div class="marca" aria-hidden="true">✓</div>' +
         '<p class="status-palavra">O posto está aberto</p>' +
-        '<p class="status-detalhe">Fecha hoje às ' + hf(st.faixa.split('-')[1]) + '</p>' +
+        '<p class="status-detalhe">Fecha hoje às ' + hf(hh(geral.fechaAs)) + '</p>' +
         '<p class="status-hoje">Hoje é ' + NOME[diaKey].toLowerCase() + ', ' + hf(hh(agora)) + '</p>' +
         avisoResumo +
       '</div>';
   } else {
-    var p = proximoDia(base, data);
-    var antes = st.faixa && agora < mm(st.faixa.split('-')[0]);
     var quando = '';
-    if(antes) quando = 'Abre hoje às ' + hf(st.faixa.split('-')[0]);
-    else if(p) quando = 'Abre ' + (p.amanha ? 'amanhã' : 'na ' + CURTO[p.key]) +
-                        ' às ' + hf(p.faixa.split('-')[0]);
+    if(geral.abreAs !== null){
+      quando = 'Abre hoje às ' + hf(hh(geral.abreAs));
+    } else {
+      var p = proximaAberturaGeral(data);
+      if(p) quando = 'Abre ' + (p.amanha ? 'amanhã' : 'na ' + CURTO[p.key]) +
+                     ' às ' + hf(hh(p.minutos));
+    }
     cx.innerHTML =
       '<div class="cartao-status nao">' +
         '<div class="marca" aria-hidden="true">✕</div>' +
@@ -1481,16 +1549,13 @@ function textoParaOuvir(){
   if(ULTIMA_DATA == null) return '';
   var diaKey  = K[ULTIMA_DATA.getDay()];
   var dataISO = iso(ULTIMA_DATA);
-  var base = SERVICOS[0];
   var partes = [CONFIG.unidade.nome + '.'];
 
-  if(base){
-    var st = situacao(base, diaKey, dataISO, ULTIMA_AGORA);
-    if(st.cls === 'on'){
-      partes.push('O posto está aberto agora. Fecha hoje às ' + hf(st.faixa.split('-')[1]) + '.');
-    } else {
-      partes.push('O posto está fechado agora.');
-    }
+  var geral = statusGeral(diaKey, dataISO, ULTIMA_AGORA);
+  if(geral.abertoAgora){
+    partes.push('O posto está aberto agora. Fecha hoje às ' + hf(hh(geral.fechaAs)) + '.');
+  } else {
+    partes.push('O posto está fechado agora.');
   }
 
   var ativos = avisosDoDia(dataISO);
