@@ -912,6 +912,23 @@ var AVISOS   = CONFIG.avisosReserva;
 var EQUIPE   = CONFIG.equipeReserva;
 var ORIGEM   = 'reserva';   /* 'planilha' | 'reserva' | 'erro' */
 
+/* --------------------------------------------------------- favicon -- */
+/* Troca o ícone da aba do navegador por um emoji, gerado na hora como
+   uma imagem SVG — não precisa de nenhum arquivo de imagem. */
+function definirFavicon(emoji){
+  var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">' +
+            '<text x="50" y="78" font-size="80" text-anchor="middle">' + emoji + '</text></svg>';
+  var url = 'data:image/svg+xml,' + encodeURIComponent(svg);
+  var link = document.getElementById('favicon-dinamico');
+  if(!link){
+    link = document.createElement('link');
+    link.id = 'favicon-dinamico';
+    link.rel = 'icon';
+    document.head.appendChild(link);
+  }
+  link.href = url;
+}
+
 /* ------------------------------------------------------------ ajudas -- */
 function mm(t){ var p = t.split(':'); return Number(p[0])*60 + Number(p[1]); }
 function hh(v){
@@ -1330,6 +1347,11 @@ function desenhar(data, agora){
 
   /* avisos */
   var ativos = avisosDoDia(dataISO);
+
+  /* ícone da aba: verde = tudo certo, amarelo = aberto mas com algum
+     aviso hoje, vermelho = fechado agora (o mais urgente de saber) */
+  definirFavicon(!aberta ? '🔴' : (ativos.length ? '🟡' : '🟢'));
+
   var box = document.getElementById('avisos');
   if(!ativos.length){
     box.innerHTML =
