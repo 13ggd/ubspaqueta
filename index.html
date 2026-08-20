@@ -844,21 +844,22 @@ const CONFIG = {
   ],
 
   avisosReserva: [
-    { tipo:'recado', servico:'',
+    { tipo:'recado', servico:'', ativo:true,
       titulo:'Neste sábado o posto do Paquetá não abre',
       texto:'No sábado, dia 22 de agosto, tem Dia D de vacinação das 7 às 13 horas, mas só nos postos Águas Claras, Limeira Baixa, Dom Joaquim e São Luiz, e também na Policlínica. Leve documento e a carteirinha de vacinação. Não precisa marcar: é por ordem de chegada.',
       inicio:'2026-08-22', fim:'2026-08-22', novo:'', atualizado:'18/08 às 9h' },
 
-    { tipo:'fechado', servico:'dentista',
+    { tipo:'fechado', servico:'dentista', ativo:true,
       titulo:'O dentista não vai atender',
       texto:'A cadeira do dentista está quebrada e o conserto ainda não terminou. Se estiver com muita dor de dente, procure a Policlínica, no Centro.',
       inicio:'2026-08-19', fim:'2026-08-21', novo:'', atualizado:'19/08 às 7h15' },
 
-    { tipo:'atencao', servico:'exame',
+    { tipo:'atencao', servico:'exame', ativo:true,
       titulo:'Exame de sangue termina mais cedo na quinta',
       texto:'Na quinta-feira a coleta encerra às 8 horas e 30 minutos, porque a equipe tem reunião. Chegue cedo.',
       inicio:'2026-08-20', fim:'2026-08-20', novo:'07:00-08:30', atualizado:'19/08 às 7h30' }
   ],
+
 
   /* ---- 5. EQUIPE (EXEMPLO) --------------------------------------------- */
   /*
@@ -1035,6 +1036,17 @@ function semAcento(s){
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
+/* Lê a caixinha de marcar (checkbox) da planilha. O Google Sheets exporta
+   como TRUE/FALSE ou, em planilhas em português, VERDADEIRO/FALSO —
+   aceitamos os dois. Se a coluna estiver vazia ou não existir, considera
+   ativo (assim planilhas antigas, sem essa coluna, continuam funcionando). */
+function paraBooleano(v){
+  if(v === undefined || v === null) return true;
+  var s = String(v).trim().toLowerCase();
+  if(s === '') return true;
+  return !(s === 'false' || s === 'falso' || s === '0' || s === 'nao' || s === 'não');
+}
+
 function buscarPlanilha(){
   if(!planilhaConfigurada()){
     ORIGEM = 'reserva';
@@ -1079,9 +1091,10 @@ function buscarPlanilha(){
         inicio:     ini,
         fim:        normalizaData(r.fim || r.data_fim) || ini,
         novo:       normalizaHorario(r.novo || r.novo_horario),
-        atualizado: r.atualizado || ''
+        atualizado: r.atualizado || '',
+        ativo:      paraBooleano(r.ativo)
       };
-    }).filter(function(a){ return a.titulo && a.inicio; });
+    }).filter(function(a){ return a.titulo; });
 
     ORIGEM = 'planilha';
   }).catch(function(e){
@@ -1118,6 +1131,8 @@ function buscarPlanilha(){
 /* --------------------------------------------------- regras de horário -- */
 function avisosDoDia(dataISO){
   return AVISOS.filter(function(a){
+    if(a.ativo === false) return false;      /* checkbox desmarcado = nunca aparece */
+    if(!a.inicio) return true;                /* sem data = fica ativo enquanto marcado */
     return a.inicio <= dataISO && dataISO <= (a.fim || a.inicio);
   });
 }
@@ -1325,16 +1340,19 @@ function desenhar(data, agora){
       var cls  = a.tipo === 'atencao' ? 'atencao' : (a.tipo === 'recado' ? 'recado' : '');
       var selo = a.tipo === 'atencao' ? '⚠ Mudou o horário'
                : (a.tipo === 'recado' ? 'ⓘ Recado' : '✕ Fechado');
-      var per  = (a.fim && a.fim !== a.inicio)
-               ? 'De ' + brData(a.inicio) + ' até ' + brData(a.fim)
-               : 'Dia ' + brData(a.inicio);
+      var per = a.inicio
+        ? ((a.fim && a.fim !== a.inicio) ? 'De ' + brData(a.inicio) + ' até ' + brData(a.fim) : 'Dia ' + brData(a.inicio))
+        : '';
+      var rodape = [];
+      if(per) rodape.push('Quando: ' + per);
+      if(a.atualizado) rodape.push('Avisado em ' + limpo(a.atualizado));
+      var quandoHtml = rodape.length ? '<p class="av-quando">' + rodape.join(' · ') + '</p>' : '';
       return '<div class="aviso ' + cls + '">' +
         '<span class="av-tarja">' + selo + '</span>' +
         '<p class="av-titulo">' + limpo(a.titulo) + '</p>' +
         '<p class="av-texto">' + limpo(a.texto) +
           (a.novo ? ' Novo horário: <strong>' + fala(a.novo) + '</strong>.' : '') + '</p>' +
-        '<p class="av-quando">Quando: ' + per +
-          (a.atualizado ? ' · Avisado em ' + limpo(a.atualizado) : '') + '</p>' +
+        quandoHtml +
       '</div>';
     }).join('');
   }
