@@ -165,6 +165,16 @@ body.alto-contraste .a11y-topo h2{color:var(--tinta)}
 .a11y-letra-btns button.a2{font-size:22px}
 .a11y-letra-btns button.a3{font-size:28px}
 .a11y-letra-btns button[aria-pressed="true"]{background:var(--verde);color:#fff;border-color:var(--verde)}
+.a11y-idioma-ajuda{font-size:calc(13.5px * var(--esc));color:var(--tinta2);margin-bottom:8px;line-height:1.4}
+.idioma-bt{
+  font-family:inherit;font-weight:700;cursor:pointer;flex:1;
+  background:var(--fundo);border:2px solid var(--linha);
+  color:var(--tinta);border-radius:10px;
+  min-height:var(--toque);
+  display:flex;align-items:center;justify-content:center;
+  text-decoration:none;
+}
+.idioma-bt:hover{background:var(--verde-claro)}
 .a11y-toggle{
   width:100%;text-align:left;display:flex;align-items:center;gap:10px;
   background:var(--fundo);border:2px solid var(--linha);border-radius:12px;
@@ -546,9 +556,6 @@ body.com-teste .teste{display:block}
       <a class="botao" id="bt-mapa" href="#" target="_blank" rel="noopener">
         <span class="icone" aria-hidden="true">📍</span> Ver no mapa
       </a>
-      <a class="botao" id="bt-compartilhar" href="#" target="_blank" rel="noopener">
-        <span class="icone" aria-hidden="true">💬</span> Compartilhar
-      </a>
     </div>
   </div>
 </section>
@@ -694,29 +701,13 @@ body.com-teste .teste{display:block}
 
   <div class="a11y-grupo">
     <p class="a11y-grupo-tit">Idioma / Language</p>
+    <p class="a11y-idioma-ajuda">Abre a página traduzida em outra aba, pelo tradutor do Google.</p>
     <div class="a11y-letra-btns">
-      <button type="button" class="idioma-bt" data-lang="pt" aria-pressed="true">Português</button>
-      <button type="button" class="idioma-bt" data-lang="en" aria-pressed="false">English</button>
-      <button type="button" class="idioma-bt" data-lang="es" aria-pressed="false">Español</button>
+      <a class="idioma-bt" id="idioma-en" href="#" target="_blank" rel="noopener">English</a>
+      <a class="idioma-bt" id="idioma-es" href="#" target="_blank" rel="noopener">Español</a>
     </div>
   </div>
 </div>
-
-<!-- Widget oficial do Google Tradutor — fica escondido, é só o motor que
-     os botões de idioma acima usam. Se não quiser esse recurso, apague
-     este bloco e o bloco de <script> logo abaixo dele. -->
-<div id="google_translate_element" style="display:none"></div>
-<script>
-  function googleTranslateElementInit(){
-    if(window.google && window.google.translate){
-      new google.translate.TranslateElement(
-        {pageLanguage:'pt', includedLanguages:'en,es', autoDisplay:false},
-        'google_translate_element'
-      );
-    }
-  }
-</script>
-<script async src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
 <!-- ====================== MENU (ir para uma parte da página) ============
      Botão flutuante no canto superior direito, em cima — o de
@@ -964,11 +955,8 @@ const CONFIG = {
 
   /* ---- 7. FERIADOS ------------------------------------------------------
      A unidade fecha sozinha nessas datas, sem precisar cadastrar nada na
-     planilha todo ano. São os feriados nacionais brasileiros.
-
-     Se Brusque tiver algum feriado municipal próprio (aniversário da
-     cidade, padroeiro etc), adicione no mesmo formato {data:'MM-DD',
-     nome:'...'} — não precisa saber o ano, só dia e mês.
+     planilha todo ano. São os feriados nacionais brasileiros + o
+     aniversário de Brusque (veja o aviso logo abaixo sobre essa última).
 
      Se a unidade NÃO fechar em algum feriado móvel (ligado à Páscoa —
      Carnaval, Sexta-feira Santa, Corpus Christi), apague a linha
@@ -983,7 +971,17 @@ const CONFIG = {
     {data:'11-02', nome:'Finados'},
     {data:'11-15', nome:'Proclamação da República'},
     {data:'11-20', nome:'Consciência Negra'},
-    {data:'12-25', nome:'Natal'}
+    {data:'12-25', nome:'Natal'},
+
+    /* PRECISA CONFIRMAR: o site da prefeitura tem uma página chamada
+       "Feriado Municipal do Aniversário de Brusque" (4 de agosto), mas
+       pelo menos uma fonte externa dizia que falta lei municipal
+       regulamentando a data como feriado — e mesmo que seja oficial pra
+       repartições administrativas, unidades de saúde às vezes não
+       fecham nesse tipo de data ("ponto facultativo"). Confirme com a
+       Secretaria de Saúde se a UBS realmente fecha em 4 de agosto —
+       se não fechar, apague esta linha. */
+    {data:'08-04', nome:'Aniversário de Brusque'}
   ],
   feriadosMoveis: [
     {deslocamento:-48, nome:'Carnaval'},
@@ -1803,13 +1801,6 @@ function desenhar(data, agora){
      aviso hoje, vermelho = fechado agora (o mais urgente de saber) */
   definirFavicon(!aberta ? '🔴' : (ativos.length ? '🟡' : '🟢'));
 
-  /* botão de compartilhar no WhatsApp — a mensagem muda junto com o status */
-  var textoWhats = CONFIG.unidade.nome + ': ' +
-    (aberta ? 'aberta agora, fecha às ' + hf(hh(geral.fechaAs)) : 'fechada agora') +
-    '. Veja horários, avisos e telefone: ' + location.href;
-  document.getElementById('bt-compartilhar').href =
-    'https://wa.me/?text=' + encodeURIComponent(textoWhats);
-
   var box = document.getElementById('avisos');
   if(!ativos.length){
     box.innerHTML =
@@ -1946,22 +1937,12 @@ function textoParaOuvir(){
   return partes.join(' ');
 }
 
-/* Aciona o widget escondido do Google Tradutor. Ele demora um instante
-   pra carregar (vem de um script externo), então tenta de novo por
-   alguns segundos até o seletor aparecer na página. */
-function traduzirPagina(lang){
-  var tentativas = 0;
-  function tentar(){
-    var combo = document.querySelector('.goog-te-combo');
-    if(combo){
-      combo.value = lang;
-      combo.dispatchEvent(new Event('change'));
-    } else if(tentativas < 30){
-      tentativas++;
-      setTimeout(tentar, 300);
-    }
-  }
-  tentar();
+/* Monta o link que abre a página traduzida numa aba nova, pelo tradutor
+   do Google — mais simples e confiável do que tentar controlar o widget
+   deles na própria página, que muda de estrutura sem avisar. */
+function linkTraducao(idiomaDestino){
+  return 'https://translate.google.com/translate?sl=pt&tl=' + idiomaDestino +
+    '&u=' + encodeURIComponent(location.href);
 }
 
 var falando = false;
@@ -2095,15 +2076,9 @@ function iniciar(){
   var btOuvir = document.getElementById('a11y-ouvir');
   btOuvir.addEventListener('click', function(){ alternarOuvir(btOuvir); });
 
-  /* ---- idioma (aciona o widget do Google Tradutor escondido) ---- */
-  var botoesIdioma = document.querySelectorAll('.idioma-bt');
-  Array.prototype.forEach.call(botoesIdioma, function(b){
-    b.addEventListener('click', function(){
-      Array.prototype.forEach.call(botoesIdioma, function(o){ o.setAttribute('aria-pressed','false'); });
-      b.setAttribute('aria-pressed','true');
-      traduzirPagina(b.dataset.lang);
-    });
-  });
+  /* ---- idioma (links diretos pro tradutor do Google, numa aba nova) ---- */
+  document.getElementById('idioma-en').href = linkTraducao('en');
+  document.getElementById('idioma-es').href = linkTraducao('es');
 
   /* ---- abre/fecha painéis flutuantes — mesmo código serve para o de
      acessibilidade e para o menu "ir para"; abrir um fecha o outro. ---- */
