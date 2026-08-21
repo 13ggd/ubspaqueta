@@ -39,7 +39,7 @@ const CONFIG = {
      https://docs.google.com/spreadsheets/d/ 1AbC...XyZ /edit#gid=0
                                              ^^^^^^^^^^ este pedaço
 
-     A planilha precisa ter quatro abas: "servicos", "mudancas-horario",
+     A planilha precisa ter quatro abas: "setores", "mudancas-horario",
      "recados" e "equipe" — e estar compartilhada como "Qualquer pessoa
      com o link" → Leitor.
 
@@ -48,7 +48,7 @@ const CONFIG = {
      precisa decidir entre palavras parecidas tipo "atenção" e "recado" —
      cada aba já diz pra que serve. E o nome "mudancas-horario" (em vez de
      só "horarios") é de propósito: o horário padrão de cada dia mora na
-     aba "servicos" — esta aqui é só sobre o que muda hoje em relação a
+     aba "setores" — esta aqui é só sobre o que muda hoje em relação a
      ele. Na aba "mudancas-horario", nem precisa escolher se é fechamento
      ou mudança de horário: se a coluna "novo" tiver um horário, mudou;
      se estiver vazia, fechou o dia todo.
@@ -56,7 +56,7 @@ const CONFIG = {
      Enquanto estiver como está, o site usa os dados de reserva do item 4.
   */
   planilhaId:  '1-RLhGWQlNl64BDa4kfpCRz1dgagQgoZB9cSce8Ob0jU',
-  abaServicos: 'servicos',
+  abaSetores:  'setores',
   abaHorarios: 'mudancas-horario',
   abaRecados:  'recados',
   abaEquipe:   'equipe',
@@ -100,7 +100,7 @@ const CONFIG = {
      Mantenha estes dados razoavelmente atualizados: eles são a rede de
      segurança para o site nunca aparecer vazio.
   */
-  servicosReserva: [
+  setoresReserva: [
     { id:'consulta',   nome:'Consulta com médico',
       para:'Para consultar quando está doente ou fazer acompanhamento.',
       levar:'Documento com foto e cartão do SUS.',
@@ -143,17 +143,17 @@ const CONFIG = {
   ],
 
   avisosReserva: [
-    { tipo:'recado', servico:'', ativo:true,
+    { tipo:'recado', setor:'', ativo:true,
       titulo:'Neste sábado a UBS Paquetá não abre',
       texto:'No sábado, dia 22 de agosto, tem Dia D de vacinação das 7 às 13 horas, mas só nas UBS Águas Claras, Limeira Baixa, Dom Joaquim e São Luiz, e também na Policlínica. Leve documento e a carteirinha de vacinação. Não precisa marcar: é por ordem de chegada.',
       inicio:'2026-08-22', fim:'2026-08-22', novo:'' },
 
-    { tipo:'fechado', servico:'dentista', ativo:true,
+    { tipo:'fechado', setor:'dentista', ativo:true,
       titulo:'O dentista não vai atender',
       texto:'A cadeira do dentista está quebrada e o conserto ainda não terminou. Se estiver com muita dor de dente, procure a Policlínica, no Centro.',
       inicio:'2026-08-19', fim:'2026-08-21', novo:'' },
 
-    { tipo:'atencao', servico:'exame', ativo:true,
+    { tipo:'atencao', setor:'exame', ativo:true,
       titulo:'Exame de sangue termina mais cedo na quinta',
       texto:'Na quinta-feira a coleta encerra às 8 horas e 30 minutos, porque a equipe tem reunião. Chegue cedo.',
       inicio:'2026-08-20', fim:'2026-08-20', novo:'07:00-08:30' }
@@ -163,18 +163,19 @@ const CONFIG = {
   /* ---- 5. EQUIPE (EXEMPLO) --------------------------------------------- */
   /*
      ESTES NOMES SÃO EXEMPLO — troque pelos nomes e funções reais da equipe,
-     de preferência editando a aba "equipe" na planilha (assim como servicos
+     de preferência editando a aba "equipe" na planilha (assim como setores
      e avisos). Isso aqui só é usado se a planilha estiver fora do ar.
 
      O campo "equipe" agrupa as pessoas por time (Equipe 1, Equipe 2...).
      Se você deixar esse campo vazio para todo mundo, o site mostra uma
      lista única, sem separar por time.
 
-     O campo "setor" liga a pessoa a um id da aba "servicos" (o mesmo id
-     usado em "mudancas-horario"). É o que permite o fechamento automático
-     quando alguém falta — veja a aba "faltas" logo abaixo. Pode ter mais
-     de um setor, separado por vírgula. Deixe vazio se a pessoa não estiver
-     ligada a nenhum setor específico (ex: recepção).
+     O campo "setor" liga a pessoa ao mesmo código usado na coluna "setor"
+     da aba "setores" (o mesmo código usado em "mudancas-horario"). É o
+     que permite o fechamento automático quando alguém falta — veja a aba
+     "faltas" logo abaixo. Pode ter mais de um setor, separado por
+     vírgula. Deixe vazio se a pessoa não estiver ligada a nenhum setor
+     específico (ex: recepção).
   */
   equipeReserva: [
     { nome:'(nome de exemplo)', funcao:'Médica de família', equipe:'Equipe 1', setor:'consulta',   foto:'', obs:'' },

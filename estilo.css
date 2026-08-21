@@ -45,7 +45,7 @@ body.alto-contraste{
 body.alto-contraste .topo{ border-bottom:3px solid #fff }
 body.alto-contraste .cartao-status,
 body.alto-contraste .urgencia{ border:3px solid #fff }
-body.alto-contraste .servico,
+body.alto-contraste .setor,
 body.alto-contraste .cartao,
 body.alto-contraste .botao,
 body.alto-contraste .aviso,
@@ -286,12 +286,12 @@ body.alto-contraste .nav-fab{background:#00E676;color:#000;border-color:#fff}
 .tudo-certo .ok{font-size:calc(28px * var(--esc));line-height:1.1;color:var(--verde);flex:0 0 auto}
 .tudo-certo p{font-size:calc(18px * var(--esc));line-height:1.45}
 
-/* ------------------------------------------------------------ SERVIÇOS -- */
-.servico{
+/* -------------------------------------------------------------- SETORES -- */
+.setor{
   background:var(--papel);border:2px solid var(--linha);
   border-radius:var(--raio);margin-bottom:11px;overflow:hidden;
 }
-.servico.fechado-hoje{border-color:var(--alerta);border-width:3px}
+.setor.fechado-hoje{border-color:var(--alerta);border-width:3px}
 .sv-topo{padding:16px}
 .sv-nome{font-size:calc(21px * var(--esc));font-weight:700;line-height:1.2}
 .sv-para{font-size:calc(16px * var(--esc));color:var(--tinta2);margin-top:5px;line-height:1.4}

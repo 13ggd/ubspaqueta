@@ -27,35 +27,40 @@ then open `http://localhost:8000/?teste` (see "Manual time-travel testing" below
 
 - **`config.js`** — the only file a non-developer is expected to edit. Holds clinic identity (name,
   address, phones, map link), the Google Sheet ID + tab names, and `*Reserva` fallback data
-  (`servicosReserva`, `avisosReserva`, `equipeReserva`, `faltasReserva`) used whenever the sheet is
+  (`setoresReserva`, `avisosReserva`, `equipeReserva`, `faltasReserva`) used whenever the sheet is
   unreachable or not yet configured.
 - **`app.js`** — a single IIFE (`(function(){ ... })()`), no modules/bundler. On load it tries to fetch
   the Google Sheet as CSV (via the `gviz/tq?tqx=out:csv` endpoint, no API key needed since the sheet is
   shared as "anyone with the link"); on any failure it silently keeps using the `config.js` reserve data.
   It re-renders by generating HTML strings and assigning them to `innerHTML` on fixed container ids in
   `index.html` — there is no templating engine or virtual DOM.
-- **`index.html`** — mostly empty containers (`id="status"`, `id="avisos"`, `id="servicos"`,
+- **`index.html`** — mostly empty containers (`id="status"`, `id="avisos"`, `id="setores"`,
   `id="equipe"`, etc.) that `app.js` fills in at runtime.
 
 ### The Google Sheet contract
 
-The spreadsheet must have tabs `servicos`, `mudancas-horario`, `recados`, `equipe`, `faltas` (names
+The spreadsheet must have tabs `setores`, `mudancas-horario`, `recados`, `equipe`, `faltas` (names
 configurable in `config.js`). Each is fetched and parsed independently in `buscarPlanilha()`:
-- `servicos` is the only required tab — if it fails, `ORIGEM` is set to `'erro'` and the UI shows a
-  "couldn't load" banner while still displaying the last known data.
-- `mudancas-horario` rows are per-service overrides for specific date ranges: a filled `novo` column
+- `setores` is the only required tab — if it fails, `ORIGEM` is set to `'erro'` and the UI shows a
+  "couldn't load" banner while still displaying the last known data. Its identifying column is itself
+  called `setor` (e.g. `dentista`, `vacina`) — the same short code that `mudancas-horario`'s `setor`
+  column and `equipe`'s `setor` column both reference, so one word/column name is used consistently
+  across every tab that points at "which part of the clinic is this about" (internally this is
+  normalized to a `.id` property on the objects in the `SETORES` array — a plain JS naming choice,
+  unrelated to what the sheet column is called).
+- `mudancas-horario` rows are per-setor overrides for specific date ranges: a filled `novo` column
   means "hours changed", an empty one means "closed all day" — there's deliberately no separate "type"
-  column for this. `titulo` is technically optional here: if left blank but `servico` is filled, a title
-  is auto-generated from the service's name (`"<nome> não vai atender"` / `"<nome> com horário
+  column for this. `titulo` is technically optional here: if left blank but `setor` is filled, a title
+  is auto-generated from the setor's name (`"<nome> não vai atender"` / `"<nome> com horário
   alterado"`) rather than silently dropping a row that clearly signals real intent to close/change
   something — see the `.forEach` right after `AVISOS = (h || []).concat(r || [])` in `buscarPlanilha()`.
-- `recados` are general notices not tied to a service. Unlike `mudancas-horario`, a blank `titulo` here
-  *does* drop the row — there's no service name to fall back on, so an untitled recado carries no
+- `recados` are general notices not tied to a setor. Unlike `mudancas-horario`, a blank `titulo` here
+  *does* drop the row — there's no setor name to fall back on, so an untitled recado carries no
   recoverable signal of what it's about.
 - `equipe`/`faltas` are optional and fail silently, keeping reserve data, since a clinic may not have
   set them up yet.
 - `faltas` (staff absences) feeds `sintetizarFechamentosPorFalta()`, which auto-generates a "closed"
-  notice for a service **only** when exactly one staff member is linked to that `setor` — with 2+ people
+  notice for a setor **only** when exactly one staff member is linked to that `setor` — with 2+ people
   covering it, the app can't infer coverage and leaves it to a manual `mudancas-horario` entry instead.
 
 Dates/times coming from the sheet are free-text and normalized by `normalizaData()` /
@@ -68,10 +73,10 @@ than silently displaying a plausible-but-wrong time as if it were correct.
 
 ### Open/closed logic
 
-`situacao()` computes a single service's state for a given day/time from: its weekly schedule in
+`situacao()` computes a single setor's state for a given day/time from: its weekly schedule in
 `config.js`/sheet, any active `mudancas-horario` override, and any synthesized absence closure.
-`statusGeral()` aggregates all services to decide the clinic-wide "open"/"closed" banner (open if *any*
-service is open; closes at the latest closing time among services). Holidays are computed at runtime,
+`statusGeral()` aggregates all setores to decide the clinic-wide "open"/"closed" banner (open if *any*
+setor is open; closes at the latest closing time among setores). Holidays are computed at runtime,
 not hardcoded per year — `calcularPascoa()` implements the Gauss/Meeus algorithm to derive Easter, from
 which movable holidays (Carnaval, Sexta-feira Santa, Corpus Christi) are offset; fixed holidays live in
 `config.js`.

@@ -21,7 +21,7 @@ var CURTO = {seg:'segunda',ter:'terça',qua:'quarta',qui:'quinta',
              sex:'sexta',sab:'sábado',dom:'domingo'};
 var ORD   = ['seg','ter','qua','qui','sex','sab','dom'];
 
-var SERVICOS = CONFIG.servicosReserva;
+var SETORES  = CONFIG.setoresReserva;
 var AVISOS   = CONFIG.avisosReserva;
 var EQUIPE   = CONFIG.equipeReserva;
 var FALTAS   = CONFIG.faltasReserva;
@@ -118,7 +118,7 @@ function hf(t){
 }
 function fala(f){
   if(!f) return 'Fechado';
-  /* Um serviço pode ter mais de um bloco no dia (ex: fecha pro almoço).
+  /* Um setor pode ter mais de um bloco no dia (ex: fecha pro almoço).
      Cada bloco vem separado por vírgula: "07:00-12:00,13:00-19:00". */
   return f.split(',').map(function(bloco){
     var p = bloco.split('-');
@@ -262,15 +262,15 @@ function buscarPlanilha(){
     return Promise.resolve();
   }
 
-  /* servicos é a única aba obrigatória — sem ela o site não sabe nada
+  /* setores é a única aba obrigatória — sem ela o site não sabe nada
      sobre horários, então um erro aqui marca ORIGEM como 'erro'. */
-  var principal = buscarComLimite(urlCSV(CONFIG.abaServicos)).then(function(r){
+  var principal = buscarComLimite(urlCSV(CONFIG.abaSetores)).then(function(r){
     if(!r.ok) throw new Error('planilha não respondeu');
     return r.text();
   }).then(function(txt){
     var listaS = paraObjetos(txt).map(function(r){
       return {
-        id:   r.id || r.nome,
+        id:   r.setor || r.id || r.nome,
         nome: r.nome,
         para: r.para || r.descricao || '',
         levar: r.levar || r.trazer || '',
@@ -283,16 +283,16 @@ function buscarPlanilha(){
       };
     }).filter(function(s){ return s.nome; });
 
-    /* Só troca se a planilha realmente trouxe serviços.
+    /* Só troca se a planilha realmente trouxe setores.
        Assim uma planilha vazia por engano não apaga o site. */
-    if(listaS.length) SERVICOS = listaS;
+    if(listaS.length) SETORES = listaS;
     ORIGEM = 'planilha';
   }).catch(function(e){
-    console.error('Não consegui ler servicos da planilha:', e);
+    console.error('Não consegui ler setores da planilha:', e);
     ORIGEM = 'erro';
   });
 
-  /* Aba "mudancas-horario": cada linha é sobre UM serviço específico. Se a coluna
+  /* Aba "mudancas-horario": cada linha é sobre UM setor específico. Se a coluna
      "novo" tiver um horário, é mudança de horário; se estiver vazia, é
      fechamento do dia todo. Não existe coluna "tipo" aqui de propósito —
      tira a chance de escolher a opção errada. */
@@ -305,7 +305,7 @@ function buscarPlanilha(){
       var novo = normalizaHorario(r.novo || r.novo_horario);
       return {
         tipo:       novo ? 'atencao' : 'fechado',
-        servico:    (r.servico || r.servico_id || '').trim(),
+        setor:      (r.setor || r.setor_id || '').trim(),
         titulo:     r.titulo || '',
         texto:      r.texto || '',
         inicio:     ini,
@@ -313,13 +313,13 @@ function buscarPlanilha(){
         novo:       novo,
         ativo:      paraBooleano(r.ativo)
       };
-    }).filter(function(a){ return a.servico; });
+    }).filter(function(a){ return a.setor; });
   }).catch(function(e){
     console.error('Não consegui ler horarios da planilha:', e);
     return null;   /* null = "não deu pra ler", diferente de [] = "leu e está vazia" */
   });
 
-  /* Aba "recados": avisos gerais, sem ligação com nenhum serviço. */
+  /* Aba "recados": avisos gerais, sem ligação com nenhum setor. */
   var recados = buscarComLimite(urlCSV(CONFIG.abaRecados)).then(function(r){
     if(!r.ok) throw new Error('sem aba recados');
     return r.text();
@@ -328,7 +328,7 @@ function buscarPlanilha(){
       var ini = normalizaData(r.inicio || r.data_inicio);
       return {
         tipo:       'recado',
-        servico:    '',
+        setor:      '',
         titulo:     r.titulo || '',
         texto:      r.texto || '',
         inicio:     ini,
@@ -353,12 +353,12 @@ function buscarPlanilha(){
         nome:   r.nome || '',
         funcao: r.funcao || r['função'] || '',
         equipe: r.equipe || r.time || r.grupo || '',
-        setor:  r.setor || r.servico || '',
+        setor:  r.setor || '',
         foto:   r.foto || r.imagem || r.foto_url || '',
         obs:    r.obs || r.observacao || r['observação'] || ''
       };
     }).filter(function(p){ return p.nome; });
-    /* Diferente de servicos: aqui uma planilha vazia É um resultado válido
+    /* Diferente de setores: aqui uma planilha vazia É um resultado válido
        (equipe ainda não cadastrada). Por isso troca mesmo que venha vazia —
        só mantém os dados de exemplo se a aba "equipe" nem existir ainda. */
     EQUIPE = lista;
@@ -395,15 +395,15 @@ function buscarPlanilha(){
        existirem, mantém os avisos de exemplo, sem apagar nada. */
     if(h !== null || r !== null){
       AVISOS = (h || []).concat(r || []);
-      /* Serviço/datas preenchidos, mas título esquecido: em vez de descartar
+      /* Setor/datas preenchidos, mas título esquecido: em vez de descartar
          o aviso inteiro (perdendo o fechamento que a pessoa quis registrar),
-         gera um título a partir do nome do serviço. Só se aplica a avisos
-         ligados a um serviço — "recados" sem título continuam sendo
+         gera um título a partir do nome do setor. Só se aplica a avisos
+         ligados a um setor — "recados" sem título continuam sendo
          ignorados, porque aí não sobra nenhuma pista do que se trata. */
       AVISOS.forEach(function(a){
         if(a.titulo || a.tipo === 'recado') return;
-        var servico = SERVICOS.filter(function(s){ return s.id === a.servico; })[0];
-        var nome = servico ? servico.nome : a.servico;
+        var setor = SETORES.filter(function(s){ return s.id === a.setor; })[0];
+        var nome = setor ? setor.nome : a.setor;
         a.titulo = a.tipo === 'atencao' ? nome + ' com horário alterado' : nome + ' não vai atender';
       });
       AVISOS_DA_PLANILHA = true;
@@ -467,7 +467,7 @@ function avisosDoDia(dataISO){
   var fer = feriadoInfo(dataISO);
   if(fer){
     lista = [{
-      tipo:'recado', servico:'', titulo:'Hoje é feriado',
+      tipo:'recado', setor:'', titulo:'Hoje é feriado',
       texto: fer.nome + '. A unidade não abre hoje.',
       inicio: dataISO, fim: dataISO, novo:'', ativo:true
     }].concat(lista);
@@ -476,9 +476,9 @@ function avisosDoDia(dataISO){
 }
 function avisoDe(id, dataISO){
   var fer = feriadoInfo(dataISO);
-  if(fer) return {tipo:'fechado', servico:id, titulo:'Fechado — feriado',
+  if(fer) return {tipo:'fechado', setor:id, titulo:'Fechado — feriado',
                   texto: fer.nome + '. A unidade não abre em feriados.', ativo:true};
-  var r = avisosDoDia(dataISO).filter(function(a){ return a.servico === id; });
+  var r = avisosDoDia(dataISO).filter(function(a){ return a.setor === id; });
   return r.length ? r[0] : null;
 }
 
@@ -525,16 +525,16 @@ function sintetizarFechamentosPorFalta(){
 
       /* já existe um aviso manual pro mesmo setor no mesmo período? não duplica */
       var jaTem = AVISOS.some(function(a){
-        return a.servico === setorId && a.inicio === f.inicio && (a.fim || a.inicio) === (f.fim || f.inicio);
+        return a.setor === setorId && a.inicio === f.inicio && (a.fim || a.inicio) === (f.fim || f.inicio);
       });
       if(jaTem) return;
 
-      var servico = SERVICOS.filter(function(s){ return s.id === setorId; })[0];
-      var nomeServico = servico ? servico.nome : setorId;
+      var setor = SETORES.filter(function(s){ return s.id === setorId; })[0];
+      var nomeSetor = setor ? setor.nome : setorId;
 
       sinteticos.push({
-        tipo:'fechado', servico:setorId,
-        titulo: nomeServico + ' não vai atender',
+        tipo:'fechado', setor:setorId,
+        titulo: nomeSetor + ' não vai atender',
         texto: pessoa.nome + ' está ausente hoje' + (f.motivo ? ' (' + f.motivo + ')' : '') +
                '. Como é a única pessoa responsável por esse setor, não há atendimento.',
         inicio: f.inicio, fim: f.fim || f.inicio,
@@ -599,13 +599,13 @@ function proximoDia(s, data){
   return null;
 }
 
-/* Olha TODOS os serviços (não só o primeiro da planilha) para decidir se
+/* Olha TODOS os setores (não só o primeiro da planilha) para decidir se
    a unidade está aberta. Fica aberta enquanto qualquer setor estiver
    funcionando, e "fecha" no horário do último setor a fechar no dia. */
 function statusGeral(diaKey, dataISO, agora){
   var abertoAgora = false, fechaAs = null, abreAs = null;
 
-  SERVICOS.forEach(function(s){
+  SETORES.forEach(function(s){
     var t = situacao(s, diaKey, dataISO, agora);
     if(t.cls === 'alerta') return;           /* setor fechado por aviso hoje */
     var faixa = t.nova || t.faixa;
@@ -628,7 +628,7 @@ function statusGeral(diaKey, dataISO, agora){
   return {abertoAgora:abertoAgora, fechaAs:fechaAs, abreAs:abreAs};
 }
 
-/* Mesma ideia do proximoDia, mas somando todos os serviços — usada quando
+/* Mesma ideia do proximoDia, mas somando todos os setores — usada quando
    nenhum setor abre mais hoje, para saber a hora mais cedo entre todos
    no próximo dia que tiver algo funcionando. */
 function proximaAberturaGeral(data){
@@ -639,7 +639,7 @@ function proximaAberturaGeral(data){
     var dISO = iso(d);
     var menor = null;
 
-    SERVICOS.forEach(function(s){
+    SETORES.forEach(function(s){
       var av = avisoDe(s.id, dISO);
       if(av && av.tipo === 'fechado') return;
       var faixa = (av && av.tipo === 'atencao' && av.novo) ? av.novo : s.h[key];
@@ -779,7 +779,7 @@ function desenhar(data, agora){
   ULTIMA_DATA = data; ULTIMA_AGORA = agora;
   var diaKey  = K[data.getDay()];
   var dataISO = iso(data);
-  if(!SERVICOS.length) return;
+  if(!SETORES.length) return;
 
   var geral = statusGeral(diaKey, dataISO, agora);
   var aberta = geral.abertoAgora;
@@ -835,7 +835,7 @@ function desenhar(data, agora){
   if(!ativos.length){
     box.innerHTML =
       '<div class="tudo-certo"><span class="ok" aria-hidden="true">✓</span>' +
-      '<p>Hoje está tudo funcionando no horário de sempre. Nenhum serviço fechado.</p></div>';
+      '<p>Hoje está tudo funcionando no horário de sempre. Nenhum setor fechado.</p></div>';
   } else {
     box.innerHTML = ativos.map(function(a){
       var cls  = a.tipo === 'atencao' ? 'atencao' : (a.tipo === 'recado' ? 'recado' : '');
@@ -860,8 +860,8 @@ function desenhar(data, agora){
     }).join('');
   }
 
-  /* serviços */
-  document.getElementById('servicos').innerHTML = SERVICOS.map(function(s){
+  /* setores */
+  document.getElementById('setores').innerHTML = SETORES.map(function(s){
     var t = situacao(s, diaKey, dataISO, agora);
     var hora;
     if(t.cls === 'alerta')      hora = '<s>' + fala(t.faixa) + '</s>';
@@ -884,7 +884,7 @@ function desenhar(data, agora){
         '<span class="val">' + v + '</span></div>';
     }).join('');
 
-    return '<article class="servico ' + (t.cls === 'alerta' ? 'fechado-hoje' : '') + '">' +
+    return '<article class="setor ' + (t.cls === 'alerta' ? 'fechado-hoje' : '') + '">' +
       '<div class="sv-topo">' +
         '<h3 class="sv-nome">' + limpo(s.nome) + '</h3>' +
         '<p class="sv-para">' + limpo(s.para) + '</p>' +
@@ -957,7 +957,7 @@ function textoParaOuvir(){
 
   var ativos = avisosDoDia(dataISO);
   if(!ativos.length){
-    partes.push('Não há nenhum aviso hoje. Todos os serviços funcionam no horário de sempre.');
+    partes.push('Não há nenhum aviso hoje. Todos os setores funcionam no horário de sempre.');
   } else {
     partes.push(ativos.length === 1 ? 'Há um aviso hoje.' : 'Há ' + ativos.length + ' avisos hoje.');
     ativos.forEach(function(a){
@@ -1042,7 +1042,7 @@ function lerGuardado(chave){
    ninguém mexe na planilha há muito tempo. */
 function textoContadorMudanca(){
   try{
-    var atual = JSON.stringify({s:SERVICOS, a:AVISOS, e:EQUIPE, f:FALTAS});
+    var atual = JSON.stringify({s:SETORES, a:AVISOS, e:EQUIPE, f:FALTAS});
     var anterior = lerGuardado('ubs-conteudo-anterior');
     var hojeISO = iso(new Date());
     var dataMudanca = lerGuardado('ubs-data-mudanca');
