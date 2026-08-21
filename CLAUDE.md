@@ -7,7 +7,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 A static, no-build, no-dependency website (`index.html` + `app.js` + `estilo.css`) that shows opening
 hours, notices, staff and emergency contacts for a Brazilian public health clinic (UBS Paquetá, in
 Brusque/SC). It is written as a **reusable template**: to stand up the site for a different clinic, copy
-the whole folder and edit only `config.js`.
+the whole folder and edit only `config.js`. The step-by-step replication checklist for a new UBS lives in
+[`README.md`](README.md), not here.
 
 ## Commands
 
@@ -44,8 +45,13 @@ configurable in `config.js`). Each is fetched and parsed independently in `busca
   "couldn't load" banner while still displaying the last known data.
 - `mudancas-horario` rows are per-service overrides for specific date ranges: a filled `novo` column
   means "hours changed", an empty one means "closed all day" — there's deliberately no separate "type"
-  column for this.
-- `recados` are general notices not tied to a service.
+  column for this. `titulo` is technically optional here: if left blank but `servico` is filled, a title
+  is auto-generated from the service's name (`"<nome> não vai atender"` / `"<nome> com horário
+  alterado"`) rather than silently dropping a row that clearly signals real intent to close/change
+  something — see the `.forEach` right after `AVISOS = (h || []).concat(r || [])` in `buscarPlanilha()`.
+- `recados` are general notices not tied to a service. Unlike `mudancas-horario`, a blank `titulo` here
+  *does* drop the row — there's no service name to fall back on, so an untitled recado carries no
+  recoverable signal of what it's about.
 - `equipe`/`faltas` are optional and fail silently, keeping reserve data, since a clinic may not have
   set them up yet.
 - `faltas` (staff absences) feeds `sintetizarFechamentosPorFalta()`, which auto-generates a "closed"
@@ -53,8 +59,12 @@ configurable in `config.js`). Each is fetched and parsed independently in `busca
   covering it, the app can't infer coverage and leaves it to a manual `mudancas-horario` entry instead.
 
 Dates/times coming from the sheet are free-text and normalized by `normalizaData()` /
-`normalizaHorario()` (accepts `19/08/2026`, `7h às 19h`, `07:00-19:00`, comma-separated multi-block
-hours for lunch breaks, etc.) before anything else touches them.
+`normalizaHorario()` before anything else touches them. `normalizaData()` accepts `19/08/2026`,
+`19-08-2026`, or `2026-08-19`. `normalizaHorario()` accepts `7h às 19h`, `07:00-19:00`, `7-19`, and
+multi-block hours for lunch breaks separated by comma *or* space (`7h às 12h, 13h às 19h` and
+`7-12 13-19` both work) — it deliberately rejects a single-digit minute (`18:3`) instead of guessing
+`18:03`: for free-text input from non-technical staff, failing a block back to "não atende" is safer
+than silently displaying a plausible-but-wrong time as if it were correct.
 
 ### Open/closed logic
 
