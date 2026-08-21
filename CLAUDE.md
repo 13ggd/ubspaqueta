@@ -54,6 +54,11 @@ configurable in `config.js`). Each is fetched and parsed independently in `busca
   is auto-generated from the setor's name (`"<nome> não vai atender"` / `"<nome> com horário
   alterado"`) rather than silently dropping a row that clearly signals real intent to close/change
   something — see the `.forEach` right after `AVISOS = (h || []).concat(r || [])` in `buscarPlanilha()`.
+  The literal value `todos` in the `setor` column is a reserved wildcard meaning "every setor" — used
+  for whole-clinic closures without needing one row per setor. `avisoDe()` matches it against any
+  queried setor id (`a.setor === id || a.setor === 'todos'`), so `situacao()`/`statusGeral()` need no
+  special-casing: every setor naturally reports `cls:'alerta'` that day, and the top status card derives
+  "closed" the same way it always does (no setor contributing an open time block).
 - `recados` are general notices not tied to a setor. Unlike `mudancas-horario`, a blank `titulo` here
   *does* drop the row — there's no setor name to fall back on, so an untitled recado carries no
   recoverable signal of what it's about.

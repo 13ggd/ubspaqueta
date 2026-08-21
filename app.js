@@ -402,6 +402,10 @@ function buscarPlanilha(){
          ignorados, porque aí não sobra nenhuma pista do que se trata. */
       AVISOS.forEach(function(a){
         if(a.titulo || a.tipo === 'recado') return;
+        if(a.setor === 'todos'){
+          a.titulo = a.tipo === 'atencao' ? 'A UBS muda de horário hoje' : 'A UBS não vai abrir hoje';
+          return;
+        }
         var setor = SETORES.filter(function(s){ return s.id === a.setor; })[0];
         var nome = setor ? setor.nome : a.setor;
         a.titulo = a.tipo === 'atencao' ? nome + ' com horário alterado' : nome + ' não vai atender';
@@ -485,11 +489,15 @@ function avisosFuturos(dataISO){
   }).sort(function(a, b){ return a.inicio < b.inicio ? -1 : (a.inicio > b.inicio ? 1 : 0); });
 }
 
+/* "todos" na coluna "setor" de mudancas-horario fecha a UBS inteira com
+   uma linha só, em vez de precisar repetir o fechamento pra cada setor —
+   útil pra um imprevisto (falta de energia, problema estrutural) que
+   afeta a unidade toda de uma vez. */
 function avisoDe(id, dataISO){
   var fer = feriadoInfo(dataISO);
   if(fer) return {tipo:'fechado', setor:id, titulo:'Fechado — feriado',
                   texto: fer.nome + '. A unidade não abre em feriados.', ativo:true};
-  var r = avisosDoDia(dataISO).filter(function(a){ return a.setor === id; });
+  var r = avisosDoDia(dataISO).filter(function(a){ return a.setor === id || a.setor === 'todos'; });
   return r.length ? r[0] : null;
 }
 
@@ -878,7 +886,7 @@ function desenhar(data, agora){
 
   /* avisos futuros: coisas já cadastradas mas que ainda não começaram a
      valer — só aparece a seção se tiver algo, pra não sobrar um título
-     "Já sabemos que vai mudar" com nada embaixo. */
+     "Avisos futuros" com nada embaixo. */
   var futuros = avisosFuturos(dataISO);
   var blocoFuturos = document.getElementById('avisos-futuros-bloco');
   if(futuros.length){

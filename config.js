@@ -53,6 +53,10 @@ const CONFIG = {
      ou mudança de horário: se a coluna "novo" tiver um horário, mudou;
      se estiver vazia, fechou o dia todo.
 
+     Precisa fechar a UBS INTEIRA por algum imprevisto (falta de energia,
+     problema estrutural)? Em vez de criar uma linha pra cada setor,
+     escreva "todos" na coluna "setor" — uma linha só fecha tudo.
+
      Enquanto estiver como está, o site usa os dados de reserva do item 4.
   */
   planilhaId:  '1-RLhGWQlNl64BDa4kfpCRz1dgagQgoZB9cSce8Ob0jU',

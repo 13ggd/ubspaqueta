@@ -280,7 +280,7 @@ body.alto-contraste .nav-fab{background:#00E676;color:#000;border-color:#fff}
 .av-titulo{font-size:calc(21px * var(--esc));font-weight:700;line-height:1.25;margin-bottom:7px}
 .av-texto{font-size:calc(17px * var(--esc));line-height:1.5}
 .av-quando{
-  font-size:calc(15px * var(--esc));color:var(--tinta2);
+  font-size:calc(15px * var(--esc));color:var(--tinta2);font-weight:700;
   margin-top:11px;padding-top:11px;border-top:2px solid rgba(0,0,0,.12);line-height:1.4;
 }
 
