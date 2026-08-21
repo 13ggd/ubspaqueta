@@ -254,6 +254,12 @@ body.alto-contraste .nav-fab{background:#00E676;color:#000;border-color:#fff}
 }
 .secao .ajuda{font-size:calc(16px * var(--esc));color:var(--tinta2);margin-bottom:13px;line-height:1.4}
 
+.futuros-bloco{margin-top:22px;padding-top:18px;border-top:2px solid var(--linha)}
+.futuros-tit{
+  font-size:calc(19px * var(--esc));font-weight:700;
+  line-height:1.25;margin-bottom:5px;letter-spacing:-.015em;
+}
+
 /* -------------------------------------------------------------- AVISOS -- */
 .aviso{
   background:var(--alerta-claro);border:3px solid var(--alerta);

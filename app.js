@@ -474,6 +474,17 @@ function avisosDoDia(dataISO){
   }
   return lista;
 }
+
+/* Avisos que já foram cadastrados mas ainda não começaram a valer —
+   pra alguém não ser pego de surpresa chegando na unidade, ou só saber
+   ao abrir o site bem em cima da hora. Ordenados pelo mais próximo primeiro. */
+function avisosFuturos(dataISO){
+  return AVISOS.filter(function(a){
+    if(a.ativo === false) return false;
+    return a.inicio && a.inicio > dataISO;
+  }).sort(function(a, b){ return a.inicio < b.inicio ? -1 : (a.inicio > b.inicio ? 1 : 0); });
+}
+
 function avisoDe(id, dataISO){
   var fer = feriadoInfo(dataISO);
   if(fer) return {tipo:'fechado', setor:id, titulo:'Fechado — feriado',
@@ -713,6 +724,31 @@ function montarFixos(){
 /* --------------------------------------------------- desenhar a página -- */
 var ULTIMA_DATA = null, ULTIMA_AGORA = null;
 
+/* Monta o card de um aviso — usado tanto na lista de hoje quanto na de
+   avisos futuros (a data em "quandoHtml" já deixa claro se é hoje ou
+   uma data à frente, então o mesmo card serve pros dois casos). */
+function cartaoAviso(a){
+  var cls  = a.tipo === 'atencao' ? 'atencao' : (a.tipo === 'recado' ? 'recado' : '');
+  var selo = a.tipo === 'atencao' ? '⚠ Mudou o horário'
+           : (a.tipo === 'recado' ? 'ⓘ Recado' : '✕ Fechado');
+  var per = a.inicio
+    ? ((a.fim && a.fim !== a.inicio) ? 'De ' + brData(a.inicio) + ' até ' + brData(a.fim) : 'Dia ' + brData(a.inicio))
+    : '';
+  var rodape = [];
+  if(per) rodape.push('Quando: ' + per);
+  var quandoHtml = rodape.length ? '<p class="av-quando">' + rodape.join(' · ') + '</p>' : '';
+  var textoHtml = (a.texto || a.novo)
+    ? '<p class="av-texto">' + limpo(a.texto) +
+        (a.novo ? ' Novo horário: <strong>' + fala(a.novo) + '</strong>.' : '') + '</p>'
+    : '';
+  return '<div class="aviso ' + cls + '">' +
+    '<span class="av-tarja">' + selo + '</span>' +
+    '<p class="av-titulo">' + limpo(a.titulo) + '</p>' +
+    textoHtml +
+    quandoHtml +
+  '</div>';
+}
+
 /* ------------------------------------------------------------- EQUIPE -- */
 function iniciaisDe(nome){
   return String(nome || '').trim().split(/\s+/).filter(Boolean).slice(0,2)
@@ -837,27 +873,19 @@ function desenhar(data, agora){
       '<div class="tudo-certo"><span class="ok" aria-hidden="true">✓</span>' +
       '<p>Hoje está tudo funcionando no horário de sempre. Nenhum setor fechado.</p></div>';
   } else {
-    box.innerHTML = ativos.map(function(a){
-      var cls  = a.tipo === 'atencao' ? 'atencao' : (a.tipo === 'recado' ? 'recado' : '');
-      var selo = a.tipo === 'atencao' ? '⚠ Mudou o horário'
-               : (a.tipo === 'recado' ? 'ⓘ Recado' : '✕ Fechado');
-      var per = a.inicio
-        ? ((a.fim && a.fim !== a.inicio) ? 'De ' + brData(a.inicio) + ' até ' + brData(a.fim) : 'Dia ' + brData(a.inicio))
-        : '';
-      var rodape = [];
-      if(per) rodape.push('Quando: ' + per);
-      var quandoHtml = rodape.length ? '<p class="av-quando">' + rodape.join(' · ') + '</p>' : '';
-      var textoHtml = (a.texto || a.novo)
-        ? '<p class="av-texto">' + limpo(a.texto) +
-            (a.novo ? ' Novo horário: <strong>' + fala(a.novo) + '</strong>.' : '') + '</p>'
-        : '';
-      return '<div class="aviso ' + cls + '">' +
-        '<span class="av-tarja">' + selo + '</span>' +
-        '<p class="av-titulo">' + limpo(a.titulo) + '</p>' +
-        textoHtml +
-        quandoHtml +
-      '</div>';
-    }).join('');
+    box.innerHTML = ativos.map(cartaoAviso).join('');
+  }
+
+  /* avisos futuros: coisas já cadastradas mas que ainda não começaram a
+     valer — só aparece a seção se tiver algo, pra não sobrar um título
+     "Já sabemos que vai mudar" com nada embaixo. */
+  var futuros = avisosFuturos(dataISO);
+  var blocoFuturos = document.getElementById('avisos-futuros-bloco');
+  if(futuros.length){
+    blocoFuturos.hidden = false;
+    document.getElementById('avisos-futuros').innerHTML = futuros.map(cartaoAviso).join('');
+  } else {
+    blocoFuturos.hidden = true;
   }
 
   /* setores */

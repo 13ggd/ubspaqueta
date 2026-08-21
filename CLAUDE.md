@@ -81,6 +81,14 @@ not hardcoded per year — `calcularPascoa()` implements the Gauss/Meeus algorit
 which movable holidays (Carnaval, Sexta-feira Santa, Corpus Christi) are offset; fixed holidays live in
 `config.js`.
 
+`avisosDoDia()` only surfaces notices whose `inicio`–`fim` window covers *today* — a notice scheduled to
+start next week is invisible until that day arrives. `avisosFuturos()` complements this by listing
+active (`ativo !== false`) notices whose `inicio` is still in the future, sorted soonest-first, rendered
+in a separate "Já sabemos que vai mudar" block that only appears when non-empty (`#avisos-futuros-bloco`,
+toggled via its `hidden` attribute in `desenhar()`). Both lists render through the shared `cartaoAviso()`
+card builder — the existing `av-quando` line ("Dia 28/08" / "De X até Y") already communicates a future
+date correctly, so no separate "starts in N days" phrasing was needed.
+
 ### Manual time-travel testing
 
 Appending `?teste` to the URL reveals a hidden bar (`.teste`, normally `hidden`) with a date picker and
