@@ -737,12 +737,13 @@ function montarFixos(){
 var ULTIMA_DATA = null, ULTIMA_AGORA = null;
 
 /* Monta o card de um aviso — usado tanto na lista de hoje quanto na de
-   avisos futuros (a data em "quandoHtml" já deixa claro se é hoje ou
-   uma data à frente, então o mesmo card serve pros dois casos). */
-function cartaoAviso(a){
+   avisos futuros. "futuro" ajusta o tempo verbal da tarja ("Mudou" vs
+   "Vai mudar") — sem isso, um aviso que ainda não começou ficaria
+   dizendo que algo já aconteceu, o que é falso e pode confundir. */
+function cartaoAviso(a, futuro){
   var cls  = a.tipo === 'atencao' ? 'atencao' : (a.tipo === 'recado' ? 'recado' : '');
-  var selo = a.tipo === 'atencao' ? '⚠ Mudou o horário'
-           : (a.tipo === 'recado' ? 'ⓘ Recado' : '✕ Fechado');
+  var selo = a.tipo === 'atencao' ? (futuro ? '⚠ Vai mudar o horário' : '⚠ Mudou o horário')
+           : (a.tipo === 'recado' ? 'ⓘ Recado' : (futuro ? '✕ Vai fechar' : '✕ Fechado'));
   var per = a.inicio
     ? ((a.fim && a.fim !== a.inicio) ? 'De ' + brData(a.inicio) + ' até ' + brData(a.fim) : 'Dia ' + brData(a.inicio))
     : '';
@@ -885,7 +886,7 @@ function desenhar(data, agora){
       '<div class="tudo-certo"><span class="ok" aria-hidden="true">✓</span>' +
       '<p>Hoje está tudo funcionando no horário de sempre. Nenhum setor fechado.</p></div>';
   } else {
-    box.innerHTML = ativos.map(cartaoAviso).join('');
+    box.innerHTML = ativos.map(function(a){ return cartaoAviso(a, false); }).join('');
   }
 
   /* avisos futuros: coisas já cadastradas mas que ainda não começaram a
@@ -895,7 +896,7 @@ function desenhar(data, agora){
   var blocoFuturos = document.getElementById('avisos-futuros-bloco');
   if(futuros.length){
     blocoFuturos.hidden = false;
-    document.getElementById('avisos-futuros').innerHTML = futuros.map(cartaoAviso).join('');
+    document.getElementById('avisos-futuros').innerHTML = futuros.map(function(a){ return cartaoAviso(a, true); }).join('');
   } else {
     blocoFuturos.hidden = true;
   }

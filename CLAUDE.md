@@ -93,10 +93,14 @@ which movable holidays (Carnaval, Sexta-feira Santa, Corpus Christi) are offset;
 `avisosDoDia()` only surfaces notices whose `inicio`–`fim` window covers *today* — a notice scheduled to
 start next week is invisible until that day arrives. `avisosFuturos()` complements this by listing
 active (`ativo !== false`) notices whose `inicio` is still in the future, sorted soonest-first, rendered
-in a separate "Já sabemos que vai mudar" block that only appears when non-empty (`#avisos-futuros-bloco`,
-toggled via its `hidden` attribute in `desenhar()`). Both lists render through the shared `cartaoAviso()`
-card builder — the existing `av-quando` line ("Dia 28/08" / "De X até Y") already communicates a future
-date correctly, so no separate "starts in N days" phrasing was needed.
+in a separate "Avisos futuros" block that only appears when non-empty (`#avisos-futuros-bloco`, toggled
+via its `hidden` attribute in `desenhar()`). Both lists render through the shared `cartaoAviso(a, futuro)`
+card builder — the `futuro` boolean only changes the tarja's verb tense ("Mudou o horário" / "✕ Fechado"
+vs "Vai mudar o horário" / "✕ Vai fechar"), since a not-yet-active notice claiming something already
+happened is misleading; the actual date is left to the (bold) `av-quando` line, which already reads
+correctly either way ("Dia 28/08" / "De X até Y"). Always pass `futuro` explicitly at both call sites
+(`ativos.map(function(a){ return cartaoAviso(a, false); })` etc.) — `array.map(cartaoAviso)` directly
+would leak the array index into `futuro` as a truthy number for every item past the first.
 
 ### Manual time-travel testing
 
