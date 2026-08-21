@@ -671,6 +671,13 @@ function montarFixos(){
   document.getElementById('info-mapa').innerHTML =
     '<a href="' + limpo(u.mapa) + '" target="_blank" rel="noopener">Abrir o mapa no celular</a>';
 
+  /* Instagram — só aparece se CONFIG.unidade.instagram estiver preenchido. */
+  if(u.instagram){
+    document.getElementById('info-instagram').innerHTML =
+      '<a href="' + limpo(u.instagram) + '" target="_blank" rel="noopener">Ver no Instagram</a>';
+    document.getElementById('info-instagram-linha').hidden = false;
+  }
+
   var ur = CONFIG.urgencia;
   document.getElementById('samu').href = 'tel:' + ur.telefone;
   document.getElementById('samu-num').textContent = ur.telefone;

@@ -23,6 +23,7 @@ const CONFIG = {
     secretaria:     '(47) 2017-0620',
     secretariaLink: '+554720170620',
     mapa: 'https://www.google.com/maps/place/?q=place_id:ChIJV2DuZfVG35QRRnPgxVVeE5M',
+    instagram: 'https://www.instagram.com/ubspaqueta/',
 
     /* Foto do prédio (fachada). Deixe vazio ('') para não mostrar nada.
        Mesma regra das fotos da equipe: coloque o arquivo na pasta "fotos"
