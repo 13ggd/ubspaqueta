@@ -186,32 +186,40 @@ function normalizaData(s){
 }
 
 /* Aceita "7h às 19h", "07:00-19:00", "7-19", "Fechado" — devolve "07:00-19:00".
-   Também aceita mais de um bloco no mesmo dia, separados por vírgula —
-   útil pra representar horário de almoço: "7h às 12h, 13h às 19h" vira
-   "07:00-12:00,13:00-19:00". */
+   Também aceita mais de um bloco no mesmo dia — útil pra representar horário
+   de almoço. Vírgula OU espaço separam os blocos, então "7h às 12h, 13h às 19h"
+   e "7-12 13-19" viram os dois "07:00-12:00,13:00-19:00" — isso evita que
+   esquecer a vírgula faça o dia inteiro sumir como "não atende".
+   Minuto com só 1 dígito (ex: "18:3") é rejeitado em vez de virar "18:03"
+   por engano — mais seguro mostrar "não atende" do que um horário errado. */
 function normalizaHorario(s){
   s = (s || '').trim();
   if(!s) return '';
   if(/^fechado|^n[aã]o|^-$/i.test(s)) return '';
 
-  function normalizaUmBloco(bloco){
-    var n = bloco.replace(/h(?!\s*\d)/gi, ':00')
-                  .replace(/h/gi, ':')
-                  .replace(/\s*(às|as|até|ate|–|—|a)\s*/gi, '-')
-                  .replace(/[^\d:\-]/g, '');
-    var p = n.split('-').filter(Boolean);
-    if(p.length < 2) return '';
-    function arruma(t){
-      var q = t.split(':');
-      var h = Number(q[0]), m = Number(q[1] || 0);
-      if(isNaN(h) || h > 23 || isNaN(m) || m > 59) return null;
-      return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
-    }
-    var a = arruma(p[0]), b = arruma(p[1]);
-    return (a && b) ? a + '-' + b : '';
+  function arruma(t){
+    var q = t.split(':');
+    var h = Number(q[0]);
+    var mTexto = q[1];
+    if(mTexto !== undefined && mTexto.length !== 2) return null;
+    var m = Number(mTexto || 0);
+    if(isNaN(h) || h > 23 || isNaN(m) || m > 59) return null;
+    return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
   }
 
-  return s.split(',').map(normalizaUmBloco).filter(Boolean).join(',');
+  var limpo = s
+    .replace(/h(?!\s*\d)/gi, ':00')
+    .replace(/h/gi, ':')
+    .replace(/\s*(às|as|até|ate|–|—|a)\s*/gi, '-')
+    .replace(/,/g, ' ')
+    .replace(/[^\d: \-]/g, '');
+
+  var blocos = limpo.match(/\d{1,2}(?::\d{1,2})?-\d{1,2}(?::\d{1,2})?/g) || [];
+  return blocos.map(function(bloco){
+    var p = bloco.split('-');
+    var a = arruma(p[0]), b = arruma(p[1]);
+    return (a && b) ? a + '-' + b : '';
+  }).filter(Boolean).join(',');
 }
 
 /* -------------------------------------------------- buscar a planilha -- */
