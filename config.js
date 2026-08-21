@@ -15,7 +15,7 @@ const CONFIG = {
   unidade: {
     orgao:    'Prefeitura de Brusque · Secretaria de Saúde',
     nome:     'UBS Paquetá',
-    subtitulo:'Posto de saúde do bairro Paquetá',
+    subtitulo:'Unidade Básica de Saúde do bairro Paquetá',
     endereco: 'Rua Waldemar Hoffmann, sem número',
     bairro:   'Bairro Paquetá — Brusque/SC',
     telefone: '(47) 2017-0548',
@@ -88,7 +88,7 @@ const CONFIG = {
       },
       {
         nome: 'Sala de vacina da Policlínica',
-        det:  'Rua Prefeito Germano Schaefer, 66 — Centro. Se a sala do posto estiver fechada, você pode vacinar aqui.',
+        det:  'Rua Prefeito Germano Schaefer, 66 — Centro. Se a sala da UBS estiver fechada, você pode vacinar aqui.',
         hora: 'Das 8 às 19 horas'
       }
     ]
@@ -133,7 +133,7 @@ const CONFIG = {
 
     { id:'dentista',   nome:'Dentista',
       para:'Precisa marcar antes.',
-      levar:'Documento e cartão do SUS. Ligue ou venha até o posto pra marcar.',
+      levar:'Documento e cartão do SUS. Ligue ou venha até a UBS pra marcar.',
       h:{seg:'08:00-17:00',ter:'',qua:'08:00-17:00',qui:'',sex:'08:00-17:00',sab:'',dom:''} },
 
     { id:'mulher',     nome:'Saúde da mulher',
@@ -144,8 +144,8 @@ const CONFIG = {
 
   avisosReserva: [
     { tipo:'recado', servico:'', ativo:true,
-      titulo:'Neste sábado o posto do Paquetá não abre',
-      texto:'No sábado, dia 22 de agosto, tem Dia D de vacinação das 7 às 13 horas, mas só nos postos Águas Claras, Limeira Baixa, Dom Joaquim e São Luiz, e também na Policlínica. Leve documento e a carteirinha de vacinação. Não precisa marcar: é por ordem de chegada.',
+      titulo:'Neste sábado a UBS Paquetá não abre',
+      texto:'No sábado, dia 22 de agosto, tem Dia D de vacinação das 7 às 13 horas, mas só nas UBS Águas Claras, Limeira Baixa, Dom Joaquim e São Luiz, e também na Policlínica. Leve documento e a carteirinha de vacinação. Não precisa marcar: é por ordem de chegada.',
       inicio:'2026-08-22', fim:'2026-08-22', novo:'' },
 
     { tipo:'fechado', servico:'dentista', ativo:true,

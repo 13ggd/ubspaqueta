@@ -1,6 +1,6 @@
 # UBS Paquetá — site de horários e avisos
 
-Site simples que mostra se o posto está aberto agora, os horários de cada serviço, avisos do dia,
+Site simples que mostra se a UBS está aberta agora, os horários de cada serviço, avisos do dia,
 a equipe e telefones de urgência — pensado para quem só quer saber "posso ir agora?" no celular.
 
 Feito como projeto de intervenção do 1º semestre (grupo de UBS), com o objetivo de ser **reutilizável

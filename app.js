@@ -802,7 +802,7 @@ function desenhar(data, agora){
     cx.innerHTML =
       '<div class="cartao-status sim">' +
         '<div class="marca" aria-hidden="true">✓</div>' +
-        '<p class="status-palavra">O posto está aberto</p>' +
+        '<p class="status-palavra">A UBS está aberta</p>' +
         '<p class="status-detalhe">Fecha hoje às ' + hf(hh(geral.fechaAs)) + '</p>' +
         '<p class="status-hoje">Hoje é ' + NOME[diaKey].toLowerCase() + ', ' + hf(hh(agora)) + '</p>' +
         avisoResumo +
@@ -819,7 +819,7 @@ function desenhar(data, agora){
     cx.innerHTML =
       '<div class="cartao-status nao">' +
         '<div class="marca" aria-hidden="true">✕</div>' +
-        '<p class="status-palavra">O posto está fechado</p>' +
+        '<p class="status-palavra">A UBS está fechada</p>' +
         '<p class="status-detalhe">' + quando + '</p>' +
         '<p class="status-hoje">Hoje é ' + NOME[diaKey].toLowerCase() + ', ' + hf(hh(agora)) +
         '. Se for urgente, ligue ' + CONFIG.urgencia.telefone + '.</p>' +
@@ -932,7 +932,7 @@ function desenhar(data, agora){
   } else if(ORIGEM === 'erro'){
     fd.className = 'fonte-dados erro';
     fd.textContent = 'Não foi possível carregar a planilha agora. A página está mostrando os ' +
-      'últimos horários conhecidos. Em caso de dúvida, ligue para o posto: ' +
+      'últimos horários conhecidos. Em caso de dúvida, ligue para a UBS: ' +
       CONFIG.unidade.telefone + '.';
   } else {
     fd.className = 'fonte-dados';
@@ -950,9 +950,9 @@ function textoParaOuvir(){
 
   var geral = statusGeral(diaKey, dataISO, ULTIMA_AGORA);
   if(geral.abertoAgora){
-    partes.push('O posto está aberto agora. Fecha hoje às ' + hf(hh(geral.fechaAs)) + '.');
+    partes.push('A UBS está aberta agora. Fecha hoje às ' + hf(hh(geral.fechaAs)) + '.');
   } else {
-    partes.push('O posto está fechado agora.');
+    partes.push('A UBS está fechada agora.');
   }
 
   var ativos = avisosDoDia(dataISO);
