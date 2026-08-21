@@ -58,7 +58,11 @@ configurable in `config.js`). Each is fetched and parsed independently in `busca
   for whole-clinic closures without needing one row per setor. `avisoDe()` matches it against any
   queried setor id (`a.setor === id || a.setor === 'todos'`), so `situacao()`/`statusGeral()` need no
   special-casing: every setor naturally reports `cls:'alerta'` that day, and the top status card derives
-  "closed" the same way it always does (no setor contributing an open time block).
+  "closed" the same way it always does (no setor contributing an open time block). None of the
+  auto-generated títulos (including `todos`'s) bake in words like "hoje" — a título is generated once at
+  fetch time and reused for however many days the notice stays relevant, including before it starts (see
+  `avisosFuturos()` below), so a hardcoded "hoje" would read as false on any day that isn't literally
+  today. The actual date is left to the (now bold) "Quando:" line in `cartaoAviso()` instead.
 - `recados` are general notices not tied to a setor. Unlike `mudancas-horario`, a blank `titulo` here
   *does* drop the row — there's no setor name to fall back on, so an untitled recado carries no
   recoverable signal of what it's about.

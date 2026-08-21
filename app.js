@@ -403,7 +403,11 @@ function buscarPlanilha(){
       AVISOS.forEach(function(a){
         if(a.titulo || a.tipo === 'recado') return;
         if(a.setor === 'todos'){
-          a.titulo = a.tipo === 'atencao' ? 'A UBS muda de horário hoje' : 'A UBS não vai abrir hoje';
+          /* Sem "hoje" de propósito: esse título é gerado uma vez e reaproveitado
+             em qualquer dia que o aviso for exibido — inclusive antes de começar
+             a valer, na seção "Avisos futuros". A data certa já aparece embaixo,
+             na linha "Quando:". */
+          a.titulo = a.tipo === 'atencao' ? 'A UBS muda de horário' : 'A UBS não vai abrir';
           return;
         }
         var setor = SETORES.filter(function(s){ return s.id === a.setor; })[0];
