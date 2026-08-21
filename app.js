@@ -303,7 +303,6 @@ function buscarPlanilha(){
         inicio:     ini,
         fim:        normalizaData(r.fim || r.data_fim) || ini,
         novo:       novo,
-        atualizado: r.atualizado || '',
         ativo:      paraBooleano(r.ativo)
       };
     }).filter(function(a){ return a.titulo && a.servico; });
@@ -327,7 +326,6 @@ function buscarPlanilha(){
         inicio:     ini,
         fim:        normalizaData(r.fim || r.data_fim) || ini,
         novo:       '',
-        atualizado: r.atualizado || '',
         ativo:      paraBooleano(r.ativo)
       };
     }).filter(function(a){ return a.titulo; });
@@ -360,7 +358,7 @@ function buscarPlanilha(){
     /* Sem aba equipe ainda — mantém os dados de reserva, sem barulho. */
   });
 
-  /* Aba "faltas": pessoa, motivo, inicio, fim, atualizado, ativo. Serve pra
+  /* Aba "faltas": pessoa, motivo, inicio, fim, ativo. Serve pra
      duas coisas — mostrar "ausente hoje" no card da pessoa, e (só quando
      ela for a ÚNICA pessoa ligada àquele setor) fechar o setor sozinho. */
   var faltas = buscarComLimite(urlCSV(CONFIG.abaFaltas)).then(function(r){
@@ -374,7 +372,6 @@ function buscarPlanilha(){
         motivo:     r.motivo || '',
         inicio:     ini,
         fim:        normalizaData(r.fim || r.data_fim) || ini,
-        atualizado: r.atualizado || '',
         ativo:      paraBooleano(r.ativo)
       };
     }).filter(function(f){ return f.pessoa && f.inicio; });
@@ -453,7 +450,7 @@ function avisosDoDia(dataISO){
     lista = [{
       tipo:'recado', servico:'', titulo:'Hoje é feriado',
       texto: fer.nome + '. A unidade não abre hoje.',
-      inicio: dataISO, fim: dataISO, novo:'', atualizado:'', ativo:true
+      inicio: dataISO, fim: dataISO, novo:'', ativo:true
     }].concat(lista);
   }
   return lista;
@@ -522,7 +519,7 @@ function sintetizarFechamentosPorFalta(){
         texto: pessoa.nome + ' está ausente hoje' + (f.motivo ? ' (' + f.motivo + ')' : '') +
                '. Como é a única pessoa responsável por esse setor, não há atendimento.',
         inicio: f.inicio, fim: f.fim || f.inicio,
-        novo:'', atualizado: f.atualizado || '', ativo:true
+        novo:'', ativo:true
       });
     });
   });
@@ -830,7 +827,6 @@ function desenhar(data, agora){
         : '';
       var rodape = [];
       if(per) rodape.push('Quando: ' + per);
-      if(a.atualizado) rodape.push('Avisado em ' + limpo(a.atualizado));
       var quandoHtml = rodape.length ? '<p class="av-quando">' + rodape.join(' · ') + '</p>' : '';
       return '<div class="aviso ' + cls + '">' +
         '<span class="av-tarja">' + selo + '</span>' +

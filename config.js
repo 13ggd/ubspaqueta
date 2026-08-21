@@ -146,17 +146,17 @@ const CONFIG = {
     { tipo:'recado', servico:'', ativo:true,
       titulo:'Neste sábado o posto do Paquetá não abre',
       texto:'No sábado, dia 22 de agosto, tem Dia D de vacinação das 7 às 13 horas, mas só nos postos Águas Claras, Limeira Baixa, Dom Joaquim e São Luiz, e também na Policlínica. Leve documento e a carteirinha de vacinação. Não precisa marcar: é por ordem de chegada.',
-      inicio:'2026-08-22', fim:'2026-08-22', novo:'', atualizado:'18/08 às 9h' },
+      inicio:'2026-08-22', fim:'2026-08-22', novo:'' },
 
     { tipo:'fechado', servico:'dentista', ativo:true,
       titulo:'O dentista não vai atender',
       texto:'A cadeira do dentista está quebrada e o conserto ainda não terminou. Se estiver com muita dor de dente, procure a Policlínica, no Centro.',
-      inicio:'2026-08-19', fim:'2026-08-21', novo:'', atualizado:'19/08 às 7h15' },
+      inicio:'2026-08-19', fim:'2026-08-21', novo:'' },
 
     { tipo:'atencao', servico:'exame', ativo:true,
       titulo:'Exame de sangue termina mais cedo na quinta',
       texto:'Na quinta-feira a coleta encerra às 8 horas e 30 minutos, porque a equipe tem reunião. Chegue cedo.',
-      inicio:'2026-08-20', fim:'2026-08-20', novo:'07:00-08:30', atualizado:'19/08 às 7h30' }
+      inicio:'2026-08-20', fim:'2026-08-20', novo:'07:00-08:30' }
   ],
 
 
