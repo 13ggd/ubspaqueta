@@ -313,7 +313,7 @@ function buscarPlanilha(){
         novo:       novo,
         ativo:      paraBooleano(r.ativo)
       };
-    }).filter(function(a){ return a.titulo && a.servico; });
+    }).filter(function(a){ return a.servico; });
   }).catch(function(e){
     console.error('Não consegui ler horarios da planilha:', e);
     return null;   /* null = "não deu pra ler", diferente de [] = "leu e está vazia" */
@@ -395,6 +395,17 @@ function buscarPlanilha(){
        existirem, mantém os avisos de exemplo, sem apagar nada. */
     if(h !== null || r !== null){
       AVISOS = (h || []).concat(r || []);
+      /* Serviço/datas preenchidos, mas título esquecido: em vez de descartar
+         o aviso inteiro (perdendo o fechamento que a pessoa quis registrar),
+         gera um título a partir do nome do serviço. Só se aplica a avisos
+         ligados a um serviço — "recados" sem título continuam sendo
+         ignorados, porque aí não sobra nenhuma pista do que se trata. */
+      AVISOS.forEach(function(a){
+        if(a.titulo || a.tipo === 'recado') return;
+        var servico = SERVICOS.filter(function(s){ return s.id === a.servico; })[0];
+        var nome = servico ? servico.nome : a.servico;
+        a.titulo = a.tipo === 'atencao' ? nome + ' com horário alterado' : nome + ' não vai atender';
+      });
       AVISOS_DA_PLANILHA = true;
     } else {
       AVISOS_DA_PLANILHA = false;
@@ -836,11 +847,14 @@ function desenhar(data, agora){
       var rodape = [];
       if(per) rodape.push('Quando: ' + per);
       var quandoHtml = rodape.length ? '<p class="av-quando">' + rodape.join(' · ') + '</p>' : '';
+      var textoHtml = (a.texto || a.novo)
+        ? '<p class="av-texto">' + limpo(a.texto) +
+            (a.novo ? ' Novo horário: <strong>' + fala(a.novo) + '</strong>.' : '') + '</p>'
+        : '';
       return '<div class="aviso ' + cls + '">' +
         '<span class="av-tarja">' + selo + '</span>' +
         '<p class="av-titulo">' + limpo(a.titulo) + '</p>' +
-        '<p class="av-texto">' + limpo(a.texto) +
-          (a.novo ? ' Novo horário: <strong>' + fala(a.novo) + '</strong>.' : '') + '</p>' +
+        textoHtml +
         quandoHtml +
       '</div>';
     }).join('');
