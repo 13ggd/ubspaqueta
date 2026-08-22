@@ -35,6 +35,16 @@ then open `http://localhost:8000/?teste` (see "Manual time-travel testing" below
   complexity without a real editing-frequency payoff. Rendered collapsed behind "Outros telefones
   úteis ▾" (`#tel-uteis-bloco`, only unhidden in `montarFixos()` if the list is non-empty) at the bottom
   of the "Onde fica e telefones" card, deliberately kept out of the way of the clinic's own info.
+  `notasRecorrentes` (setores, weekday, month-occurrence indices, tail text) covers "every 2nd/4th
+  Wednesday"-style facts — `proximasDatas()`/`diasDoMesPorOcorrencia()` in `app.js` compute the actual
+  calendar dates for the currently-viewed month (rolling to next month once this month's dates have all
+  passed, `dia >= data.getDate()`), appended to the setor's `para` text on every render. This was
+  deliberately chosen over two more obvious designs: (1) a static sentence baked into `para` — works but
+  forces the reader to do calendar math ("which Wednesday is the 2nd one?"); (2) a same-day-only banner
+  (mirroring `mudancas-horario`'s `avisoDe()`) — worse, since it stays invisible to someone planning a
+  visit until the affected day itself, the same failure mode `avisosFuturos()` exists to avoid.
+  Computing real dates and always showing them keeps the info visible in advance *and* removes the
+  mental math, with zero planilha upkeep going forward.
 - **`app.js`** — a single IIFE (`(function(){ ... })()`), no modules/bundler. On load it tries to fetch
   the Google Sheet as CSV (via the `gviz/tq?tqx=out:csv` endpoint, no API key needed since the sheet is
   shared as "anyone with the link"); on any failure it silently keeps using the `config.js` reserve data.

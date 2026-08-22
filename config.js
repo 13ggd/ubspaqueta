@@ -115,6 +115,19 @@ const CONFIG = {
     { nome:'Delegacia da Criança, Mulher, Adolescente e Idoso', telefone:'(47) 3251-8303', telefoneLink:'+554732518303' }
   ],
 
+  /* ---- 3c. REUNIÕES RECORRENTES DA EQUIPE ------------------------------- */
+  /* Pra avisos tipo "toda 2ª e 4ª quarta-feira do mês" — em vez de escrever
+     essa regra por extenso (obrigando quem lê a contar no calendário qual
+     quarta é a 2ª), o site CALCULA as datas de verdade do mês atual e
+     escreve na descrição do setor, tipo "Nos dias 12 e 26 de agosto...".
+     Atualiza sozinho todo mês, sem precisar mexer em nada aqui.
+     "ocorrencias": 1=primeira, 2=segunda, 3=terceira... daquele dia da
+     semana no mês. */
+  notasRecorrentes: [
+    { setores:['consulta','enfermagem'], dia:'qua', ocorrencias:[2,4],
+      texto:'a equipe está em reunião das 13h às 15h.' }
+  ],
+
   /* ---- 4. DADOS DE RESERVA --------------------------------------------- */
   /*
      Usados quando a planilha ainda não foi configurada ou está fora do ar.
@@ -125,14 +138,12 @@ const CONFIG = {
     { id:'consulta',   nome:'Consulta com médico',
       para:'Para consultar quando está doente ou fazer acompanhamento. Visita domiciliar, ' +
            'acompanhamento de crianças até 6 anos e teste rápido são agendados com ' +
-           'antecedência — ligue ou venha até a UBS pra marcar. Na 2ª e na 4ª quarta-feira ' +
-           'do mês, a equipe está em reunião das 13h às 15h.',
+           'antecedência — ligue ou venha até a UBS pra marcar.',
       levar:'Documento com foto e cartão do SUS.',
       h:{seg:'07:00-19:00',ter:'07:00-19:00',qua:'07:00-19:00',qui:'07:00-19:00',sex:'07:00-19:00',sab:'',dom:''} },
 
     { id:'enfermagem', nome:'Enfermagem',
-      para:'Para medir a pressão, tirar dúvidas e receber orientação. Na 2ª e na 4ª ' +
-           'quarta-feira do mês, a equipe está em reunião das 13h às 15h.',
+      para:'Para medir a pressão, tirar dúvidas e receber orientação.',
       levar:'Documento com foto.',
       h:{seg:'07:00-19:00',ter:'07:00-19:00',qua:'07:00-19:00',qui:'07:00-19:00',sex:'07:00-19:00',sab:'',dom:''} },
 

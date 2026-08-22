@@ -20,6 +20,8 @@ var NOME  = {seg:'Segunda-feira',ter:'Terça-feira',qua:'Quarta-feira',
 var CURTO = {seg:'segunda',ter:'terça',qua:'quarta',qui:'quinta',
              sex:'sexta',sab:'sábado',dom:'domingo'};
 var ORD   = ['seg','ter','qua','qui','sex','sab','dom'];
+var MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho',
+             'agosto','setembro','outubro','novembro','dezembro'];
 
 var SETORES  = CONFIG.setoresReserva;
 var AVISOS   = CONFIG.avisosReserva;
@@ -131,6 +133,62 @@ function iso(d){
          String(d.getDate()).padStart(2,'0');
 }
 function brData(s){ return s.split('-').reverse().join('/'); }
+
+/* Lista os dias do mês (ano/mes) em que um dia da semana (chave de K, ex:
+   'qua') cai na 1ª, 2ª, 3ª... ocorrência daquele mês — a base pra
+   transformar "2ª e 4ª quarta-feira" numa data de verdade, sem ninguém
+   ter que contar no calendário. */
+function diasDoMesPorOcorrencia(ano, mes, diaSemana, ocorrencias){
+  var alvo = K.indexOf(diaSemana);
+  var dias = [], ocorrencia = 0;
+  var d = new Date(ano, mes, 1);
+  while(d.getMonth() === mes){
+    if(d.getDay() === alvo){
+      ocorrencia++;
+      if(ocorrencias.indexOf(ocorrencia) !== -1) dias.push(d.getDate());
+    }
+    d.setDate(d.getDate() + 1);
+  }
+  return dias;
+}
+
+/* Mesma coisa, mas pulando pro mês seguinte se todas as datas deste mês
+   já passaram — assim o aviso nunca mostra uma data que já ficou pra
+   trás, sempre aponta pra próxima ocorrência de verdade. */
+function proximasDatas(data, diaSemana, ocorrencias){
+  var dias = diasDoMesPorOcorrencia(data.getFullYear(), data.getMonth(), diaSemana, ocorrencias)
+    .filter(function(dia){ return dia >= data.getDate(); });
+  var mes = data.getMonth();
+  if(!dias.length){
+    var prox = new Date(data.getFullYear(), data.getMonth() + 1, 1);
+    dias = diasDoMesPorOcorrencia(prox.getFullYear(), prox.getMonth(), diaSemana, ocorrencias);
+    mes = prox.getMonth();
+  }
+  return {dias: dias, mes: mes};
+}
+
+function formatarDatas(dias, mes){
+  if(!dias.length) return '';
+  var nomeMes = MESES[mes];
+  var rotulo = dias.length === 1
+    ? 'No dia ' + dias[0]
+    : 'Nos dias ' + dias.slice(0, -1).join(', ') + ' e ' + dias[dias.length - 1];
+  return rotulo + ' de ' + nomeMes;
+}
+
+/* Junta as regras de config.notasRecorrentes que valem pra esse setor,
+   já com a data de verdade calculada em cima da data mostrada na tela
+   (respeita a barra de teste "?teste", não usa o relógio real direto). */
+function notasRecorrentesDoSetor(setorId, data){
+  return (CONFIG.notasRecorrentes || [])
+    .filter(function(r){ return r.setores.indexOf(setorId) !== -1; })
+    .map(function(r){
+      var p = proximasDatas(data, r.dia, r.ocorrencias);
+      var datas = formatarDatas(p.dias, p.mes);
+      return datas ? datas + ', ' + r.texto : '';
+    })
+    .filter(Boolean);
+}
 
 /* Evita que texto vindo da planilha quebre a página */
 function limpo(s){
@@ -939,10 +997,12 @@ function desenhar(data, agora){
         '<span class="val">' + v + '</span></div>';
     }).join('');
 
+    var paraCompleto = [s.para].concat(notasRecorrentesDoSetor(s.id, data)).filter(Boolean).join(' ');
+
     return '<article class="setor ' + (t.cls === 'alerta' ? 'fechado-hoje' : '') + '">' +
       '<div class="sv-topo">' +
         '<h3 class="sv-nome">' + limpo(s.nome) + '</h3>' +
-        '<p class="sv-para">' + limpo(s.para) + '</p>' +
+        '<p class="sv-para">' + limpo(paraCompleto) + '</p>' +
         (s.levar ? '<p class="sv-levar">🎒 Leve: ' + limpo(s.levar) + '</p>' : '') +
         '<div class="sv-estado ' + t.cls + '">' +
           '<span class="sv-sinal" aria-hidden="true">' + t.sinal + '</span>' +
