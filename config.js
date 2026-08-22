@@ -18,10 +18,10 @@ const CONFIG = {
     subtitulo:'Unidade Básica de Saúde do bairro Paquetá',
     endereco: 'Rua Waldemar Hoffmann, sem número',
     bairro:   'Bairro Paquetá — Brusque/SC',
-    telefone: '(47) 2017-0548',
-    telefoneLink: '+554720170548',
-    secretaria:     '(47) 2017-0620',
-    secretariaLink: '+554720170620',
+    telefone: '(47) 3351-7243',
+    telefoneLink: '+554733517243',
+    secretaria:     '(47) 3255-6800',
+    secretariaLink: '+554732556800',
     mapa: 'https://www.google.com/maps/place/?q=place_id:ChIJV2DuZfVG35QRRnPgxVVeE5M',
     instagram: 'https://www.instagram.com/ubspaqueta/',
 
@@ -118,12 +118,14 @@ const CONFIG = {
     { id:'vacina',     nome:'Sala de vacina',
       para:'Para tomar vacina.',
       levar:'Documento e a carteirinha de vacinação.',
-      h:{seg:'08:00-17:00',ter:'08:00-17:00',qua:'08:00-17:00',qui:'08:00-17:00',sex:'08:00-17:00',sab:'',dom:''} },
+      h:{seg:'08:00-11:30,13:00-16:30',ter:'08:00-11:30,13:00-16:30',qua:'08:00-11:30,13:00-16:30',
+         qui:'08:00-11:30,13:00-16:30',sex:'08:00-11:30,13:00-16:30',sab:'',dom:''} },
 
     { id:'farmacia',   nome:'Farmácia',
       para:'Para pegar remédio.',
       levar:'Receita e o cartão do SUS.',
-      h:{seg:'07:00-19:00',ter:'07:00-19:00',qua:'07:00-19:00',qui:'07:00-19:00',sex:'07:00-19:00',sab:'',dom:''} },
+      h:{seg:'08:00-12:00,14:00-18:00',ter:'08:00-12:00,14:00-18:00',qua:'08:00-12:00,14:00-18:00',
+         qui:'08:00-12:00,14:00-18:00',sex:'08:00-12:00,14:00-18:00',sab:'',dom:''} },
 
     { id:'curativo',   nome:'Curativo e injeção',
       para:'Para fazer curativo, tomar injeção ou tirar pontos.',
@@ -143,7 +145,17 @@ const CONFIG = {
     { id:'mulher',     nome:'Saúde da mulher',
       para:'Preventivo, pré-natal e planejamento familiar.',
       levar:'Documento e cartão do SUS.',
-      h:{seg:'',ter:'13:00-17:00',qua:'',qui:'13:00-17:00',sex:'',sab:'',dom:''} }
+      h:{seg:'',ter:'13:00-17:00',qua:'',qui:'13:00-17:00',sex:'',sab:'',dom:''} },
+
+    { id:'gestantes',  nome:'Grupo de gestantes',
+      para:'Encontro em grupo para quem está grávida.',
+      levar:'',
+      h:{seg:'',ter:'08:00-12:00',qua:'',qui:'',sex:'',sab:'',dom:''} },
+
+    { id:'diabeticos', nome:'Grupo de diabéticos e hipertensos',
+      para:'Encontro em grupo para quem tem diabetes ou pressão alta.',
+      levar:'',
+      h:{seg:'',ter:'',qua:'',qui:'',sex:'08:00-12:00',sab:'',dom:''} }
   ],
 
   avisosReserva: [
