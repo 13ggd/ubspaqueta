@@ -729,6 +729,20 @@ function montarFixos(){
       '<span class="lugar-hora">' + limpo(l.hora) + '</span></div>';
   }).join('');
 
+  /* Telefones úteis (Polícia, CAPS, etc.) — fica escondido atrás de um
+     "Outros telefones úteis ▾" pra não competir por atenção com o que
+     realmente importa: os telefones e horário da própria UBS. */
+  var telUteis = CONFIG.telefonesUteis || [];
+  if(telUteis.length){
+    document.getElementById('tel-uteis-lista').innerHTML = telUteis.map(function(t){
+      return '<div class="tel-uteis-item">' +
+        '<span>' + limpo(t.nome) + '</span>' +
+        '<a href="tel:' + limpo(t.telefoneLink) + '">' + limpo(t.telefone) + '</a>' +
+      '</div>';
+    }).join('');
+    document.getElementById('tel-uteis-bloco').hidden = false;
+  }
+
   document.getElementById('rodape').textContent =
     'Página cuidada pela equipe da ' + u.nome + '.';
 }

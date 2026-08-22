@@ -348,6 +348,7 @@ details.semana summary::after{content:"▼";font-size:calc(12px * var(--esc));tr
 details.semana[open] summary::after{transform:rotate(180deg)}
 @media (prefers-reduced-motion:reduce){
   details.semana summary::after{transition:none}
+  details.tel-uteis summary::after{transition:none}
 }
 
 .semana-lista{padding:0 16px 14px}
@@ -436,6 +437,24 @@ body.alto-contraste .pessoa-foto{background:#052012;color:#00E676}
 .info-rot{font-size:calc(15px * var(--esc));color:var(--tinta2);margin-bottom:4px}
 .info-val{font-size:calc(19px * var(--esc));font-weight:700;line-height:1.35}
 .info-val a{color:var(--verde)}
+
+details.tel-uteis{border-top:2px solid var(--linha);margin-top:14px}
+details.tel-uteis summary{
+  list-style:none;cursor:pointer;padding-top:14px;min-height:var(--toque);
+  font-size:calc(17px * var(--esc));font-weight:700;color:var(--verde);
+  display:flex;align-items:center;gap:8px;
+}
+details.tel-uteis summary::-webkit-details-marker{display:none}
+details.tel-uteis summary::after{content:"▼";font-size:calc(12px * var(--esc));transition:transform .2s}
+details.tel-uteis[open] summary::after{transform:rotate(180deg)}
+.tel-uteis-lista{padding-top:6px}
+.tel-uteis-item{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:10px 0;font-size:calc(15px * var(--esc));
+  border-bottom:2px dotted var(--linha);
+}
+.tel-uteis-item:last-child{border-bottom:none}
+.tel-uteis-item a{font-weight:700;color:var(--verde);text-decoration:none}
 
 .fonte-dados{
   background:#EEF1EE;border:2px solid var(--linha);border-radius:12px;

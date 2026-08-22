@@ -98,6 +98,23 @@ const CONFIG = {
     ]
   },
 
+  /* ---- 3b. OUTROS TELEFONES ÚTEIS --------------------------------------- */
+  /* Aparecem escondidos atrás de "Outros telefones úteis ▾", no fim do
+     cartão "Onde fica e telefones" — não são sobre a UBS em si (por isso
+     ficam fora da seção de urgência e do cartão principal), mas é útil
+     ter à mão. Números de emergência (SAMU, hospitais) já aparecem em
+     outro lugar da página, não precisa repetir aqui. */
+  telefonesUteis: [
+    { nome:'Polícia',                                          telefone:'190', telefoneLink:'190' },
+    { nome:'Bombeiros',                                        telefone:'193', telefoneLink:'193' },
+    { nome:'Conselho Tutelar (Criança e Adolescente)',         telefone:'(47) 3351-0113', telefoneLink:'+554733510113' },
+    { nome:'Vigilância Sanitária',                             telefone:'(47) 3351-2424', telefoneLink:'+554733512424' },
+    { nome:'CAPS Álcool e Drogas',                              telefone:'(47) 3306-9305', telefoneLink:'+554733069305' },
+    { nome:'CAPS 2 (Centro de Atenção Psicossocial)',          telefone:'(47) 3304-4710', telefoneLink:'+554733044710' },
+    { nome:'CAPS Infanto-Juvenil',                              telefone:'(47) 3396-8182', telefoneLink:'+554733968182' },
+    { nome:'Delegacia da Criança, Mulher, Adolescente e Idoso', telefone:'(47) 3251-8303', telefoneLink:'+554732518303' }
+  ],
+
   /* ---- 4. DADOS DE RESERVA --------------------------------------------- */
   /*
      Usados quando a planilha ainda não foi configurada ou está fora do ar.
@@ -108,12 +125,14 @@ const CONFIG = {
     { id:'consulta',   nome:'Consulta com médico',
       para:'Para consultar quando está doente ou fazer acompanhamento. Visita domiciliar, ' +
            'acompanhamento de crianças até 6 anos e teste rápido são agendados com ' +
-           'antecedência — ligue ou venha até a UBS pra marcar.',
+           'antecedência — ligue ou venha até a UBS pra marcar. Na 2ª e na 4ª quarta-feira ' +
+           'do mês, a equipe está em reunião das 13h às 15h.',
       levar:'Documento com foto e cartão do SUS.',
       h:{seg:'07:00-19:00',ter:'07:00-19:00',qua:'07:00-19:00',qui:'07:00-19:00',sex:'07:00-19:00',sab:'',dom:''} },
 
     { id:'enfermagem', nome:'Enfermagem',
-      para:'Para medir a pressão, tirar dúvidas e receber orientação.',
+      para:'Para medir a pressão, tirar dúvidas e receber orientação. Na 2ª e na 4ª ' +
+           'quarta-feira do mês, a equipe está em reunião das 13h às 15h.',
       levar:'Documento com foto.',
       h:{seg:'07:00-19:00',ter:'07:00-19:00',qua:'07:00-19:00',qui:'07:00-19:00',sex:'07:00-19:00',sab:'',dom:''} },
 

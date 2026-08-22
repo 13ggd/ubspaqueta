@@ -26,9 +26,15 @@ then open `http://localhost:8000/?teste` (see "Manual time-travel testing" below
 ### Three files, one direction of data flow
 
 - **`config.js`** — the only file a non-developer is expected to edit. Holds clinic identity (name,
-  address, phones, map link), the Google Sheet ID + tab names, and `*Reserva` fallback data
-  (`setoresReserva`, `avisosReserva`, `equipeReserva`, `faltasReserva`) used whenever the sheet is
-  unreachable or not yet configured.
+  address, phones, map link), the Google Sheet ID + tab names, `urgencia.lugares` (emergency
+  alternatives), `telefonesUteis` (municipal numbers unrelated to the clinic itself — police, CAPS,
+  Conselho Tutelar), and `*Reserva` fallback data (`setoresReserva`, `avisosReserva`, `equipeReserva`,
+  `faltasReserva`) used whenever the sheet is unreachable or not yet configured. `telefonesUteis`, like
+  `urgencia.lugares`, is hardcoded here rather than sheet-driven — both are near-static reference lists
+  unrelated to day-to-day clinic operation, so a spreadsheet tab for them would add fetch/parse
+  complexity without a real editing-frequency payoff. Rendered collapsed behind "Outros telefones
+  úteis ▾" (`#tel-uteis-bloco`, only unhidden in `montarFixos()` if the list is non-empty) at the bottom
+  of the "Onde fica e telefones" card, deliberately kept out of the way of the clinic's own info.
 - **`app.js`** — a single IIFE (`(function(){ ... })()`), no modules/bundler. On load it tries to fetch
   the Google Sheet as CSV (via the `gviz/tq?tqx=out:csv` endpoint, no API key needed since the sheet is
   shared as "anyone with the link"); on any failure it silently keeps using the `config.js` reserve data.
