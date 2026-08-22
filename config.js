@@ -106,7 +106,9 @@ const CONFIG = {
   */
   setoresReserva: [
     { id:'consulta',   nome:'Consulta com médico',
-      para:'Para consultar quando está doente ou fazer acompanhamento.',
+      para:'Para consultar quando está doente ou fazer acompanhamento. Visita domiciliar, ' +
+           'acompanhamento de crianças até 6 anos e teste rápido são agendados com ' +
+           'antecedência — ligue ou venha até a UBS pra marcar.',
       levar:'Documento com foto e cartão do SUS.',
       h:{seg:'07:00-19:00',ter:'07:00-19:00',qua:'07:00-19:00',qui:'07:00-19:00',sex:'07:00-19:00',sab:'',dom:''} },
 
