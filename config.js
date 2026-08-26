@@ -18,8 +18,13 @@ const CONFIG = {
     subtitulo:'Unidade Básica de Saúde do bairro Paquetá',
     endereco: 'Rua Waldemar Hoffmann, sem número',
     bairro:   'Bairro Paquetá — Brusque/SC',
-    telefone: '(47) 3351-7243',
-    telefoneLink: '+554733517243',
+    telefone: '(47) 2017-0548',
+    telefoneLink: '+554720170548',
+    /* Número separado para encaminhamentos (exames e consultas) — se receber
+       uma ligação de um destes dois números, é a própria UBS ligando. */
+    telefoneEncaminhamentos: '(47) 2017-0549',
+    telefoneEncaminhamentosLink: '+554720170549',
+    avisoLigacao: 'Caso receba uma ligação de um destes números, por favor atenda: será sobre seus exames e consultas.',
     secretaria:     '(47) 3255-6800',
     secretariaLink: '+554732556800',
     mapa: 'https://www.google.com/maps/place/?q=place_id:ChIJV2DuZfVG35QRRnPgxVVeE5M',
@@ -192,6 +197,11 @@ const CONFIG = {
 
   avisosReserva: [
     { tipo:'recado', setor:'', ativo:true,
+      titulo:'Atenção, beneficiários do Bolsa Família: acompanhamento obrigatório de saúde',
+      texto:'Venha até a UBS Paquetá para pesar, medir e atualizar as informações de saúde da sua família. Para manter o benefício, é obrigatório que crianças estejam com a caderneta de vacinação atualizada e gestantes estejam com o pré-natal em dia. Não precisa agendar horário — a não realização do acompanhamento pode resultar em perda do benefício.',
+      inicio:'2026-08-26', fim:'2027-12-31', novo:'' },
+
+    { tipo:'recado', setor:'', ativo:true,
       titulo:'Neste sábado a UBS Paquetá não abre',
       texto:'No sábado, dia 22 de agosto, tem Dia D de vacinação das 7 às 13 horas, mas só nas UBS Águas Claras, Limeira Baixa, Dom Joaquim e São Luiz, e também na Policlínica. Leve documento e a carteirinha de vacinação. Não precisa marcar: é por ordem de chegada.',
       inicio:'2026-08-22', fim:'2026-08-22', novo:'' },
@@ -226,15 +236,41 @@ const CONFIG = {
      específico (ex: recepção).
   */
   equipeReserva: [
-    { nome:'(nome de exemplo)', funcao:'Médica de família', equipe:'Equipe 1', setor:'consulta',   foto:'', obs:'' },
-    { nome:'(nome de exemplo)', funcao:'Enfermeira',        equipe:'Equipe 1', setor:'enfermagem', foto:'', obs:'' },
-    { nome:'(nome de exemplo)', funcao:'Técnica de enfermagem', equipe:'Equipe 1', setor:'enfermagem', foto:'', obs:'' },
+    /* Equipe 1 — atendimento das 7h às 13h. Técnicos de enfermagem e
+       Agentes Comunitárias de Saúde deste time ainda não confirmados
+       (não apareciam completos no mural da unidade). */
+    { nome:'Débora Aguiar',  funcao:'Médica de família', equipe:'Equipe 1', setor:'consulta',
+      foto:'', obs:'Atendimento de segunda a sexta, das 7h às 13h.' },
+    { nome:'Cleber Mossini', funcao:'Enfermeiro', equipe:'Equipe 1', setor:'enfermagem', foto:'', obs:'' },
 
-    { nome:'(nome de exemplo)', funcao:'Médico de família', equipe:'Equipe 2', setor:'consulta', foto:'', obs:'' },
-    { nome:'(nome de exemplo)', funcao:'Enfermeiro',        equipe:'Equipe 2', setor:'',          foto:'', obs:'' },
+    /* Equipe 2 — atendimento das 7h às 13h. */
+    { nome:'Marcela Athayde', funcao:'Médica de família', equipe:'Equipe 2', setor:'consulta',
+      foto:'', obs:'Atendimento de segunda a sexta, das 7h às 13h.' },
+    { nome:'Thaila Ploêncio',  funcao:'Enfermeira', equipe:'Equipe 2', setor:'enfermagem', foto:'', obs:'' },
+    { nome:'Ildonilso Mendes', funcao:'Técnico de enfermagem', equipe:'Equipe 2', setor:'enfermagem', foto:'', obs:'' },
+    { nome:'Lindaura Merchol', funcao:'Técnica de enfermagem', equipe:'Equipe 2', setor:'enfermagem', foto:'', obs:'' },
+    { nome:'Simara Marques',   funcao:'Agente Comunitária de Saúde', equipe:'Equipe 2', setor:'', foto:'', obs:'' },
+    { nome:'Suely Kuhnen',     funcao:'Agente Comunitária de Saúde', equipe:'Equipe 2', setor:'', foto:'', obs:'' },
 
-    { nome:'(nome de exemplo)', funcao:'Dentista', equipe:'Equipe 3', setor:'dentista', foto:'', obs:'Atende às segundas, quartas e sextas' },
-    { nome:'(nome de exemplo)', funcao:'Recepção e acolhimento', equipe:'', setor:'', foto:'', obs:'' }
+    /* Equipe 3 — atendimento das 13h às 19h. */
+    { nome:'Aline Magalhães',       funcao:'Médica de família', equipe:'Equipe 3', setor:'consulta',
+      foto:'', obs:'Atendimento de segunda a sexta, das 13h às 19h.' },
+    { nome:'Alessandra Nunes',      funcao:'Enfermeira', equipe:'Equipe 3', setor:'enfermagem', foto:'', obs:'' },
+    { nome:'Claudete Scarsanella',  funcao:'Técnica de enfermagem', equipe:'Equipe 3', setor:'enfermagem', foto:'', obs:'' },
+    { nome:'Maria Dinair Costa',    funcao:'Técnica de enfermagem', equipe:'Equipe 3', setor:'enfermagem', foto:'', obs:'' },
+    { nome:'Glacia Klabunde',       funcao:'Agente Comunitária de Saúde', equipe:'Equipe 3', setor:'', foto:'', obs:'' },
+    { nome:'Iran Mariano',          funcao:'Agente Comunitária de Saúde', equipe:'Equipe 3', setor:'', foto:'', obs:'' },
+
+    /* Demais profissionais — não ligados a um único time. */
+    { nome:'Elisa Remor',         funcao:'Dentista', equipe:'Demais profissionais', setor:'dentista', foto:'', obs:'' },
+    { nome:'Gisele dos Santos',   funcao:'Auxiliar de Saúde Bucal', equipe:'Demais profissionais', setor:'dentista', foto:'', obs:'' },
+    { nome:'Ana Maria Lorena',    funcao:'Vacinadora', equipe:'Demais profissionais', setor:'vacina', foto:'', obs:'' },
+    { nome:'Juliana Pering',      funcao:'Vacinadora', equipe:'Demais profissionais', setor:'vacina', foto:'', obs:'' },
+    { nome:'Camila Grisa',        funcao:'Regulação', equipe:'Demais profissionais', setor:'', foto:'', obs:'' },
+    { nome:'Raquel Betinelli',    funcao:'Regulação', equipe:'Demais profissionais', setor:'', foto:'', obs:'' },
+    { nome:'Adriana Veber',       funcao:'Higienização', equipe:'Demais profissionais', setor:'', foto:'', obs:'' },
+    { nome:'Lurdes Ortiz',        funcao:'Higienização', equipe:'Demais profissionais', setor:'', foto:'', obs:'' },
+    { nome:'Ana Cláudia Fischer', funcao:'Estagiária de farmácia', equipe:'Demais profissionais', setor:'farmacia', foto:'', obs:'' }
   ],
 
   /* ---- 6. FALTAS (EXEMPLO) ----------------------------------------------
