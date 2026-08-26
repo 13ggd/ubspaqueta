@@ -367,6 +367,23 @@ details.semana[open] summary::after{transform:rotate(180deg)}
 .semana-l.hoje .dia,.semana-l.hoje .val{color:var(--verde)}
 
 /* -------------------------------------------------------------- EQUIPE -- */
+details.mapa-equipes{
+  border:2px solid var(--linha);border-radius:var(--raio);
+  margin-bottom:16px;overflow:hidden;
+}
+details.mapa-equipes summary{
+  list-style:none;cursor:pointer;padding:14px 16px;min-height:var(--toque);
+  font-size:calc(17px * var(--esc));font-weight:700;color:var(--verde);
+  display:flex;align-items:center;gap:8px;
+}
+details.mapa-equipes summary::-webkit-details-marker{display:none}
+details.mapa-equipes summary::after{content:"▼";font-size:calc(12px * var(--esc));transition:transform .2s}
+details.mapa-equipes[open] summary::after{transform:rotate(180deg)}
+details.mapa-equipes img{display:block;width:100%;height:auto;border-top:2px solid var(--linha)}
+@media (prefers-reduced-motion:reduce){
+  details.mapa-equipes summary::after{transition:none}
+}
+
 .time{margin-bottom:20px}
 .time:last-child{margin-bottom:0}
 .time-nome{
