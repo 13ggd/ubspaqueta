@@ -183,20 +183,21 @@ const CONFIG = {
   ],
 
   /* ---- 3c. REUNIÕES RECORRENTES DA EQUIPE (RESERVA) --------------------- */
-  /* Igual a equipeReserva/faltasReserva/areasEquipeReserva: só usado
-     enquanto a aba "reunioes" da planilha não existir (ou estiver fora
-     do ar) — assim que ela existir, o site troca por essa aba mesmo que
-     venha vazia. Pra avisos tipo "toda 2ª e 4ª quarta-feira do mês" — em
-     vez de escrever essa regra por extenso (obrigando quem lê a contar
-     no calendário qual quarta é a 2ª), o site CALCULA as datas de
-     verdade do mês atual e escreve na descrição do setor, tipo "Nos
-     dias 12 e 26 de agosto...". Atualiza sozinho todo mês, sem precisar
-     mexer em nada aqui. "ocorrencias": 1=primeira, 2=segunda,
-     3=terceira... daquele dia da semana no mês. */
-  notasRecorrentesReserva: [
-    { setores:['consulta','enfermagem'], dia:'qua', ocorrencias:[2,4],
-      texto:'a equipe está em reunião das 13h às 15h.' }
-  ],
+  /* Igual a faltasReserva: vazio por padrão — só é usado se a planilha
+     estiver fora do ar. Veja a aba "reunioes" pra uso real. Serve pra
+     avisos tipo "toda 2ª e 4ª quarta-feira do mês" — em vez de escrever
+     essa regra por extenso (obrigando quem lê a contar no calendário
+     qual quarta é a 2ª), o site CALCULA as datas de verdade do mês
+     atual e escreve na descrição do setor, tipo "Nos dias 12 e 26 de
+     agosto...". "ocorrencias": 1=primeira, 2=segunda, 3=terceira...
+     daquele dia da semana no mês. Deixado vazio de propósito (em vez de
+     um exemplo preenchido): essa regra é específica de cada unidade, e
+     ao replicar o template pra outra UBS ninguém deveria herdar sem
+     querer um horário de reunião que não é o dela. Exemplo de como
+     preencher (uma linha, igual à da aba "reunioes"):
+     { setores:['consulta','enfermagem'], dia:'qua', ocorrencias:[2,4],
+       texto:'a equipe está em reunião das 13h às 15h.' } */
+  notasRecorrentesReserva: [],
 
   /* ---- 4. DADOS DE RESERVA --------------------------------------------- */
   /*
