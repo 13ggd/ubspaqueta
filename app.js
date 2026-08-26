@@ -824,7 +824,7 @@ function cartaoAviso(a, futuro){
   var quandoHtml = rodape.length ? '<p class="av-quando">' + rodape.join(' · ') + '</p>' : '';
   var textoHtml = (a.texto || a.novo)
     ? '<p class="av-texto">' + limpo(a.texto) +
-        (a.novo ? ' Novo horário: <strong>' + fala(a.novo) + '</strong>.' : '') + '</p>'
+        (a.novo ? '<br>Novo horário: <strong>' + fala(a.novo) + '</strong>.' : '') + '</p>'
     : '';
   return '<div class="aviso ' + cls + '">' +
     '<span class="av-tarja">' + selo + '</span>' +
