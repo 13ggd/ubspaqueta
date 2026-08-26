@@ -27,6 +27,7 @@ var SETORES  = CONFIG.setoresReserva;
 var AVISOS   = CONFIG.avisosReserva;
 var EQUIPE   = CONFIG.equipeReserva;
 var FALTAS   = CONFIG.faltasReserva;
+var RUAS     = CONFIG.areasEquipeReserva;   /* ruas atendidas por equipe — [{equipe, ruas:[...]}] */
 var ORIGEM   = 'reserva';   /* 'planilha' | 'reserva' | 'erro' */
 var AVISOS_DA_PLANILHA = false;   /* true só quando horarios ou recados vieram da planilha de verdade */
 var painelPessoa = null;   /* preenchido em iniciar(); abre o detalhe de quem foi clicado na equipe */
@@ -425,7 +426,11 @@ function buscarPlanilha(){
         equipe: r.equipe || r.time || r.grupo || '',
         setor:  r.setor || '',
         foto:   r.foto || r.imagem || r.foto_url || '',
-        obs:    r.obs || r.observacao || r['observação'] || ''
+        obs:    r.obs || r.observacao || r['observação'] || '',
+        /* Horário do TIME, não da pessoa — só precisa preencher numa linha
+           por equipe (ex: só na médica) que o site acha sozinho, olhando
+           quem tiver esse campo preenchido dentro do mesmo grupo "equipe". */
+        horario: r.horario || r['horário'] || ''
       };
     }).filter(function(p){ return p.nome; });
     /* Diferente de setores: aqui uma planilha vazia É um resultado válido
@@ -458,7 +463,30 @@ function buscarPlanilha(){
     /* Sem aba faltas ainda — mantém os dados de reserva (vazio), sem barulho. */
   });
 
-  return Promise.all([principal, horarios, recados, equipe, faltas]).then(function(res){
+  /* Aba "ruas": equipe, rua — uma linha por rua atendida por cada equipe
+     (área de abrangência). Igual a "equipe"/"faltas": opcional, e troca
+     mesmo que venha vazia (só mantém a reserva se a aba nem existir). */
+  var ruas = buscarComLimite(urlCSV(CONFIG.abaRuas)).then(function(r){
+    if(!r.ok) throw new Error('sem aba ruas');
+    return r.text();
+  }).then(function(txt){
+    var linhas = paraObjetos(txt).map(function(r){
+      return {
+        equipe: r.equipe || r.time || r.grupo || '',
+        rua:    r.rua || r.endereco || r['endereço'] || ''
+      };
+    }).filter(function(x){ return x.equipe && x.rua; });
+    var mapa = {}, ordem = [];
+    linhas.forEach(function(x){
+      if(!mapa[x.equipe]){ mapa[x.equipe] = []; ordem.push(x.equipe); }
+      mapa[x.equipe].push(x.rua);
+    });
+    RUAS = ordem.map(function(equipe){ return { equipe: equipe, ruas: mapa[equipe] }; });
+  }).catch(function(){
+    /* Sem aba ruas ainda — mantém os dados de reserva, sem barulho. */
+  });
+
+  return Promise.all([principal, horarios, recados, equipe, faltas, ruas]).then(function(res){
     var h = res[1], r = res[2];
     /* Só substitui os avisos de reserva se pelo menos uma das duas abas
        (horarios ou recados) respondeu de verdade. Se as duas ainda não
@@ -900,8 +928,9 @@ function cartaoPessoa(p, dataISO){
 /* Abre o painel de detalhe com a foto grande e as informações completas
    da pessoa clicada — chamado pelos listeners ligados nos cards depois
    que #equipe é (re)desenhado, em desenhar(). "horario" é o turno do
-   time dela (vindo de CONFIG.areasEquipe), não um campo da própria
-   pessoa — por isso é passado à parte. */
+   TIME dela (achado entre as pessoas do mesmo grupo "equipe" — só
+   costuma vir preenchido numa pessoa por time), não um campo dela
+   mesma — por isso é passado à parte. */
 function abrirPessoaPainel(p, horario, dataISO){
   var iniciais = iniciaisDe(p.nome);
   var src = urlFoto(p.foto);
@@ -1076,23 +1105,25 @@ function desenhar(data, agora){
     equipeEl.innerHTML = '<p class="ajuda">Em breve, informações da equipe.</p>';
   } else {
     var grupos = agruparPorEquipe(EQUIPE);
-    var infoPorEquipe = {};
-    (CONFIG.areasEquipe || []).forEach(function(a){ infoPorEquipe[a.equipe] = a; });
+    var ruasPorEquipe = {};
+    (RUAS || []).forEach(function(a){ ruasPorEquipe[a.equipe] = a.ruas; });
     /* Lista paralela, na mesma ordem em que os cards saem no HTML — depois
        de desenhar, zippa com os elementos .pessoa de verdade pra saber
        qual card abre qual pessoa (ver abaixo). */
     var pessoasFlat = [];
     equipeEl.innerHTML = grupos.map(function(g){
-      var info = infoPorEquipe[g.nome];
+      /* O horário é do time, não de uma pessoa só — pega o primeiro que
+         aparecer preenchido dentro do grupo (normalmente só a médica tem). */
+      var horario = (g.pessoas.filter(function(p){ return p.horario; })[0] || {}).horario || '';
       var cartoes = g.pessoas.map(function(p){
-        pessoasFlat.push({ pessoa:p, horario: info && info.horario });
+        pessoasFlat.push({ pessoa:p, horario: horario });
         return cartaoPessoa(p, dataISO);
       }).join('');
       if(g.nome === null) return '<div class="pessoas">' + cartoes + '</div>';
       var conta = g.pessoas.length === 1 ? '1 pessoa' : g.pessoas.length + ' pessoas';
-      var horarioHtml = (info && info.horario)
-        ? '<span class="time-conta time-horario">' + limpo(info.horario) + '</span>' : '';
-      var ruas = info && info.ruas;
+      var horarioHtml = horario
+        ? '<span class="time-conta time-horario">' + limpo(horario) + '</span>' : '';
+      var ruas = ruasPorEquipe[g.nome];
       var ruasHtml = (ruas && ruas.length)
         ? '<details class="ruas-equipe"><summary>Ruas atendidas</summary>' +
             '<ul class="ruas-lista">' + ruas.map(function(r){ return '<li>' + limpo(r) + '</li>'; }).join('') + '</ul>' +
@@ -1247,7 +1278,7 @@ function lerGuardado(chave){
    ninguém mexe na planilha há muito tempo. */
 function textoContadorMudanca(){
   try{
-    var atual = JSON.stringify({s:SETORES, a:AVISOS, e:EQUIPE, f:FALTAS});
+    var atual = JSON.stringify({s:SETORES, a:AVISOS, e:EQUIPE, f:FALTAS, r:RUAS});
     var anterior = lerGuardado('ubs-conteudo-anterior');
     var hojeISO = iso(new Date());
     var dataMudanca = lerGuardado('ubs-data-mudanca');
