@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cartaz com QR code — UBS</title>
+<meta name="robots" content="noindex">
+<!--
+  ===========================================================================
+  CARTAZ PARA IMPRIMIR
+  ---------------------------------------------------------------------------
+  Esta página não faz parte do site que o morador vê. Ela existe só para
+  gerar o material impresso que leva as pessoas até o site: um cartaz A4 pra
+  colar na porta, no balcão e na sala de espera, e bilhetes pequenos pra
+  entregar na recepção.
+
+  Sem esse pedaço físico, o site pode estar perfeito e ninguém descobrir que
+  ele existe — o cartaz é o que transforma o código em intervenção de verdade.
+
+  O cartaz também repete os horários por escrito, de propósito: quem não tem
+  celular (ou não sabe usar QR code) precisa conseguir a informação do mesmo
+  papel. O QR é um atalho, não a única porta.
+
+  Como usar: abra cartaz.html no navegador, confira o endereço do site na
+  barra do topo e clique em "Imprimir". A barra do topo não sai na impressão.
+  ===========================================================================
+-->
+<style>
+  :root{
+    --tinta:#111;
+    --fraco:#555;
+    --linha:#c9d2cb;
+    --verde:#02301A;
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0;
+    font-family:'Atkinson Hyperlegible', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    color:var(--tinta);
+    background:#e8ebe8;
+  }
+
+  /* ---------------- barra de controle (só na tela) ---------------- */
+  .barra{
+    position:sticky; top:0; z-index:5;
+    background:var(--verde); color:#fff;
+    padding:14px 16px;
+    display:flex; flex-wrap:wrap; gap:12px; align-items:center;
+  }
+  .barra label{ font-size:14px; display:flex; align-items:center; gap:6px; }
+  .barra input[type=text]{
+    font:inherit; font-size:14px; padding:8px 10px; border:0; border-radius:6px;
+    min-width:min(420px, 60vw);
+  }
+  .barra button{
+    font:inherit; font-size:15px; font-weight:700; cursor:pointer;
+    padding:9px 18px; border:0; border-radius:6px;
+    background:#F7C948; color:#241a00;
+  }
+  .barra .dica{ font-size:13px; opacity:.85; flex-basis:100%; margin:0; }
+
+  /* ---------------- folha ---------------- */
+  .folha{
+    width:210mm; min-height:297mm;
+    margin:18px auto; padding:14mm 13mm;
+    background:#fff;
+    box-shadow:0 2px 14px rgba(0,0,0,.18);
+    display:flex; flex-direction:column;
+  }
+
+  /* ---------------- cartaz A4 ---------------- */
+  .orgao{ margin:0; font-size:12pt; color:var(--fraco); text-transform:uppercase; letter-spacing:.04em; }
+  .nome{ margin:2mm 0 0; font-size:30pt; line-height:1.05; font-weight:700; }
+  .chamada{
+    margin:6mm 0 0; font-size:21pt; line-height:1.2; font-weight:700; color:var(--verde);
+  }
+  .sub-chamada{ margin:2mm 0 0; font-size:13pt; color:var(--fraco); }
+
+  .qr-area{
+    margin:7mm 0 0;
+    display:flex; gap:9mm; align-items:center;
+  }
+  .qr-caixa{ flex:0 0 auto; width:72mm; }
+  .qr-caixa svg{ width:100%; height:auto; display:block; border:1px solid var(--linha); }
+  .qr-lado{ flex:1; }
+  .qr-passo{ margin:0 0 4mm; font-size:14pt; line-height:1.35; }
+  .qr-passo b{ font-size:15pt; }
+  .endereco-site{
+    margin:0; padding:3mm 4mm;
+    border:2px dashed var(--linha); border-radius:4px;
+    font-size:13pt; font-weight:700; word-break:break-all; line-height:1.3;
+  }
+
+  .horarios{ margin:8mm 0 0; }
+  .horarios h2{
+    margin:0 0 3mm; font-size:15pt;
+    border-bottom:2px solid var(--verde); padding-bottom:1.5mm;
+  }
+  .horarios table{ width:100%; border-collapse:collapse; font-size:11pt; }
+  .horarios td{ padding:1.6mm 0; vertical-align:top; border-bottom:1px solid var(--linha); }
+  .horarios td:first-child{ font-weight:700; width:44%; padding-right:4mm; }
+
+  .rodape-cartaz{
+    margin-top:auto; padding-top:6mm;
+    border-top:3px solid var(--verde);
+    display:flex; gap:6mm; justify-content:space-between; align-items:flex-end;
+  }
+  .rodape-cartaz p{ margin:0; font-size:11.5pt; line-height:1.4; }
+  .rodape-cartaz .rot{ color:var(--fraco); font-size:10pt; text-transform:uppercase; letter-spacing:.03em; }
+  .emergencia{
+    text-align:center; border:3px solid #B3261E; border-radius:6px;
+    padding:3mm 6mm; flex:0 0 auto;
+  }
+  .emergencia .num{ display:block; font-size:24pt; font-weight:700; color:#B3261E; line-height:1; }
+  .emergencia .lab{ display:block; font-size:9.5pt; color:var(--fraco); margin-top:1mm; }
+
+  /* ---------------- bilhetes (8 por folha) ---------------- */
+  .bilhetes{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    grid-auto-rows:1fr;
+    gap:0;
+    flex:1;
+  }
+  .bilhete{
+    border:1px dashed #9aa79c;
+    padding:5mm;
+    display:flex; gap:4mm; align-items:center;
+  }
+  .bilhete .b-qr{ flex:0 0 auto; width:27mm; }
+  .bilhete .b-qr svg{ width:100%; height:auto; display:block; }
+  .bilhete .b-txt{ flex:1; min-width:0; }
+  .bilhete .b-nome{ margin:0; font-size:11pt; font-weight:700; line-height:1.15; }
+  .bilhete .b-frase{ margin:1.5mm 0 0; font-size:8.5pt; line-height:1.3; color:var(--fraco); }
+  .bilhete .b-url{ margin:1.5mm 0 0; font-size:8pt; font-weight:700; word-break:break-all; line-height:1.25; }
+  .bilhete .b-tel{ margin:1.5mm 0 0; font-size:9pt; }
+
+  [hidden]{ display:none !important; }
+
+  /* ---------------- impressão ---------------- */
+  @page{ size:A4; margin:0; }
+  @media print{
+    body{ background:#fff; }
+    .barra{ display:none; }
+    .folha{
+      width:auto; min-height:auto; height:100vh;
+      margin:0; padding:12mm 11mm;
+      box-shadow:none;
+      page-break-after:avoid;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="barra">
+  <label>Endereço do site:
+    <input type="text" id="url" spellcheck="false">
+  </label>
+  <label><input type="radio" name="formato" value="cartaz" checked> Cartaz A4</label>
+  <label><input type="radio" name="formato" value="bilhetes"> Bilhetes (8 por folha)</label>
+  <label><input type="checkbox" id="marcar" checked> Marcar como vindo do cartaz</label>
+  <button type="button" id="imprimir">Imprimir</button>
+  <p class="dica">
+    Esta barra não sai na impressão. “Marcar como vindo do cartaz” acrescenta
+    <code>?de=cartaz</code> ao endereço — serve para saber, na medição de acessos,
+    quantas pessoas chegaram pelo papel. Desmarque se não estiver medindo nada.
+  </p>
+</div>
+
+<!-- ======================= CARTAZ A4 ======================= -->
+<div class="folha" id="folha-cartaz">
+  <p class="orgao" id="c-orgao"></p>
+  <h1 class="nome" id="c-nome"></h1>
+
+  <p class="chamada">Antes de sair de casa,<br>veja se está aberto.</p>
+  <p class="sub-chamada">Horários de cada setor, avisos do dia e telefones — sempre atualizados.</p>
+
+  <div class="qr-area">
+    <div class="qr-caixa" id="c-qr"></div>
+    <div class="qr-lado">
+      <p class="qr-passo"><b>1.</b> Abra a câmera do celular.</p>
+      <p class="qr-passo"><b>2.</b> Aponte para o quadrado ao lado.</p>
+      <p class="qr-passo"><b>3.</b> Toque no aviso que aparecer na tela.</p>
+      <p class="endereco-site" id="c-url"></p>
+    </div>
+  </div>
+
+  <div class="horarios">
+    <h2>Horários de atendimento</h2>
+    <table id="c-horarios"></table>
+  </div>
+
+  <div class="rodape-cartaz">
+    <div>
+      <p class="rot">Onde fica</p>
+      <p id="c-endereco"></p>
+      <p class="rot" style="margin-top:3mm">Telefone da UBS</p>
+      <p id="c-telefone"></p>
+    </div>
+    <div class="emergencia">
+      <span class="num" id="c-samu">192</span>
+      <span class="lab">Emergência<br>a qualquer hora</span>
+    </div>
+  </div>
+</div>
+
+<!-- ======================= BILHETES ======================= -->
+<div class="folha" id="folha-bilhetes" hidden>
+  <div class="bilhetes" id="b-lista"></div>
+</div>
+
+<script src="config.js"></script>
+<script src="qr.js"></script>
+<script>
+(function(){
+'use strict';
+
+var ORD   = ['seg','ter','qua','qui','sex','sab','dom'];
+var CURTO = {seg:'Seg', ter:'Ter', qua:'Qua', qui:'Qui', sex:'Sex', sab:'Sáb', dom:'Dom'};
+
+function limpo(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* "07:00" vira "7h"; "08:30" vira "8h30" — mesma regra do site */
+function hf(t){
+  var p = t.split(':');
+  return p[1] === '00' ? Number(p[0]) + 'h' : Number(p[0]) + 'h' + p[1];
+}
+function fala(f){
+  return f.split(',').map(function(bloco){
+    var p = bloco.split('-');
+    return hf(p[0]) + ' às ' + hf(p[1]);
+  }).join(' e ');
+}
+
+/* Junta dias seguidos com o mesmo horário: seg/ter/qua/qui/sex das 7 às 19
+   vira "Seg a Sex", e não cinco linhas iguais. */
+function resumoSemana(h){
+  var grupos = [], atual = null;
+  ORD.forEach(function(dia, i){
+    var valor = (h && h[dia]) ? h[dia] : '';
+    if(!valor){ atual = null; return; }
+    if(atual && atual.hora === valor && atual.ate === i - 1){
+      atual.dias.push(dia);
+      atual.ate = i;
+    } else {
+      atual = { dias:[dia], hora:valor, ate:i };
+      grupos.push(atual);
+    }
+  });
+  if(!grupos.length) return '';
+
+  return grupos.map(function(g){
+    var d = g.dias;
+    var rotulo = d.length === 1 ? CURTO[d[0]]
+               : d.length === 2 ? CURTO[d[0]] + ' e ' + CURTO[d[1]]
+               : CURTO[d[0]] + ' a ' + CURTO[d[d.length - 1]];
+    return rotulo + ', ' + fala(g.hora);
+  }).join(' · ');
+}
+
+/* ---------------------------------------------------------- endereço -- */
+function enderecoPadrao(){
+  var doParametro = new URLSearchParams(location.search).get('url');
+  if(doParametro) return doParametro;
+  if(CONFIG.unidade.site) return CONFIG.unidade.site;
+  /* Sem nada configurado: deduz do próprio endereço desta página,
+     tirando o "cartaz.html" do fim. */
+  return location.href.replace(/\/cartaz\.html.*$/, '/');
+}
+
+function enderecoFinal(){
+  var base = document.getElementById('url').value.trim();
+  if(!base) return '';
+  if(!document.getElementById('marcar').checked) return base;
+  return base + (base.indexOf('?') === -1 ? '?' : '&') + 'de=cartaz';
+}
+
+/* ------------------------------------------------------------ montar -- */
+function montarCartaz(){
+  var u = CONFIG.unidade;
+  document.getElementById('c-orgao').textContent    = u.orgao;
+  document.getElementById('c-nome').textContent     = u.nome;
+  document.getElementById('c-endereco').innerHTML   = limpo(u.endereco) + '<br>' + limpo(u.bairro);
+  document.getElementById('c-telefone').textContent = u.telefone;
+  document.getElementById('c-samu').textContent     = (CONFIG.urgencia && CONFIG.urgencia.telefone) || '192';
+  document.title = 'Cartaz — ' + u.nome;
+
+  var linhas = (CONFIG.setoresReserva || []).map(function(s){
+    var resumo = resumoSemana(s.h);
+    if(!resumo) return '';
+    return '<tr><td>' + limpo(s.nome) + '</td><td>' + limpo(resumo) + '</td></tr>';
+  }).filter(Boolean).join('');
+  document.getElementById('c-horarios').innerHTML = linhas ||
+    '<tr><td colspan="2">Consulte os horários no site ou pelo telefone.</td></tr>';
+}
+
+function montarBilhetes(endereco){
+  var u = CONFIG.unidade;
+  var qr = QR.svg(endereco, {nivel:'M', margem:2, descricao:'QR code do site da ' + u.nome});
+  var um =
+    '<div class="bilhete">' +
+      '<div class="b-qr">' + qr + '</div>' +
+      '<div class="b-txt">' +
+        '<p class="b-nome">' + limpo(u.nome) + '</p>' +
+        '<p class="b-frase">Veja se está aberto, o horário de cada setor e os avisos do dia.</p>' +
+        '<p class="b-url">' + limpo(endereco) + '</p>' +
+        '<p class="b-tel">☎ ' + limpo(u.telefone) + '</p>' +
+      '</div>' +
+    '</div>';
+  var todos = '';
+  for(var i = 0; i < 8; i++) todos += um;
+  document.getElementById('b-lista').innerHTML = todos;
+}
+
+function desenhar(){
+  var endereco = enderecoFinal();
+  document.getElementById('c-url').textContent = endereco;
+
+  if(!endereco){
+    document.getElementById('c-qr').innerHTML =
+      '<p style="font-size:11pt;color:#B3261E">Escreva o endereço do site na barra do topo.</p>';
+    document.getElementById('b-lista').innerHTML = '';
+    return;
+  }
+
+  try{
+    document.getElementById('c-qr').innerHTML =
+      QR.svg(endereco, {nivel:'M', margem:2, descricao:'QR code do site da ' + CONFIG.unidade.nome});
+    montarBilhetes(endereco);
+  } catch(e){
+    document.getElementById('c-qr').innerHTML =
+      '<p style="font-size:11pt;color:#B3261E">Endereço comprido demais para virar QR code. ' +
+      'Use um endereço mais curto.</p>';
+  }
+}
+
+function trocarFormato(){
+  var escolhido = document.querySelector('input[name=formato]:checked').value;
+  document.getElementById('folha-cartaz').hidden   = (escolhido !== 'cartaz');
+  document.getElementById('folha-bilhetes').hidden = (escolhido !== 'bilhetes');
+}
+
+/* --------------------------------------------------------------- ir -- */
+montarCartaz();
+document.getElementById('url').value = enderecoPadrao();
+desenhar();
+
+document.getElementById('url').addEventListener('input', desenhar);
+document.getElementById('marcar').addEventListener('change', desenhar);
+Array.prototype.forEach.call(document.querySelectorAll('input[name=formato]'), function(r){
+  r.addEventListener('change', trocarFormato);
+});
+document.getElementById('imprimir').addEventListener('click', function(){ window.print(); });
+
+})();
+</script>
+</body>
+</html>
