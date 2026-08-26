@@ -379,8 +379,29 @@ body.alto-contraste .time-nome{color:var(--tinta)}
   background:var(--verde-claro);padding:3px 10px;border-radius:99px;
 }
 body.alto-contraste .time-conta{background:#052012;color:#00E676}
+.time-horario{background:transparent;border:2px solid var(--verde-claro)}
+body.alto-contraste .time-horario{background:transparent;border-color:#052012}
 
 .pessoas{display:flex;flex-direction:column;gap:10px}
+
+details.ruas-equipe{margin-top:10px;border-top:2px dotted var(--linha)}
+details.ruas-equipe summary{
+  list-style:none;cursor:pointer;padding:10px 0;min-height:var(--toque);
+  font-size:calc(15px * var(--esc));font-weight:700;color:var(--verde);
+  display:flex;align-items:center;gap:8px;
+}
+details.ruas-equipe summary::-webkit-details-marker{display:none}
+details.ruas-equipe summary::after{content:"▼";font-size:calc(11px * var(--esc));transition:transform .2s}
+details.ruas-equipe[open] summary::after{transform:rotate(180deg)}
+@media (prefers-reduced-motion:reduce){
+  details.ruas-equipe summary::after{transition:none}
+}
+.ruas-lista{
+  padding:0 0 10px;margin:0;columns:2;column-gap:18px;list-style:none;
+  font-size:calc(15px * var(--esc));color:var(--tinta2);
+}
+.ruas-lista li{break-inside:avoid;padding:3px 0}
+
 .pessoa{
   background:var(--papel);border:2px solid var(--linha);border-radius:var(--raio);
   padding:14px 16px;display:flex;align-items:center;gap:13px;

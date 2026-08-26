@@ -120,6 +120,54 @@ const CONFIG = {
     { nome:'Delegacia da Criança, Mulher, Adolescente e Idoso', telefone:'(47) 3251-8303', telefoneLink:'+554732518303' }
   ],
 
+  /* ---- 3c-2. RUAS ATENDIDAS POR EQUIPE ---------------------------------- */
+  /* Mesma ideia de "telefonesUteis": lista de referência quase-estática
+     (área de abrangência de cada equipe de saúde da família), copiada dos
+     murais impressos na própria unidade. Aparece embaixo de cada time no
+     card "Quem trabalha aqui", atrás de "Ruas atendidas ▾". O nome em
+     "equipe" precisa ser igual ao campo "equipe" da pessoa (em
+     equipeReserva ou na aba "equipe" da planilha) pra ligar a lista ao
+     time certo — se não bater com nenhum time, a lista simplesmente não
+     aparece. Fica de fora se a equipe não tiver rua cadastrada ainda. */
+  areasEquipe: [
+    { equipe:'Equipe 1', horario:'7h às 13h', ruas:[
+      '13 de março','Abelardo Joaquim Nazário','Ana Klabunde','AZ 026','AZ 027','AZ 030','AZ 060',
+      'Carlos Antonio Campos de Souza','Carmelina Groh','Carola Dias','Dr Euclides Cardeal',
+      'Dr Ivo Szpoganicz','Eduarda R Antunes','Elisa Klabunde','Elsa Popper','Emma Jeske',
+      'Flor-de-lis','Gardênia','Girassol','Hilda Wegner','Ilza Jeske Dias de Oliveira',
+      'Inacio Gullini','João Alves Cabral','José Adriano','José João Wanatt',
+      'José Venancio Pinheiro','Leopoldo Klabunde','Orquídeas','Odemar de Melo','PA 006',
+      'Padre Antônio Eising (semáforo do Colzani até esquina do mercado Rainha)',
+      'Reinoldo Wegner','Travessa Lagoa Dourada (até nº 413)','Tulipa','Vitória-régia',
+      'Waldemar Hoffmann'
+    ] },
+    { equipe:'Equipe 2', horario:'7h às 13h', ruas:[
+      '23 de setembro','Abraão Alfredo Maçaneiro','Alfredo Carlos Klabunde','Alma Klann',
+      'Jacob Schmidt','Jaison Knihs','Jorge Teixeira','Luiz Eccel','Ramiro Cabral e Silva'
+    ] },
+    { equipe:'Equipe 3', horario:'13h às 19h', ruas:[
+      '17 de julho','AC 032','AC 033','AC 039','Alberto Klabunde','Alvin Augusto Klann',
+      'Andrino Leopoldo de Souza','Augusto Klabunde','Carlos Jeske','Celso Arthur de Oliveira',
+      'CD 001','CD 002','CD 003','Ervin Kreidlow','Guilherme Kreidlow',
+      'Loteamento Independencia','Luiz Mafra','Messina','Ovidio Boni','PA 001',
+      'Paulina Gelatti de Oliveira','Pinheiros','Roma',
+      'Santa Cruz (Semáforo Colzani até Agropecuária Mistura)','Sebastião Raiser',
+      'Sem nome - Rua do Ferro Velho','Veneza','Wanda Kreidlow'
+    ] }
+  ],
+
+  /* ---- 3c-3. NOTA FIXA DE HORÁRIO POR EQUIPE (nos cartões de setor) ----- */
+  /* Diferente de notasRecorrentes (que calcula datas), esta é só um texto
+     fixo, sempre acrescentado à descrição do setor — independe do que
+     estiver na coluna "para" da aba "setores", pra não depender de mexer
+     na planilha pra essa informação aparecer. Fica no topo da página
+     (cartão "Consulta com médico"/"Enfermagem"), que é onde quem visita
+     o site primeiro olha pra saber se dá pra ir agora. */
+  notasFixasSetor: [
+    { setores:['consulta','enfermagem'],
+      texto:'Pela manhã (7h às 13h) atendem as Equipes 1 e 2; à tarde (13h às 19h), a Equipe 3.' }
+  ],
+
   /* ---- 3c. REUNIÕES RECORRENTES DA EQUIPE ------------------------------- */
   /* Pra avisos tipo "toda 2ª e 4ª quarta-feira do mês" — em vez de escrever
      essa regra por extenso (obrigando quem lê a contar no calendário qual
