@@ -45,10 +45,9 @@ const CONFIG = {
                                              ^^^^^^^^^^ este pedaço
 
      A planilha precisa ter a aba "setores" (obrigatória) e pode ter também
-     "mudancas-horario", "recados", "equipe", "faltas", "ruas" e
-     "reunioes" (todas opcionais — sem elas o site usa os dados de
-     reserva do item 4) — e estar compartilhada como "Qualquer pessoa com
-     o link" → Leitor.
+     "mudancas-horario", "recados", "equipe", "faltas" e "ruas" (todas
+     opcionais — sem elas o site usa os dados de reserva do item 4) — e
+     estar compartilhada como "Qualquer pessoa com o link" → Leitor.
 
      A aba "ruas" é a área de abrangência de cada equipe (quais ruas cada
      time atende), pra ficar editável na planilha em vez de precisar
@@ -60,15 +59,6 @@ const CONFIG = {
      opcional, "horario", na aba "equipe": preencha numa linha por time
      (normalmente a da médica) que o site acha sozinho, olhando quem tem
      esse campo preenchido dentro do mesmo grupo.
-
-     A aba "reunioes" é pra avisos tipo "toda 2ª e 4ª quarta-feira do mês
-     a equipe está em reunião" — o site calcula sozinho as datas de
-     verdade daquele mês, sem precisar de uma linha nova a cada
-     ocorrência. Colunas: "setores" (um ou mais códigos separados por
-     vírgula, ex: "consulta,enfermagem"), "dia" (seg/ter/qua/qui/sex/
-     sab/dom), "ocorrencias" (quais dessas semanas no mês contam —
-     1=primeira, 2=segunda... ex: "2,4") e "texto" (o que aparece depois
-     da data, ex: "a equipe está em reunião das 13h às 15h.").
 
      Por que "mudancas-horario" e "recados" são abas separadas (em vez de
      uma única aba "avisos" com um tipo pra escolher): assim ninguém
@@ -93,7 +83,6 @@ const CONFIG = {
   abaEquipe:   'equipe',
   abaFaltas:   'faltas',
   abaRuas:     'ruas',
-  abaReunioes: 'reunioes',
 
   /* De quanto em quanto tempo o site relê a planilha (em minutos) */
   recarregarACada: 5,
@@ -182,18 +171,15 @@ const CONFIG = {
     ] }
   ],
 
-  /* ---- 3c. REUNIÕES RECORRENTES DA EQUIPE (RESERVA) --------------------- */
-  /* Igual a equipeReserva/faltasReserva/areasEquipeReserva: só usado
-     enquanto a aba "reunioes" da planilha não existir (ou estiver fora
-     do ar) — assim que ela existir, o site troca por essa aba mesmo que
-     venha vazia. Pra avisos tipo "toda 2ª e 4ª quarta-feira do mês" — em
-     vez de escrever essa regra por extenso (obrigando quem lê a contar
-     no calendário qual quarta é a 2ª), o site CALCULA as datas de
-     verdade do mês atual e escreve na descrição do setor, tipo "Nos
-     dias 12 e 26 de agosto...". Atualiza sozinho todo mês, sem precisar
-     mexer em nada aqui. "ocorrencias": 1=primeira, 2=segunda,
-     3=terceira... daquele dia da semana no mês. */
-  notasRecorrentesReserva: [
+  /* ---- 3c. REUNIÕES RECORRENTES DA EQUIPE ------------------------------- */
+  /* Pra avisos tipo "toda 2ª e 4ª quarta-feira do mês" — em vez de escrever
+     essa regra por extenso (obrigando quem lê a contar no calendário qual
+     quarta é a 2ª), o site CALCULA as datas de verdade do mês atual e
+     escreve na descrição do setor, tipo "Nos dias 12 e 26 de agosto...".
+     Atualiza sozinho todo mês, sem precisar mexer em nada aqui.
+     "ocorrencias": 1=primeira, 2=segunda, 3=terceira... daquele dia da
+     semana no mês. */
+  notasRecorrentes: [
     { setores:['consulta','enfermagem'], dia:'qua', ocorrencias:[2,4],
       texto:'a equipe está em reunião das 13h às 15h.' }
   ],

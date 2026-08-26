@@ -28,7 +28,6 @@ var AVISOS   = CONFIG.avisosReserva;
 var EQUIPE   = CONFIG.equipeReserva;
 var FALTAS   = CONFIG.faltasReserva;
 var RUAS     = CONFIG.areasEquipeReserva;   /* ruas atendidas por equipe — [{equipe, ruas:[...]}] */
-var REUNIOES = CONFIG.notasRecorrentesReserva;   /* regras "toda 2ª/4ª quarta..." — [{setores, dia, ocorrencias, texto}] */
 var ORIGEM   = 'reserva';   /* 'planilha' | 'reserva' | 'erro' */
 var AVISOS_DA_PLANILHA = false;   /* true só quando horarios ou recados vieram da planilha de verdade */
 var painelPessoa = null;   /* preenchido em iniciar(); abre o detalhe de quem foi clicado na equipe */
@@ -179,11 +178,11 @@ function formatarDatas(dias, mes){
   return rotulo + ' de ' + nomeMes;
 }
 
-/* Junta as regras de REUNIOES que valem pra esse setor, já com a data de
-   verdade calculada em cima da data mostrada na tela (respeita a barra
-   de teste "?teste", não usa o relógio real direto). */
+/* Junta as regras de config.notasRecorrentes que valem pra esse setor,
+   já com a data de verdade calculada em cima da data mostrada na tela
+   (respeita a barra de teste "?teste", não usa o relógio real direto). */
 function notasRecorrentesDoSetor(setorId, data){
-  return (REUNIOES || [])
+  return (CONFIG.notasRecorrentes || [])
     .filter(function(r){ return r.setores.indexOf(setorId) !== -1; })
     .map(function(r){
       var p = proximasDatas(data, r.dia, r.ocorrencias);
@@ -476,30 +475,7 @@ function buscarPlanilha(){
     /* Sem aba ruas ainda — mantém os dados de reserva, sem barulho. */
   });
 
-  /* Aba "reunioes": setores, dia, ocorrencias, texto — regra tipo "toda
-     2ª e 4ª quarta-feira do mês", em vez de uma linha nova a cada
-     ocorrência: o site calcula as datas de verdade sozinho (mesma ideia
-     de equipe/faltas/ruas — opcional, falha silenciosa). */
-  var reunioes = buscarComLimite(urlCSV(CONFIG.abaReunioes)).then(function(r){
-    if(!r.ok) throw new Error('sem aba reunioes');
-    return r.text();
-  }).then(function(txt){
-    REUNIOES = paraObjetos(txt).map(function(r){
-      return {
-        setores: String(r.setores || '').split(',').map(function(s){ return s.trim(); }).filter(Boolean),
-        dia: (r.dia || '').trim().toLowerCase(),
-        ocorrencias: String(r.ocorrencias || '').split(',')
-          .map(function(n){ return parseInt(n.trim(), 10); }).filter(function(n){ return !isNaN(n); }),
-        texto: r.texto || ''
-      };
-    }).filter(function(r){
-      return r.setores.length && K.indexOf(r.dia) !== -1 && r.ocorrencias.length && r.texto;
-    });
-  }).catch(function(){
-    /* Sem aba reunioes ainda — mantém os dados de reserva, sem barulho. */
-  });
-
-  return Promise.all([principal, horarios, recados, equipe, faltas, ruas, reunioes]).then(function(res){
+  return Promise.all([principal, horarios, recados, equipe, faltas, ruas]).then(function(res){
     var h = res[1], r = res[2];
     /* Só substitui os avisos de reserva se pelo menos uma das duas abas
        (horarios ou recados) respondeu de verdade. Se as duas ainda não
@@ -1290,7 +1266,7 @@ function lerGuardado(chave){
    ninguém mexe na planilha há muito tempo. */
 function textoContadorMudanca(){
   try{
-    var atual = JSON.stringify({s:SETORES, a:AVISOS, e:EQUIPE, f:FALTAS, r:RUAS, m:REUNIOES});
+    var atual = JSON.stringify({s:SETORES, a:AVISOS, e:EQUIPE, f:FALTAS, r:RUAS});
     var anterior = lerGuardado('ubs-conteudo-anterior');
     var hojeISO = iso(new Date());
     var dataMudanca = lerGuardado('ubs-data-mudanca');
