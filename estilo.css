@@ -379,6 +379,8 @@ body.alto-contraste .time-nome{color:var(--tinta)}
   background:var(--verde-claro);padding:3px 10px;border-radius:99px;
 }
 body.alto-contraste .time-conta{background:#052012;color:#00E676}
+.time-horario{background:transparent;border:2px solid var(--verde-claro)}
+body.alto-contraste .time-horario{background:transparent;border-color:#052012}
 
 .pessoas{display:flex;flex-direction:column;gap:10px}
 

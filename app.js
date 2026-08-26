@@ -176,6 +176,17 @@ function formatarDatas(dias, mes){
   return rotulo + ' de ' + nomeMes;
 }
 
+/* Textos fixos de config.notasFixasSetor que valem pra esse setor — ao
+   contrário de notasRecorrentes, não calcula data nenhuma, só repete o
+   texto sempre. Serve pra informação que precisa aparecer não importa o
+   que estiver na coluna "para" da planilha (ex: qual equipe atende em
+   qual horário). */
+function notasFixasDoSetor(setorId){
+  return (CONFIG.notasFixasSetor || [])
+    .filter(function(n){ return n.setores.indexOf(setorId) !== -1; })
+    .map(function(n){ return n.texto; });
+}
+
 /* Junta as regras de config.notasRecorrentes que valem pra esse setor,
    já com a data de verdade calculada em cima da data mostrada na tela
    (respeita a barra de teste "?teste", não usa o relógio real direto). */
@@ -1001,7 +1012,8 @@ function desenhar(data, agora){
         '<span class="val">' + v + '</span></div>';
     }).join('');
 
-    var paraCompleto = [s.para].concat(notasRecorrentesDoSetor(s.id, data)).filter(Boolean).join(' ');
+    var paraCompleto = [s.para].concat(notasFixasDoSetor(s.id)).concat(notasRecorrentesDoSetor(s.id, data))
+      .filter(Boolean).join(' ');
 
     return '<article class="setor ' + (t.cls === 'alerta' ? 'fechado-hoje' : '') + '">' +
       '<div class="sv-topo">' +
@@ -1027,20 +1039,23 @@ function desenhar(data, agora){
     equipeEl.innerHTML = '<p class="ajuda">Em breve, informações da equipe.</p>';
   } else {
     var grupos = agruparPorEquipe(EQUIPE);
-    var areasPorEquipe = {};
-    (CONFIG.areasEquipe || []).forEach(function(a){ areasPorEquipe[a.equipe] = a.ruas; });
+    var infoPorEquipe = {};
+    (CONFIG.areasEquipe || []).forEach(function(a){ infoPorEquipe[a.equipe] = a; });
     equipeEl.innerHTML = grupos.map(function(g){
       var cartoes = g.pessoas.map(function(p){ return cartaoPessoa(p, dataISO); }).join('');
       if(g.nome === null) return '<div class="pessoas">' + cartoes + '</div>';
       var conta = g.pessoas.length === 1 ? '1 pessoa' : g.pessoas.length + ' pessoas';
-      var ruas = areasPorEquipe[g.nome];
+      var info = infoPorEquipe[g.nome];
+      var horarioHtml = (info && info.horario)
+        ? '<span class="time-conta time-horario">' + limpo(info.horario) + '</span>' : '';
+      var ruas = info && info.ruas;
       var ruasHtml = (ruas && ruas.length)
         ? '<details class="ruas-equipe"><summary>Ruas atendidas</summary>' +
             '<ul class="ruas-lista">' + ruas.map(function(r){ return '<li>' + limpo(r) + '</li>'; }).join('') + '</ul>' +
           '</details>'
         : '';
       return '<div class="time">' +
-        '<h3 class="time-nome">' + limpo(g.nome) + '<span class="time-conta">' + conta + '</span></h3>' +
+        '<h3 class="time-nome">' + limpo(g.nome) + '<span class="time-conta">' + conta + '</span>' + horarioHtml + '</h3>' +
         '<div class="pessoas">' + cartoes + '</div>' +
         ruasHtml +
       '</div>';
