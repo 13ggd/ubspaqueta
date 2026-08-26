@@ -880,8 +880,10 @@ function cartaoAviso(a, futuro){
   if(per) rodape.push('Quando: ' + per);
   var quandoHtml = rodape.length ? '<p class="av-quando">' + rodape.join(' · ') + '</p>' : '';
   var textoHtml = (a.texto || a.novo)
-    ? '<p class="av-texto">' + limpo(a.texto) +
-        (a.novo ? '<br>Novo horário: <strong>' + fala(a.novo) + '</strong>.' : '') + '</p>'
+    ? '<p class="av-texto">' +
+        (a.texto ? limpo(a.texto) + (a.novo ? '<br>' : '') : '') +
+        (a.novo ? 'Novo horário: <strong>' + fala(a.novo) + '</strong>.' : '') +
+      '</p>'
     : '';
   return '<div class="aviso ' + cls + '">' +
     '<span class="av-tarja">' + selo + '</span>' +
