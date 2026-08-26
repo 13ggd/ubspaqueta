@@ -816,10 +816,12 @@ function montarFixos(){
     limpo(u.endereco) + '<br>' + limpo(u.bairro);
   document.getElementById('info-telefone').innerHTML =
     (u.telefoneEncaminhamentos
-      ? '<span class="tel-sub">Recepção: </span><a href="tel:' + limpo(u.telefoneLink) + '">' + limpo(u.telefone) + '</a>' +
-        '<br><span class="tel-sub">Encaminhamentos: </span><a href="tel:' + limpo(u.telefoneEncaminhamentosLink) + '">' + limpo(u.telefoneEncaminhamentos) + '</a>'
-      : '<a href="tel:' + limpo(u.telefoneLink) + '">' + limpo(u.telefone) + '</a>') +
-    (u.avisoLigacao ? '<br><small style="font-weight:400">' + limpo(u.avisoLigacao) + '</small>' : '');
+      ? '<div class="tel-linha"><span class="tel-rot">Recepção</span>' +
+          '<a class="tel-num" href="tel:' + limpo(u.telefoneLink) + '">' + limpo(u.telefone) + '</a></div>' +
+        '<div class="tel-linha"><span class="tel-rot">Encaminhamentos</span>' +
+          '<a class="tel-num" href="tel:' + limpo(u.telefoneEncaminhamentosLink) + '">' + limpo(u.telefoneEncaminhamentos) + '</a></div>'
+      : '<a class="tel-num" href="tel:' + limpo(u.telefoneLink) + '">' + limpo(u.telefone) + '</a>') +
+    (u.avisoLigacao ? '<p class="tel-aviso">' + limpo(u.avisoLigacao) + '</p>' : '');
   document.getElementById('info-secretaria').innerHTML =
     '<a href="tel:' + limpo(u.secretariaLink) + '">' + limpo(u.secretaria) + '</a>';
   document.getElementById('info-mapa').innerHTML =

@@ -481,6 +481,18 @@ body.alto-contraste .pessoa-detalhe-lista li:first-child{color:var(--tinta)}
 .info-val{font-size:calc(19px * var(--esc));font-weight:700;line-height:1.35}
 .info-val a{color:var(--verde)}
 
+.tel-linha{margin-top:8px}
+.tel-linha:first-child{margin-top:0}
+.tel-rot{
+  display:block;font-size:calc(14px * var(--esc));font-weight:600;
+  color:var(--tinta2);margin-bottom:1px;
+}
+.tel-num{font-size:calc(19px * var(--esc));font-weight:700;color:var(--verde)}
+.tel-aviso{
+  font-size:calc(14px * var(--esc));font-weight:400;color:var(--tinta2);
+  line-height:1.4;margin-top:10px;
+}
+
 details.tel-uteis{border-top:2px solid var(--linha);margin-top:14px}
 details.tel-uteis summary{
   list-style:none;cursor:pointer;padding-top:14px;min-height:var(--toque);
