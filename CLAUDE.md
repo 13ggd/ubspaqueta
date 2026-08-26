@@ -48,7 +48,12 @@ then open `http://localhost:8000/?teste` (see "Manual time-travel testing" below
   (mirroring `mudancas-horario`'s `avisoDe()`) — worse, since it stays invisible to someone planning a
   visit until the affected day itself, the same failure mode `avisosFuturos()` exists to avoid.
   Computing real dates and always showing them keeps the info visible in advance *and* removes the
-  mental math, with zero planilha upkeep going forward.
+  mental math, with zero planilha upkeep going forward. A sheet-driven version (a `reunioes` tab holding
+  the rule's fields — setores, dia, ocorrencias, texto — instead of `config.js`) was built and tried,
+  but reverted: this rule is edited about as often as the clinic's own identity in section 1 (i.e.
+  basically never, once someone sets the actual meeting day/time), so the extra tab and fetch code
+  wasn't worth it in practice — same call as `telefonesUteis`/`urgencia.lugares` above, just made after
+  actually shipping the alternative and deciding against it rather than upfront.
 - **`app.js`** — a single IIFE (`(function(){ ... })()`), no modules/bundler. On load it tries to fetch
   the Google Sheet as CSV (via the `gviz/tq?tqx=out:csv` endpoint, no API key needed since the sheet is
   shared as "anyone with the link"); on any failure it silently keeps using the `config.js` reserve data.
