@@ -1027,13 +1027,22 @@ function desenhar(data, agora){
     equipeEl.innerHTML = '<p class="ajuda">Em breve, informações da equipe.</p>';
   } else {
     var grupos = agruparPorEquipe(EQUIPE);
+    var areasPorEquipe = {};
+    (CONFIG.areasEquipe || []).forEach(function(a){ areasPorEquipe[a.equipe] = a.ruas; });
     equipeEl.innerHTML = grupos.map(function(g){
       var cartoes = g.pessoas.map(function(p){ return cartaoPessoa(p, dataISO); }).join('');
       if(g.nome === null) return '<div class="pessoas">' + cartoes + '</div>';
       var conta = g.pessoas.length === 1 ? '1 pessoa' : g.pessoas.length + ' pessoas';
+      var ruas = areasPorEquipe[g.nome];
+      var ruasHtml = (ruas && ruas.length)
+        ? '<details class="ruas-equipe"><summary>Ruas atendidas</summary>' +
+            '<ul class="ruas-lista">' + ruas.map(function(r){ return '<li>' + limpo(r) + '</li>'; }).join('') + '</ul>' +
+          '</details>'
+        : '';
       return '<div class="time">' +
         '<h3 class="time-nome">' + limpo(g.nome) + '<span class="time-conta">' + conta + '</span></h3>' +
         '<div class="pessoas">' + cartoes + '</div>' +
+        ruasHtml +
       '</div>';
     }).join('');
   }
