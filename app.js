@@ -762,7 +762,11 @@ function montarFixos(){
   document.getElementById('info-endereco').innerHTML =
     limpo(u.endereco) + '<br>' + limpo(u.bairro);
   document.getElementById('info-telefone').innerHTML =
-    '<a href="tel:' + limpo(u.telefoneLink) + '">' + limpo(u.telefone) + '</a>';
+    (u.telefoneEncaminhamentos
+      ? '<span class="tel-sub">Recepção: </span><a href="tel:' + limpo(u.telefoneLink) + '">' + limpo(u.telefone) + '</a>' +
+        '<br><span class="tel-sub">Encaminhamentos: </span><a href="tel:' + limpo(u.telefoneEncaminhamentosLink) + '">' + limpo(u.telefoneEncaminhamentos) + '</a>'
+      : '<a href="tel:' + limpo(u.telefoneLink) + '">' + limpo(u.telefone) + '</a>') +
+    (u.avisoLigacao ? '<br><small style="font-weight:400">' + limpo(u.avisoLigacao) + '</small>' : '');
   document.getElementById('info-secretaria').innerHTML =
     '<a href="tel:' + limpo(u.secretariaLink) + '">' + limpo(u.secretaria) + '</a>';
   document.getElementById('info-mapa').innerHTML =
