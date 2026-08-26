@@ -178,17 +178,6 @@ function formatarDatas(dias, mes){
   return rotulo + ' de ' + nomeMes;
 }
 
-/* Textos fixos de config.notasFixasSetor que valem pra esse setor — ao
-   contrário de notasRecorrentes, não calcula data nenhuma, só repete o
-   texto sempre. Serve pra informação que precisa aparecer não importa o
-   que estiver na coluna "para" da planilha (ex: qual equipe atende em
-   qual horário). */
-function notasFixasDoSetor(setorId){
-  return (CONFIG.notasFixasSetor || [])
-    .filter(function(n){ return n.setores.indexOf(setorId) !== -1; })
-    .map(function(n){ return n.texto; });
-}
-
 /* Junta as regras de config.notasRecorrentes que valem pra esse setor,
    já com a data de verdade calculada em cima da data mostrada na tela
    (respeita a barra de teste "?teste", não usa o relógio real direto). */
@@ -1078,8 +1067,7 @@ function desenhar(data, agora){
         '<span class="val">' + v + '</span></div>';
     }).join('');
 
-    var paraCompleto = [s.para].concat(notasFixasDoSetor(s.id)).concat(notasRecorrentesDoSetor(s.id, data))
-      .filter(Boolean).join(' ');
+    var paraCompleto = [s.para].concat(notasRecorrentesDoSetor(s.id, data)).filter(Boolean).join(' ');
 
     return '<article class="setor ' + (t.cls === 'alerta' ? 'fechado-hoje' : '') + '">' +
       '<div class="sv-topo">' +

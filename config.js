@@ -171,18 +171,6 @@ const CONFIG = {
     ] }
   ],
 
-  /* ---- 3c-3. NOTA FIXA DE HORÁRIO POR EQUIPE (nos cartões de setor) ----- */
-  /* Diferente de notasRecorrentes (que calcula datas), esta é só um texto
-     fixo, sempre acrescentado à descrição do setor — independe do que
-     estiver na coluna "para" da aba "setores", pra não depender de mexer
-     na planilha pra essa informação aparecer. Fica no topo da página
-     (cartão "Consulta com médico"/"Enfermagem"), que é onde quem visita
-     o site primeiro olha pra saber se dá pra ir agora. */
-  notasFixasSetor: [
-    { setores:['consulta','enfermagem'],
-      texto:'Pela manhã (7h às 13h) atendem as Equipes 1 e 2; à tarde (13h às 19h), a Equipe 3.' }
-  ],
-
   /* ---- 3c. REUNIÕES RECORRENTES DA EQUIPE ------------------------------- */
   /* Pra avisos tipo "toda 2ª e 4ª quarta-feira do mês" — em vez de escrever
      essa regra por extenso (obrigando quem lê a contar no calendário qual
