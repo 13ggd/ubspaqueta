@@ -287,13 +287,11 @@ const CONFIG = {
     /* Equipe 1 — atendimento das 7h às 13h. Técnicos de enfermagem e
        Agentes Comunitárias de Saúde deste time ainda não confirmados
        (não apareciam completos no mural da unidade). */
-    { nome:'Débora Aguiar',  funcao:'Médica de família', equipe:'Equipe 1', setor:'consulta',
-      foto:'', obs:'Atendimento de segunda a sexta, das 7h às 13h.' },
+    { nome:'Débora Aguiar',  funcao:'Médica de família', equipe:'Equipe 1', setor:'consulta', foto:'', obs:'' },
     { nome:'Cleber Mossini', funcao:'Enfermeiro', equipe:'Equipe 1', setor:'enfermagem', foto:'', obs:'' },
 
     /* Equipe 2 — atendimento das 7h às 13h. */
-    { nome:'Marcela Athayde', funcao:'Médica de família', equipe:'Equipe 2', setor:'consulta',
-      foto:'', obs:'Atendimento de segunda a sexta, das 7h às 13h.' },
+    { nome:'Marcela Athayde', funcao:'Médica de família', equipe:'Equipe 2', setor:'consulta', foto:'', obs:'' },
     { nome:'Thaila Ploêncio',  funcao:'Enfermeira', equipe:'Equipe 2', setor:'enfermagem', foto:'', obs:'' },
     { nome:'Ildonilso Mendes', funcao:'Técnico de enfermagem', equipe:'Equipe 2', setor:'enfermagem', foto:'', obs:'' },
     { nome:'Lindaura Merchol', funcao:'Técnica de enfermagem', equipe:'Equipe 2', setor:'enfermagem', foto:'', obs:'' },
@@ -301,8 +299,7 @@ const CONFIG = {
     { nome:'Suely Kuhnen',     funcao:'Agente Comunitária de Saúde', equipe:'Equipe 2', setor:'', foto:'', obs:'' },
 
     /* Equipe 3 — atendimento das 13h às 19h. */
-    { nome:'Aline Magalhães',       funcao:'Médica de família', equipe:'Equipe 3', setor:'consulta',
-      foto:'', obs:'Atendimento de segunda a sexta, das 13h às 19h.' },
+    { nome:'Aline Magalhães',       funcao:'Médica de família', equipe:'Equipe 3', setor:'consulta', foto:'', obs:'' },
     { nome:'Alessandra Nunes',      funcao:'Enfermeira', equipe:'Equipe 3', setor:'enfermagem', foto:'', obs:'' },
     { nome:'Claudete Scarsanella',  funcao:'Técnica de enfermagem', equipe:'Equipe 3', setor:'enfermagem', foto:'', obs:'' },
     { nome:'Maria Dinair Costa',    funcao:'Técnica de enfermagem', equipe:'Equipe 3', setor:'enfermagem', foto:'', obs:'' },

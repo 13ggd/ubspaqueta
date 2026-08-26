@@ -29,6 +29,7 @@ var EQUIPE   = CONFIG.equipeReserva;
 var FALTAS   = CONFIG.faltasReserva;
 var ORIGEM   = 'reserva';   /* 'planilha' | 'reserva' | 'erro' */
 var AVISOS_DA_PLANILHA = false;   /* true só quando horarios ou recados vieram da planilha de verdade */
+var painelPessoa = null;   /* preenchido em iniciar(); abre o detalhe de quem foi clicado na equipe */
 
 /* --------------------------------------------------------- favicon -- */
 /* Troca o ícone da aba do navegador por um emoji. Desenha o emoji num
@@ -885,7 +886,8 @@ function cartaoPessoa(p, dataISO){
     ? '<p class="pessoa-ausente">🔴 Ausente hoje' + (falta.motivo ? ': ' + limpo(falta.motivo) : '') + '</p>'
     : '';
 
-  return '<div class="pessoa' + (falta ? ' pessoa-com-falta' : '') + '">' + fotoHtml +
+  return '<div class="pessoa' + (falta ? ' pessoa-com-falta' : '') + '" ' +
+      'role="button" tabindex="0" aria-haspopup="dialog">' + fotoHtml +
     '<div class="pessoa-txt">' +
       '<p class="pessoa-nome">' + limpo(p.nome) + '</p>' +
       '<p class="pessoa-funcao">' + limpo(p.funcao) + '</p>' +
@@ -893,6 +895,41 @@ function cartaoPessoa(p, dataISO){
       faltaHtml +
     '</div>' +
   '</div>';
+}
+
+/* Abre o painel de detalhe com a foto grande e as informações completas
+   da pessoa clicada — chamado pelos listeners ligados nos cards depois
+   que #equipe é (re)desenhado, em desenhar(). "horario" é o turno do
+   time dela (vindo de CONFIG.areasEquipe), não um campo da própria
+   pessoa — por isso é passado à parte. */
+function abrirPessoaPainel(p, horario, dataISO){
+  var iniciais = iniciaisDe(p.nome);
+  var src = urlFoto(p.foto);
+  var fotoHtml = src
+    ? '<img class="pessoa-foto-grande" src="' + limpo(src) + '" alt="" ' +
+        'onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
+      '<div class="pessoa-foto-grande" aria-hidden="true" style="display:none">' + limpo(iniciais || '?') + '</div>'
+    : '<div class="pessoa-foto-grande" aria-hidden="true">' + limpo(iniciais || '?') + '</div>';
+
+  var linhas = [];
+  if(p.funcao) linhas.push(p.funcao);
+  if(p.equipe) linhas.push(p.equipe);
+  if(horario)  linhas.push('Atendimento: ' + horario);
+
+  var falta = dataISO ? faltaDe(p.nome.trim(), dataISO) : null;
+  var faltaHtml = falta
+    ? '<p class="pessoa-ausente">🔴 Ausente hoje' + (falta.motivo ? ': ' + limpo(falta.motivo) : '') + '</p>'
+    : '';
+
+  document.getElementById('pessoa-nome').textContent = p.nome;
+  document.getElementById('pessoa-detalhe').innerHTML = fotoHtml +
+    '<ul class="pessoa-detalhe-lista">' +
+      linhas.map(function(l){ return '<li>' + limpo(l) + '</li>'; }).join('') +
+    '</ul>' +
+    (p.obs ? '<p class="pessoa-detalhe-obs">' + limpo(p.obs) + '</p>' : '') +
+    faltaHtml;
+
+  if(painelPessoa) painelPessoa.abrir();
 }
 
 /* Agrupa por equipe só se pelo menos uma pessoa tiver o campo preenchido.
@@ -1041,11 +1078,18 @@ function desenhar(data, agora){
     var grupos = agruparPorEquipe(EQUIPE);
     var infoPorEquipe = {};
     (CONFIG.areasEquipe || []).forEach(function(a){ infoPorEquipe[a.equipe] = a; });
+    /* Lista paralela, na mesma ordem em que os cards saem no HTML — depois
+       de desenhar, zippa com os elementos .pessoa de verdade pra saber
+       qual card abre qual pessoa (ver abaixo). */
+    var pessoasFlat = [];
     equipeEl.innerHTML = grupos.map(function(g){
-      var cartoes = g.pessoas.map(function(p){ return cartaoPessoa(p, dataISO); }).join('');
+      var info = infoPorEquipe[g.nome];
+      var cartoes = g.pessoas.map(function(p){
+        pessoasFlat.push({ pessoa:p, horario: info && info.horario });
+        return cartaoPessoa(p, dataISO);
+      }).join('');
       if(g.nome === null) return '<div class="pessoas">' + cartoes + '</div>';
       var conta = g.pessoas.length === 1 ? '1 pessoa' : g.pessoas.length + ' pessoas';
-      var info = infoPorEquipe[g.nome];
       var horarioHtml = (info && info.horario)
         ? '<span class="time-conta time-horario">' + limpo(info.horario) + '</span>' : '';
       var ruas = info && info.ruas;
@@ -1060,6 +1104,24 @@ function desenhar(data, agora){
         ruasHtml +
       '</div>';
     }).join('');
+
+    /* Cada card de pessoa abre o painel de detalhe — no clique ou com
+       Enter/espaço (o card já tem role="button" tabindex="0"). Precisa
+       ser refeito a cada desenhar(), porque o innerHTML acima troca os
+       elementos toda vez. */
+    var elsPessoa = equipeEl.querySelectorAll('.pessoa');
+    Array.prototype.forEach.call(elsPessoa, function(el, i){
+      var item = pessoasFlat[i];
+      if(!item) return;
+      el.addEventListener('click', function(){
+        abrirPessoaPainel(item.pessoa, item.horario, dataISO);
+      });
+      el.addEventListener('keydown', function(e){
+        if(e.key !== 'Enter' && e.key !== ' ') return;
+        e.preventDefault();
+        abrirPessoaPainel(item.pessoa, item.horario, dataISO);
+      });
+    });
   }
 
   /* de onde vieram os dados */
@@ -1258,8 +1320,12 @@ function iniciar(){
   /* ---- abre/fecha painéis flutuantes — mesmo código serve para o de
      acessibilidade e para o menu "ir para"; abrir um fecha o outro. ---- */
   var outrosPaineis = [];
+  /* idBotao é opcional — o painel de detalhe da pessoa não tem um botão
+     fixo de abrir (quem abre é o card clicado, que muda a cada render),
+     então esse painel é aberto de fora, chamando controle.abrir()
+     diretamente, em vez de por um clique de botão aqui dentro. */
   function criarPainel(idBotao, idPainel, idFundo, idFechar){
-    var botao  = document.getElementById(idBotao);
+    var botao  = idBotao ? document.getElementById(idBotao) : null;
     var painel = document.getElementById(idPainel);
     var fundo  = document.getElementById(idFundo);
     var fechar = document.getElementById(idFechar);
@@ -1270,7 +1336,7 @@ function iniciar(){
       outrosPaineis.forEach(function(p){ if(p !== controle) p.fechar(); });
       painel.hidden = false;
       fundo.hidden  = false;
-      botao.setAttribute('aria-expanded','true');
+      if(botao) botao.setAttribute('aria-expanded','true');
       fechar.focus();
       document.addEventListener('keydown', aoTeclar);
     }
@@ -1278,13 +1344,13 @@ function iniciar(){
       if(painel.hidden) return;
       painel.hidden = true;
       fundo.hidden  = true;
-      botao.setAttribute('aria-expanded','false');
+      if(botao) botao.setAttribute('aria-expanded','false');
       document.removeEventListener('keydown', aoTeclar);
     }
 
-    botao.addEventListener('click', abrirEste);
-    fechar.addEventListener('click', function(){ fecharEste(); botao.focus(); });
-    fundo.addEventListener('click', function(){ fecharEste(); botao.focus(); });
+    if(botao) botao.addEventListener('click', abrirEste);
+    fechar.addEventListener('click', function(){ fecharEste(); if(botao) botao.focus(); });
+    fundo.addEventListener('click', function(){ fecharEste(); if(botao) botao.focus(); });
 
     var controle = { abrir:abrirEste, fechar:fecharEste };
     outrosPaineis.push(controle);
@@ -1293,6 +1359,7 @@ function iniciar(){
 
   criarPainel('a11y-fab', 'a11y-painel', 'a11y-fundo', 'a11y-fechar');
   var painelNav = criarPainel('nav-fab', 'nav-painel', 'nav-fundo', 'nav-fechar');
+  painelPessoa  = criarPainel(null, 'pessoa-painel', 'pessoa-fundo', 'pessoa-fechar');
 
   /* cada link do menu fecha o painel ao ser clicado — a rolagem suave até
      a seção acontece sozinha, via CSS (scroll-behavior), sem precisar de JS */
