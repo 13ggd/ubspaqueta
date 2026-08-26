@@ -239,6 +239,21 @@
   </ul>
 </div>
 
+<!-- ================ DETALHE DA PESSOA (clique num card da equipe) =======
+     Painel único, reaproveitado pra qualquer pessoa clicada — o conteúdo
+     é preenchido na hora pelo JS (ver abrirPessoaPainel em app.js).
+     ======================================================================= -->
+<div id="pessoa-fundo" class="a11y-fundo" hidden></div>
+
+<div id="pessoa-painel" class="a11y-painel pessoa-painel" role="dialog" aria-modal="true"
+     aria-labelledby="pessoa-nome" hidden>
+  <div class="a11y-topo">
+    <h2 id="pessoa-nome"></h2>
+    <button type="button" id="pessoa-fechar" class="a11y-fechar" aria-label="Fechar">✕</button>
+  </div>
+  <div id="pessoa-detalhe"></div>
+</div>
+
 <!-- ================== LIBRAS (VLibras — widget oficial do Governo Federal)
      Gratuito, mantido pelo governo. Se não quiser esse recurso, apague
      este bloco inteiro (as 6 linhas abaixo) e o site funciona normalmente.

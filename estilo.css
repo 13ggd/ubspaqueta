@@ -405,7 +405,9 @@ details.ruas-equipe[open] summary::after{transform:rotate(180deg)}
 .pessoa{
   background:var(--papel);border:2px solid var(--linha);border-radius:var(--raio);
   padding:14px 16px;display:flex;align-items:center;gap:13px;
+  cursor:pointer;
 }
+.pessoa:hover{border-color:var(--verde)}
 .pessoa-foto{
   flex:0 0 auto;width:52px;height:52px;border-radius:50%;
   background:var(--verde-claro);color:var(--verde-escuro);
@@ -423,6 +425,26 @@ body.alto-contraste .pessoa-foto{background:#052012;color:#00E676}
   margin-top:6px;line-height:1.4;
 }
 .pessoa-com-falta{border-color:var(--alerta);border-width:3px}
+
+/* Painel de detalhe (abre ao clicar num card da equipe) — mesma "folha"
+   deslizante de baixo já usada pra acessibilidade/menu, só que centrado
+   no conteúdo da pessoa em vez de opções. */
+.pessoa-painel{text-align:center}
+.pessoa-foto-grande{
+  width:112px;height:112px;border-radius:50%;margin:4px auto 16px;
+  background:var(--verde-claro);color:var(--verde-escuro);
+  display:flex;align-items:center;justify-content:center;
+  font-size:calc(34px * var(--esc));font-weight:700;
+  object-fit:cover;
+}
+body.alto-contraste .pessoa-foto-grande{background:#052012;color:#00E676}
+.pessoa-detalhe-lista{
+  list-style:none;display:flex;flex-direction:column;gap:6px;
+  font-size:calc(17px * var(--esc));margin-bottom:8px;
+}
+.pessoa-detalhe-lista li:first-child{font-weight:700;color:var(--verde-escuro)}
+body.alto-contraste .pessoa-detalhe-lista li:first-child{color:var(--tinta)}
+.pessoa-detalhe-obs{font-size:calc(15px * var(--esc));color:var(--tinta2);margin-top:4px;line-height:1.4}
 
 /* ------------------------------------------------------------ URGÊNCIA -- */
 .urgencia{background:var(--verde-escuro);color:#fff;border-radius:16px;padding:20px 16px}
