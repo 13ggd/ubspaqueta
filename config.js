@@ -44,9 +44,21 @@ const CONFIG = {
      https://docs.google.com/spreadsheets/d/ 1AbC...XyZ /edit#gid=0
                                              ^^^^^^^^^^ este pedaço
 
-     A planilha precisa ter quatro abas: "setores", "mudancas-horario",
-     "recados" e "equipe" — e estar compartilhada como "Qualquer pessoa
-     com o link" → Leitor.
+     A planilha precisa ter a aba "setores" (obrigatória) e pode ter também
+     "mudancas-horario", "recados", "equipe", "faltas" e "ruas" (todas
+     opcionais — sem elas o site usa os dados de reserva do item 4) — e
+     estar compartilhada como "Qualquer pessoa com o link" → Leitor.
+
+     A aba "ruas" é a área de abrangência de cada equipe (quais ruas cada
+     time atende), pra ficar editável na planilha em vez de precisar
+     mexer em código pra atualizar — mesma lógica de "equipe": duas
+     colunas, "equipe" (precisa ser igual ao nome usado na coluna
+     "equipe" da aba "equipe") e "rua" (uma rua por linha, repetindo o
+     nome da equipe em cada linha dela). O horário de atendimento de cada
+     equipe (ex: "7h às 13h") não tem aba própria — é só mais uma coluna
+     opcional, "horario", na aba "equipe": preencha numa linha por time
+     (normalmente a da médica) que o site acha sozinho, olhando quem tem
+     esse campo preenchido dentro do mesmo grupo.
 
      Por que "mudancas-horario" e "recados" são abas separadas (em vez de
      uma única aba "avisos" com um tipo pra escolher): assim ninguém
@@ -70,6 +82,7 @@ const CONFIG = {
   abaRecados:  'recados',
   abaEquipe:   'equipe',
   abaFaltas:   'faltas',
+  abaRuas:     'ruas',
 
   /* De quanto em quanto tempo o site relê a planilha (em minutos) */
   recarregarACada: 5,
@@ -120,17 +133,19 @@ const CONFIG = {
     { nome:'Delegacia da Criança, Mulher, Adolescente e Idoso', telefone:'(47) 3251-8303', telefoneLink:'+554732518303' }
   ],
 
-  /* ---- 3c-2. RUAS ATENDIDAS POR EQUIPE ---------------------------------- */
-  /* Mesma ideia de "telefonesUteis": lista de referência quase-estática
-     (área de abrangência de cada equipe de saúde da família), copiada dos
-     murais impressos na própria unidade. Aparece embaixo de cada time no
-     card "Quem trabalha aqui", atrás de "Ruas atendidas ▾". O nome em
-     "equipe" precisa ser igual ao campo "equipe" da pessoa (em
-     equipeReserva ou na aba "equipe" da planilha) pra ligar a lista ao
-     time certo — se não bater com nenhum time, a lista simplesmente não
-     aparece. Fica de fora se a equipe não tiver rua cadastrada ainda. */
-  areasEquipe: [
-    { equipe:'Equipe 1', horario:'7h às 13h', ruas:[
+  /* ---- 3c-2. RUAS ATENDIDAS POR EQUIPE (RESERVA) ------------------------ */
+  /* Igual a equipeReserva/faltasReserva: só usado enquanto a aba "ruas" da
+     planilha não existir (ou estiver fora do ar) — assim que ela existir,
+     o site troca por essa aba mesmo que venha vazia. Área de abrangência
+     de cada equipe de saúde da família, copiada dos murais impressos na
+     própria unidade. Aparece embaixo de cada time no card "Quem trabalha
+     aqui", atrás de "Ruas atendidas ▾". O nome em "equipe" precisa ser
+     igual ao campo "equipe" da pessoa (em equipeReserva ou na aba
+     "equipe" da planilha) pra ligar a lista ao time certo — se não bater
+     com nenhum time, a lista simplesmente não aparece. Fica de fora se a
+     equipe não tiver rua cadastrada ainda. */
+  areasEquipeReserva: [
+    { equipe:'Equipe 1', ruas:[
       '13 de março','Abelardo Joaquim Nazário','Ana Klabunde','AZ 026','AZ 027','AZ 030','AZ 060',
       'Carlos Antonio Campos de Souza','Carmelina Groh','Carola Dias','Dr Euclides Cardeal',
       'Dr Ivo Szpoganicz','Eduarda R Antunes','Elisa Klabunde','Elsa Popper','Emma Jeske',
@@ -141,11 +156,11 @@ const CONFIG = {
       'Reinoldo Wegner','Travessa Lagoa Dourada (até nº 413)','Tulipa','Vitória-régia',
       'Waldemar Hoffmann'
     ] },
-    { equipe:'Equipe 2', horario:'7h às 13h', ruas:[
+    { equipe:'Equipe 2', ruas:[
       '23 de setembro','Abraão Alfredo Maçaneiro','Alfredo Carlos Klabunde','Alma Klann',
       'Jacob Schmidt','Jaison Knihs','Jorge Teixeira','Luiz Eccel','Ramiro Cabral e Silva'
     ] },
-    { equipe:'Equipe 3', horario:'13h às 19h', ruas:[
+    { equipe:'Equipe 3', ruas:[
       '17 de julho','AC 032','AC 033','AC 039','Alberto Klabunde','Alvin Augusto Klann',
       'Andrino Leopoldo de Souza','Augusto Klabunde','Carlos Jeske','Celso Arthur de Oliveira',
       'CD 001','CD 002','CD 003','Ervin Kreidlow','Guilherme Kreidlow',
@@ -282,16 +297,24 @@ const CONFIG = {
      "faltas" logo abaixo. Pode ter mais de um setor, separado por
      vírgula. Deixe vazio se a pessoa não estiver ligada a nenhum setor
      específico (ex: recepção).
+
+     O campo "horario" é opcional e é do TIME, não da pessoa — vira um
+     selo ao lado do nome da equipe (ex: "Equipe 1 · 7h às 13h") e some
+     no card de detalhe de qualquer pessoa daquele time. Só precisa
+     preencher numa pessoa por equipe (por convenção, a médica); o site
+     usa o primeiro valor que encontrar dentro do grupo.
   */
   equipeReserva: [
     /* Equipe 1 — atendimento das 7h às 13h. Técnicos de enfermagem e
        Agentes Comunitárias de Saúde deste time ainda não confirmados
        (não apareciam completos no mural da unidade). */
-    { nome:'Débora Aguiar',  funcao:'Médica de família', equipe:'Equipe 1', setor:'consulta', foto:'', obs:'' },
+    { nome:'Débora Aguiar',  funcao:'Médica de família', equipe:'Equipe 1', setor:'consulta',
+      foto:'', obs:'', horario:'7h às 13h' },
     { nome:'Cleber Mossini', funcao:'Enfermeiro', equipe:'Equipe 1', setor:'enfermagem', foto:'', obs:'' },
 
     /* Equipe 2 — atendimento das 7h às 13h. */
-    { nome:'Marcela Athayde', funcao:'Médica de família', equipe:'Equipe 2', setor:'consulta', foto:'', obs:'' },
+    { nome:'Marcela Athayde', funcao:'Médica de família', equipe:'Equipe 2', setor:'consulta',
+      foto:'', obs:'', horario:'7h às 13h' },
     { nome:'Thaila Ploêncio',  funcao:'Enfermeira', equipe:'Equipe 2', setor:'enfermagem', foto:'', obs:'' },
     { nome:'Ildonilso Mendes', funcao:'Técnico de enfermagem', equipe:'Equipe 2', setor:'enfermagem', foto:'', obs:'' },
     { nome:'Lindaura Merchol', funcao:'Técnica de enfermagem', equipe:'Equipe 2', setor:'enfermagem', foto:'', obs:'' },
@@ -299,7 +322,8 @@ const CONFIG = {
     { nome:'Suely Kuhnen',     funcao:'Agente Comunitária de Saúde', equipe:'Equipe 2', setor:'', foto:'', obs:'' },
 
     /* Equipe 3 — atendimento das 13h às 19h. */
-    { nome:'Aline Magalhães',       funcao:'Médica de família', equipe:'Equipe 3', setor:'consulta', foto:'', obs:'' },
+    { nome:'Aline Magalhães',       funcao:'Médica de família', equipe:'Equipe 3', setor:'consulta',
+      foto:'', obs:'', horario:'13h às 19h' },
     { nome:'Alessandra Nunes',      funcao:'Enfermeira', equipe:'Equipe 3', setor:'enfermagem', foto:'', obs:'' },
     { nome:'Claudete Scarsanella',  funcao:'Técnica de enfermagem', equipe:'Equipe 3', setor:'enfermagem', foto:'', obs:'' },
     { nome:'Maria Dinair Costa',    funcao:'Técnica de enfermagem', equipe:'Equipe 3', setor:'enfermagem', foto:'', obs:'' },
