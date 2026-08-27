@@ -47,6 +47,13 @@ harness page (QR matrices round-tripped through a real decoder; `sw.js` executed
 similar throwaway page rather than trusting a read-through — both are the kind of code that looks right
 and is wrong.
 
+The offline path in particular cannot be judged by reading it. Exercising it end-to-end means: a local
+static server, a second local server standing in for the Google Sheet (point `urlCSV()` and the `sw.js`
+hostname test at it), a **second** page load so the service worker actually controls the page, and only
+then killing the sheet server. Playwright's `context.setOffline()` and `context.route()` do **not**
+apply to requests the service worker itself makes, so an offline test built on those alone will show
+you a page that looks fine while proving nothing about the cache.
+
 ## Architecture
 
 ### Three files, one direction of data flow
@@ -82,6 +89,11 @@ and is wrong.
 - **`app.js`** — a single IIFE (`(function(){ ... })()`), no modules/bundler. On load it tries to fetch
   the Google Sheet as CSV (via the `gviz/tq?tqx=out:csv` endpoint, no API key needed since the sheet is
   shared as "anyone with the link"); on any failure it silently keeps using the `config.js` reserve data.
+  The `#fonte-dados` footer distinguishes all three provenances rather than blurring them: live sheet,
+  service-worker cache (`GUARDADO_EM`, with the time it was saved), and `config.js` reserve — the last
+  split further by `JA_LEU_A_PLANILHA`, since "the last hours we know of" is only true if the sheet was
+  read at least once this session; otherwise the screen is showing template data that may never have
+  matched this clinic.
   It re-renders by generating HTML strings and assigning them to `innerHTML` on fixed container ids in
   `index.html` — there is no templating engine or virtual DOM.
 - **`index.html`** — mostly empty containers (`id="status"`, `id="avisos"`, `id="setores"`,
@@ -140,7 +152,15 @@ The spreadsheet must have tabs `setores`, `mudancas-horario`, `recados`, `equipe
 
 Dates/times coming from the sheet are free-text and normalized by `normalizaData()` /
 `normalizaHorario()` before anything else touches them. `normalizaData()` accepts `19/08/2026`,
-`19-08-2026`, or `2026-08-19`. `normalizaHorario()` accepts `7h às 19h`, `07:00-19:00`, `7-19`, and
+`19-08-2026`, or `2026-08-19`, and checks the result against the calendar (`dataExiste()`) instead of
+just reshaping the digits — `32/13/2026` used to become the ISO-shaped string `2026-13-32`, which
+matches no real day and sorts after every real one, so the notice sat in "Avisos futuros" forever
+without ever firing (a day/month swap landing in the past disappeared with no trace at all). A field
+left blank and a field filled with garbage both yield `null`, but they mean different things, so
+`dataIlegivel()` separates them at the parse sites: blank keeps the documented "no date = active while
+checked" behaviour, while an unparseable date drops the row (with a `console.error`), on the grounds
+that treating a typo as "no date" would close the setor every single day rather than just the one the
+staffer meant. `normalizaHorario()` accepts `7h às 19h`, `07:00-19:00`, `7-19`, and
 multi-block hours for lunch breaks separated by comma *or* space (`7h às 12h, 13h às 19h` and
 `7-12 13-19` both work) — it deliberately rejects a single-digit minute (`18:3`) instead of guessing
 `18:03`: for free-text input from non-technical staff, failing a block back to "não atende" is safer
@@ -199,7 +219,16 @@ The strategies are deliberately *not* uniform, and the split is the whole design
   visitor on their *next* load, which is why `VERSAO` at the top of `sw.js` must be bumped when
   shipping (that string is what evicts every old cache in `activate`).
 - **The Google Sheet CSV** — network-first, cache only as a fallback. Serving yesterday's hours from
-  cache while the network was available would be the worst possible failure for this site.
+  cache while the network was available would be the worst possible failure for this site. The cache
+  key is the request URL **minus the `t=Date.now()` cache-buster** (`chaveDaPlanilha()`): keying by
+  the full URL stored one entry per fetch forever and — worse — meant the offline lookup never found
+  the copy saved earlier, so the fallback silently reached `config.js`'s reserve data instead of the
+  last known sheet. Do not swap this for `{ignoreSearch:true}`: the tabs differ only by the `sheet=`
+  query param, so ignoring the whole query string would serve `setores` for a `recados` request.
+  A cached CSV is served with an `X-UBS-Guardado` header (`carimbar()`) holding the ISO time it was
+  stored; `buscarPlanilha()` reads it into `GUARDADO_EM` so the `#fonte-dados` line can say "guardados
+  no aparelho ontem às 16h" instead of "carregados agora", which would be a lie of exactly the kind
+  this whole file exists to prevent.
 - **Everything else** (VLibras, the measurement script) — not intercepted at all.
 
 `cachePrimeiro()` deliberately **rejects** when there is neither a cached copy nor a network, instead of

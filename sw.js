@@ -27,7 +27,7 @@
    faz o navegador de todo mundo descartar o cache antigo.
    =========================================================================== */
 
-var VERSAO       = 'ubs-v1';
+var VERSAO       = 'ubs-v2';
 var CACHE_SITE   = VERSAO + '-site';
 var CACHE_DADOS  = VERSAO + '-dados';
 var CACHE_FONTES = VERSAO + '-fontes';
@@ -111,14 +111,46 @@ function paginaPrincipal(pedido){
   });
 }
 
+/* O endereço da planilha leva um "&t=" com a hora do pedido, pra o navegador
+   nunca entregar uma cópia velha dele mesmo. Só que isso faz cada busca virar
+   um endereço diferente — e guardar por endereço tem duas consequências
+   ruins: o cache junta uma cópia nova a cada 5 minutos, para sempre, e a
+   busca de amanhã nunca encontra a de hoje, que é justamente a que salvaria
+   quem está sem internet. Por isso a chave do cache é o endereço SEM o "t":
+   uma entrada por aba, sempre a mais recente, e ela é achável depois. */
+function chaveDaPlanilha(pedido){
+  var url = new URL(pedido.url);
+  url.searchParams['delete']('t');
+  return url.href;
+}
+
+/* Carimba na resposta a hora em que ela foi guardada, pra o site poder dizer
+   "isto é de ontem às 16h" em vez de deixar parecer que acabou de chegar da
+   planilha. Mostrar horário velho como se fosse de agora é o pior erro que
+   este site pode cometer. */
+function carimbar(resposta, quando){
+  var cabecalhos = new Headers(resposta.headers);
+  cabecalhos.set('X-UBS-Guardado', quando);
+  return resposta.blob().then(function(corpo){
+    return new Response(corpo, {status: resposta.status,
+                                statusText: resposta.statusText,
+                                headers: cabecalhos});
+  });
+}
+
 /* Rede primeiro; o cache só entra se a rede falhar. */
 function redePrimeiro(pedido, nomeCache){
+  var chave = chaveDaPlanilha(pedido);
   return caches.open(nomeCache).then(function(cache){
     return fetch(pedido).then(function(resposta){
-      if(resposta && resposta.ok) cache.put(pedido, resposta.clone());
+      if(resposta && resposta.ok){
+        carimbar(resposta.clone(), new Date().toISOString()).then(function(guardavel){
+          return cache.put(chave, guardavel);
+        })['catch'](function(){});
+      }
       return resposta;
     })['catch'](function(erro){
-      return cache.match(pedido).then(function(guardado){
+      return cache.match(chave).then(function(guardado){
         if(guardado) return guardado;
         throw erro;   /* nem rede nem cache: o app.js cai nos dados de reserva */
       });

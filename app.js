@@ -31,6 +31,17 @@ var RUAS     = CONFIG.areasEquipeReserva;   /* ruas atendidas por equipe — [{e
 var REUNIOES = CONFIG.notasRecorrentesReserva;   /* regras "toda 2ª/4ª quarta..." — [{setores, dia, ocorrencias, texto}] */
 var ORIGEM   = 'reserva';   /* 'planilha' | 'reserva' | 'erro' */
 var AVISOS_DA_PLANILHA = false;   /* true só quando horarios ou recados vieram da planilha de verdade */
+/* Quando os dados na tela não vieram da rede agora, e sim do que o service
+   worker tinha guardado, o sw.js carimba a resposta com a hora em que ela foi
+   guardada. É isso que deixa a linha do rodapé dizer "guardado ontem às 16h"
+   em vez de "carregado agora" — a diferença entre avisar que o horário pode
+   estar velho e afirmar que ele é o de hoje. Fica null quando veio da rede. */
+var GUARDADO_EM = null;
+/* Vira true assim que a planilha é lida com sucesso uma vez nesta sessão.
+   Serve pro rodapé não prometer "os últimos horários conhecidos" quando o
+   que está na tela são, na verdade, os dados fixos do config.js — que podem
+   nunca ter batido com a realidade da unidade. */
+var JA_LEU_A_PLANILHA = false;
 var painelPessoa = null;   /* preenchido em iniciar(); abre o detalhe de quem foi clicado na equipe */
 
 /* --------------------------------------------------------- favicon -- */
@@ -373,14 +384,46 @@ function paraObjetos(txt){
 }
 
 /* Aceita 19/08/2026, 19-08-2026 ou 2026-08-19 e devolve sempre 2026-08-19 */
+/* Confere se a data existe mesmo no calendário. Sem isso, um dedo trocado na
+   planilha ("32/13/2026", ou o mês e o dia invertidos) virava uma data que
+   nunca chega: o aviso ou ficava preso para sempre em "Avisos futuros", ou
+   sumia sem deixar rastro. Nos dois casos, calado — que é o pior jeito de
+   falhar num aviso de fechamento. Devolver null faz a linha ser tratada como
+   "sem data", igual a qualquer outro campo que não deu pra entender. */
+function dataExiste(ano, mes, dia){
+  if(mes < 1 || mes > 12 || dia < 1) return false;
+  var d = new Date(ano, mes - 1, dia);
+  return d.getFullYear() === ano && d.getMonth() === mes - 1 && d.getDate() === dia;
+}
+
 function normalizaData(s){
   s = (s || '').trim();
+  var m = null;
   if(!s) return null;
-  if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-  var m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
-  if(m) return m[3] + '-' + m[2].padStart(2,'0') + '-' + m[1].padStart(2,'0');
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)){
+    m = s.split('-').map(Number);
+    return dataExiste(m[0], m[1], m[2]) ? s : null;
+  }
+  m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if(m){
+    if(!dataExiste(Number(m[3]), Number(m[2]), Number(m[1]))) return null;
+    return m[3] + '-' + m[2].padStart(2,'0') + '-' + m[1].padStart(2,'0');
+  }
   var d = new Date(s);
   return isNaN(d.getTime()) ? null : iso(d);
+}
+
+/* Campo de data em branco e campo de data com erro de digitação são coisas
+   diferentes, e normalizaData() devolve null para os dois. Em branco é
+   proposital — o aviso vale enquanto a caixinha estiver marcada. Com erro
+   ("32/13/2026") não dá pra saber o dia que a pessoa quis, e as duas saídas
+   possíveis são ruins: tratar como "sem data" fecharia o setor todo santo
+   dia, e adivinhar seria pior ainda. Então a linha é descartada — o mesmo
+   efeito de nunca ter sido escrita, errado num dia só em vez de todos — e o
+   motivo vai pro console, que é onde quem cuida do site vai procurar. */
+function dataIlegivel(bruto, normalizada){
+  var tem = String(bruto === undefined || bruto === null ? '' : bruto).trim() !== '';
+  return tem && !normalizada;
 }
 
 /* Aceita "7h às 19h", "07:00-19:00", "7-19", "Fechado" — devolve "07:00-19:00".
@@ -455,6 +498,7 @@ function paraBooleano(v){
 }
 
 function buscarPlanilha(){
+  GUARDADO_EM = null;
   if(!planilhaConfigurada()){
     ORIGEM = 'reserva';
     return Promise.resolve();
@@ -464,6 +508,8 @@ function buscarPlanilha(){
      sobre horários, então um erro aqui marca ORIGEM como 'erro'. */
   var principal = buscarComLimite(urlCSV(CONFIG.abaSetores)).then(function(r){
     if(!r.ok) throw new Error('planilha não respondeu');
+    /* Só vem preenchido quando quem respondeu foi o cache do service worker. */
+    GUARDADO_EM = (r.headers && r.headers.get('X-UBS-Guardado')) || null;
     return r.text();
   }).then(function(txt){
     var listaS = paraObjetos(txt).map(function(r){
@@ -483,7 +529,7 @@ function buscarPlanilha(){
 
     /* Só troca se a planilha realmente trouxe setores.
        Assim uma planilha vazia por engano não apaga o site. */
-    if(listaS.length) SETORES = listaS;
+    if(listaS.length){ SETORES = listaS; JA_LEU_A_PLANILHA = true; }
     ORIGEM = 'planilha';
   }).catch(function(e){
     console.error('Não consegui ler setores da planilha:', e);
@@ -499,7 +545,8 @@ function buscarPlanilha(){
     return r.text();
   }).then(function(txt){
     return paraObjetos(txt).map(function(r){
-      var ini  = normalizaData(r.inicio || r.data_inicio);
+      var bruta = r.inicio || r.data_inicio;
+      var ini  = normalizaData(bruta);
       var novo = normalizaHorario(r.novo || r.novo_horario);
       return {
         tipo:       novo ? 'atencao' : 'fechado',
@@ -509,9 +556,16 @@ function buscarPlanilha(){
         inicio:     ini,
         fim:        normalizaData(r.fim || r.data_fim) || ini,
         novo:       novo,
-        ativo:      paraBooleano(r.ativo)
+        ativo:      paraBooleano(r.ativo),
+        dataRuim:   dataIlegivel(bruta, ini)
       };
-    }).filter(function(a){ return a.setor; });
+    }).filter(function(a){
+      if(a.dataRuim){
+        console.error('Aviso ignorado: a data de início não existe no calendário.', a.setor, a.titulo);
+        return false;
+      }
+      return a.setor;
+    });
   }).catch(function(e){
     console.error('Não consegui ler horarios da planilha:', e);
     return null;   /* null = "não deu pra ler", diferente de [] = "leu e está vazia" */
@@ -523,7 +577,8 @@ function buscarPlanilha(){
     return r.text();
   }).then(function(txt){
     return paraObjetos(txt).map(function(r){
-      var ini = normalizaData(r.inicio || r.data_inicio);
+      var bruta = r.inicio || r.data_inicio;
+      var ini = normalizaData(bruta);
       return {
         tipo:       'recado',
         setor:      '',
@@ -532,9 +587,16 @@ function buscarPlanilha(){
         inicio:     ini,
         fim:        normalizaData(r.fim || r.data_fim) || ini,
         novo:       '',
-        ativo:      paraBooleano(r.ativo)
+        ativo:      paraBooleano(r.ativo),
+        dataRuim:   dataIlegivel(bruta, ini)
       };
-    }).filter(function(a){ return a.titulo; });
+    }).filter(function(a){
+      if(a.dataRuim){
+        console.error('Recado ignorado: a data de início não existe no calendário.', a.titulo);
+        return false;
+      }
+      return a.titulo;
+    });
   }).catch(function(e){
     console.error('Não consegui ler recados da planilha:', e);
     return null;
@@ -576,7 +638,11 @@ function buscarPlanilha(){
     return r.text();
   }).then(function(txt){
     var lista = paraObjetos(txt).map(function(r){
-      var ini = normalizaData(r.inicio || r.data_inicio);
+      var bruta = r.inicio || r.data_inicio;
+      var ini = normalizaData(bruta);
+      if(dataIlegivel(bruta, ini)){
+        console.error('Falta ignorada: a data de início não existe no calendário.', r.pessoa || r.nome);
+      }
       return {
         pessoa:     (r.pessoa || r.nome || '').trim(),
         motivo:     r.motivo || '',
@@ -1004,6 +1070,19 @@ function montarFixos(){
 /* --------------------------------------------------- desenhar a página -- */
 var ULTIMA_DATA = null, ULTIMA_AGORA = null;
 
+/* Transforma o carimbo do service worker em algo que se lê em voz alta sem
+   pensar: "hoje às 16h", "ontem às 07h", ou a data cheia se for mais antigo. */
+function quandoGuardado(carimbo){
+  var d = new Date(carimbo);
+  if(isNaN(d.getTime())) return 'da última vez que houve internet';
+  var hora = d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+  var hoje = new Date();
+  var ontem = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - 1);
+  if(iso(d) === iso(hoje))  return 'hoje às ' + hora;
+  if(iso(d) === iso(ontem)) return 'ontem às ' + hora;
+  return 'em ' + brData(iso(d)) + ' às ' + hora;
+}
+
 /* Monta o card de um aviso — usado tanto na lista de hoje quanto na de
    avisos futuros. "futuro" ajusta o tempo verbal da tarja ("Mudou" vs
    "Vai mudar") — sem isso, um aviso que ainda não começou ficaria
@@ -1311,7 +1390,15 @@ function desenhar(data, agora){
   /* de onde vieram os dados */
   var fd = document.getElementById('fonte-dados');
   var agoraTxt = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-  if(ORIGEM === 'planilha'){
+  if(ORIGEM === 'planilha' && GUARDADO_EM){
+    /* Veio do cache do aparelho, não da rede: dizer "carregado agora" aqui
+       seria mentira, e é a mentira mais cara que este site pode contar. */
+    fd.className = 'fonte-dados erro';
+    fd.textContent = 'Sem conexão com a planilha agora. Estes horários são os que ' +
+      'ficaram guardados no aparelho ' + quandoGuardado(GUARDADO_EM) +
+      ' — podem ter mudado desde então. Na dúvida, ligue para a UBS: ' +
+      CONFIG.unidade.telefone + '.';
+  } else if(ORIGEM === 'planilha'){
     fd.className = 'fonte-dados';
     fd.textContent = (AVISOS_DA_PLANILHA
       ? 'Horários e avisos carregados da planilha da unidade às '
@@ -1320,9 +1407,11 @@ function desenhar(data, agora){
     fd.textContent += ' ' + textoContadorMudanca();
   } else if(ORIGEM === 'erro'){
     fd.className = 'fonte-dados erro';
-    fd.textContent = 'Não foi possível carregar a planilha agora. A página está mostrando os ' +
-      'últimos horários conhecidos. Em caso de dúvida, ligue para a UBS: ' +
-      CONFIG.unidade.telefone + '.';
+    fd.textContent = 'Não foi possível carregar a planilha agora. A página está mostrando ' +
+      (JA_LEU_A_PLANILHA
+        ? 'os últimos horários que conseguiu ler dela.'
+        : 'os horários fixos cadastrados no próprio site, que podem estar desatualizados.') +
+      ' Em caso de dúvida, ligue para a UBS: ' + CONFIG.unidade.telefone + '.';
   } else {
     fd.className = 'fonte-dados';
     fd.textContent = 'Esta página está usando os dados internos do site. ' +
