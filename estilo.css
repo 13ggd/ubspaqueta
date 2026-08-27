@@ -500,6 +500,9 @@ body.alto-contraste .pessoa-detalhe-lista li:first-child{color:var(--tinta)}
 .info-rot{font-size:calc(15px * var(--esc));color:var(--tinta2);margin-bottom:4px}
 .info-val{font-size:calc(19px * var(--esc));font-weight:700;line-height:1.35}
 .info-val a{color:var(--verde)}
+/* Link com ícone (ex: Instagram) — alinha o glifo com o texto */
+.info-val a.elo-icone{display:inline-flex;align-items:center;gap:7px}
+.info-val a.elo-icone .ig-logo{flex:0 0 auto}
 
 .tel-linha{margin-top:8px}
 .tel-linha:first-child{margin-top:0}
@@ -562,6 +565,10 @@ body.alto-contraste .fonte-dados.erro{color:var(--tinta)}
   font-size:calc(15px * var(--esc));color:var(--tinta2);
   text-align:center;padding:26px 0 8px;line-height:1.6;
 }
+.rodape p{margin:0}
+/* Link "ver todas as unidades" — separado do crédito, e visível (verde + sublinhado) */
+.rodape-unidades{margin-top:12px;font-size:calc(16px * var(--esc))}
+.rodape-unidades a{color:var(--verde);font-weight:700;text-decoration:underline}
 
 /* ------------------------------------------------- BARRA DE TESTE ----- */
 /* Só aparece se o endereço tiver ?teste no final. Fora isso, fica oculta. */

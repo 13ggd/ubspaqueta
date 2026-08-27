@@ -1027,24 +1027,22 @@ function montarFixos(){
     (u.avisoLigacao ? '<p class="tel-aviso">' + limpo(u.avisoLigacao) + '</p>' : '');
   document.getElementById('info-secretaria').innerHTML =
     '<a href="tel:' + limpo(u.secretariaLink) + '">' + limpo(u.secretaria) + '</a>';
-
-  /* Link para a lista de todas as unidades, no site da Secretaria. Só
-     aparece se CONFIG.unidade.paginaUnidades estiver preenchido. Abre na
-     mesma aba de propósito: é navegação "para cima", de volta ao portal —
-     não um recurso externo como o mapa ou o Instagram. */
-  if(u.paginaUnidades){
-    document.getElementById('info-unidades').innerHTML =
-      '<a href="' + limpo(u.paginaUnidades) + '">Ver todas as unidades de saúde</a>';
-    document.getElementById('info-unidades-linha').hidden = false;
-  }
-
   document.getElementById('info-mapa').innerHTML =
     '<a href="' + limpo(u.mapa) + '" target="_blank" rel="noopener">Abrir o mapa no celular</a>';
 
-  /* Instagram — só aparece se CONFIG.unidade.instagram estiver preenchido. */
+  /* Instagram — só aparece se CONFIG.unidade.instagram estiver preenchido.
+     Vai com o glifo da câmera do Instagram (SVG inline, sem imagem externa,
+     na cor do texto) pra ser reconhecível de relance, não só um link escrito. */
   if(u.instagram){
     document.getElementById('info-instagram').innerHTML =
-      '<a href="' + limpo(u.instagram) + '" target="_blank" rel="noopener">Ver no Instagram</a>';
+      '<a class="elo-icone" href="' + limpo(u.instagram) + '" target="_blank" rel="noopener">' +
+        '<svg class="ig-logo" viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" ' +
+          'stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+          '<rect x="2" y="2" width="20" height="20" rx="5"></rect>' +
+          '<circle cx="12" cy="12" r="5"></circle>' +
+          '<circle cx="17.5" cy="6.5" r="1.3" fill="currentColor" stroke="none"></circle>' +
+        '</svg>' +
+        '<span>Ver no Instagram</span></a>';
     document.getElementById('info-instagram-linha').hidden = false;
   }
 
@@ -1076,6 +1074,17 @@ function montarFixos(){
 
   document.getElementById('rodape').textContent =
     'Página cuidada pela equipe da ' + u.nome + '.';
+
+  /* Link para a lista de todas as unidades, no site da Secretaria — fica
+     no rodapé, separado, e não no meio dos telefones. Só aparece se
+     CONFIG.unidade.paginaUnidades estiver preenchido. Abre na mesma aba de
+     propósito: é navegação "para cima", de volta ao portal. */
+  var rodapeUnidades = document.getElementById('rodape-unidades');
+  if(u.paginaUnidades){
+    rodapeUnidades.innerHTML =
+      '<a href="' + limpo(u.paginaUnidades) + '">Ver todas as unidades de saúde</a>';
+    rodapeUnidades.hidden = false;
+  }
 }
 
 /* --------------------------------------------------- desenhar a página -- */

@@ -45,8 +45,8 @@ const CONFIG = {
     site: '',
 
     /* Endereço da página que lista TODAS as unidades de saúde, no site da
-       Secretaria. Vira um link "Ver todas as unidades de saúde" no card
-       "Onde fica e telefones", logo abaixo do telefone da Secretaria.
+       Secretaria. Vira um link "Ver todas as unidades de saúde" no rodapé
+       do site, separado do resto (não misturado no meio dos telefones).
        Serve principalmente quando este site é publicado sob o domínio da
        Secretaria (ex: paqueta.smsbrusque.sc.gov.br): ali não existe o menu
        do portal em volta, então quem chega direto (QR, link, favorito)
