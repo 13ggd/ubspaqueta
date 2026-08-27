@@ -60,6 +60,15 @@ um arquivo.
 5. **Volte no `config.js` e preencha `site`** com o endereço publicado (ex:
    `https://ubspaqueta.vercel.app`). É desse campo que sai o QR code do cartaz impresso.
 
+## Servindo no domínio da Secretaria de Saúde
+
+Para o site abrir num endereço da própria Secretaria (ex:
+`paqueta.smsbrusque.sc.gov.br`) em vez de `...vercel.app` — mantendo o
+cadeado e o domínio oficial —, o passo a passo está em
+[`guia-dominio-secretaria.md`](guia-dominio-secretaria.md). Ele tem uma parte
+para a equipe do projeto e uma parte pronta para enviar ao setor de TI da
+Secretaria (é um único registro de DNS do lado deles).
+
 ## Imprimindo o cartaz com QR code
 
 O site pode estar perfeito e ninguém descobrir que ele existe. O cartaz é o que liga um ao outro.
