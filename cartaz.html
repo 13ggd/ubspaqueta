@@ -163,8 +163,9 @@
   <button type="button" id="imprimir">Imprimir</button>
   <p class="dica">
     Esta barra não sai na impressão. “Marcar como vindo do cartaz” acrescenta
-    <code>?de=cartaz</code> ao endereço — serve para saber, na medição de acessos,
-    quantas pessoas chegaram pelo papel. Desmarque se não estiver medindo nada.
+    <code>?de=cartaz</code> ao endereço do cartaz e <code>?de=bilhete</code> ao dos
+    bilhetes — serve para saber, na medição de acessos, quantas pessoas chegaram por
+    cada um dos dois. Desmarque se não estiver medindo nada.
   </p>
 </div>
 
@@ -236,29 +237,37 @@ function fala(f){
   }).join(' e ');
 }
 
-/* Junta dias seguidos com o mesmo horário: seg/ter/qua/qui/sex das 7 às 19
-   vira "Seg a Sex", e não cinco linhas iguais. */
+/* "Seg a Sex" quando os dias são seguidos; "Seg, Qua e Sex" quando não são.
+   O dentista atende segunda, quarta e sexta — escrever isso como três
+   pedaços iguais separados por ponto gastaria uma linha inteira do cartaz
+   repetindo o mesmo horário três vezes. */
+function rotuloDias(dias){
+  var nomes = dias.map(function(d){ return CURTO[d]; });
+  if(nomes.length === 1) return nomes[0];
+  var seguidos = dias.every(function(d, i){
+    return i === 0 || ORD.indexOf(d) === ORD.indexOf(dias[i - 1]) + 1;
+  });
+  if(seguidos && nomes.length >= 3) return nomes[0] + ' a ' + nomes[nomes.length - 1];
+  return nomes.slice(0, -1).join(', ') + ' e ' + nomes[nomes.length - 1];
+}
+
+/* Agrupa os dias da semana que têm exatamente o mesmo horário. */
 function resumoSemana(h){
-  var grupos = [], atual = null;
-  ORD.forEach(function(dia, i){
+  var grupos = [];
+  ORD.forEach(function(dia){
     var valor = (h && h[dia]) ? h[dia] : '';
-    if(!valor){ atual = null; return; }
-    if(atual && atual.hora === valor && atual.ate === i - 1){
-      atual.dias.push(dia);
-      atual.ate = i;
-    } else {
-      atual = { dias:[dia], hora:valor, ate:i };
-      grupos.push(atual);
+    if(!valor) return;
+    var achado = null;
+    for(var i = 0; i < grupos.length; i++){
+      if(grupos[i].hora === valor){ achado = grupos[i]; break; }
     }
+    if(!achado){ achado = { hora:valor, dias:[] }; grupos.push(achado); }
+    achado.dias.push(dia);
   });
   if(!grupos.length) return '';
 
   return grupos.map(function(g){
-    var d = g.dias;
-    var rotulo = d.length === 1 ? CURTO[d[0]]
-               : d.length === 2 ? CURTO[d[0]] + ' e ' + CURTO[d[1]]
-               : CURTO[d[0]] + ' a ' + CURTO[d[d.length - 1]];
-    return rotulo + ', ' + fala(g.hora);
+    return rotuloDias(g.dias) + ', ' + fala(g.hora);
   }).join(' · ');
 }
 
@@ -272,11 +281,16 @@ function enderecoPadrao(){
   return location.href.replace(/\/cartaz\.html.*$/, '/');
 }
 
-function enderecoFinal(){
+/* Cartaz e bilhete recebem marcas DIFERENTES (?de=cartaz e ?de=bilhete)
+   porque são dois canais diferentes: um é papel colado na parede que a
+   pessoa vê passando, o outro é entregue na mão pela recepção. Marcar os
+   dois igual pouparia uma linha de código e apagaria a única informação
+   que a medição podia dar aqui — qual dos dois vale a pena reimprimir. */
+function enderecoFinal(marca){
   var base = document.getElementById('url').value.trim();
   if(!base) return '';
   if(!document.getElementById('marcar').checked) return base;
-  return base + (base.indexOf('?') === -1 ? '?' : '&') + 'de=cartaz';
+  return base + (base.indexOf('?') === -1 ? '?' : '&') + 'de=' + marca;
 }
 
 /* ------------------------------------------------------------ montar -- */
@@ -317,10 +331,11 @@ function montarBilhetes(endereco){
 }
 
 function desenhar(){
-  var endereco = enderecoFinal();
-  document.getElementById('c-url').textContent = endereco;
+  var doCartaz  = enderecoFinal('cartaz');
+  var doBilhete = enderecoFinal('bilhete');
+  document.getElementById('c-url').textContent = doCartaz;
 
-  if(!endereco){
+  if(!doCartaz){
     document.getElementById('c-qr').innerHTML =
       '<p style="font-size:11pt;color:#B3261E">Escreva o endereço do site na barra do topo.</p>';
     document.getElementById('b-lista').innerHTML = '';
@@ -329,8 +344,8 @@ function desenhar(){
 
   try{
     document.getElementById('c-qr').innerHTML =
-      QR.svg(endereco, {nivel:'M', margem:2, descricao:'QR code do site da ' + CONFIG.unidade.nome});
-    montarBilhetes(endereco);
+      QR.svg(doCartaz, {nivel:'M', margem:2, descricao:'QR code do site da ' + CONFIG.unidade.nome});
+    montarBilhetes(doBilhete);
   } catch(e){
     document.getElementById('c-qr').innerHTML =
       '<p style="font-size:11pt;color:#B3261E">Endereço comprido demais para virar QR code. ' +

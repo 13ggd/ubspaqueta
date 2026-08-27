@@ -31,6 +31,12 @@
 <!-- ==================== RESPOSTA PRINCIPAL ====================== -->
 <section class="resposta">
   <div class="wrap">
+    <!-- Aviso de "sem internet". Fica escondido enquanto houver conexão.
+         Preenchido por atualizarAvisoDeInternet(), no app.js. Existe porque
+         o site abre offline (service worker) e mostrar horário guardado sem
+         avisar que é guardado faria a pessoa vir à toa confiando na tela. -->
+    <div id="sem-internet" class="sem-internet" role="status" hidden></div>
+
     <img id="foto-unidade" class="foto-unidade" alt="" hidden
          onerror="this.hidden=true;">
     <div id="status" aria-live="polite"></div>

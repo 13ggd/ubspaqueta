@@ -111,6 +111,143 @@ function prepararInstalacao(){
   }
 }
 
+/* ------------------------------------------------- guardar pra usar offline -- */
+/* Registra o sw.js, que faz o site abrir mesmo sem internet. O porquê disso
+   importar numa UBS está explicado no começo do próprio sw.js.
+   Se falhar, o site funciona igual — só não abre sem internet. */
+function registrarServiceWorker(){
+  if(!('serviceWorker' in navigator)) return;
+
+  /* Service worker só existe em http/https. Abrir o index.html com dois
+     cliques direto da pasta (file://) continua funcionando normalmente. */
+  if(location.protocol !== 'http:' && location.protocol !== 'https:') return;
+
+  function registrar(){
+    navigator.serviceWorker.register('sw.js')['catch'](function(){});
+  }
+  /* Espera a página terminar de carregar pra não disputar banda com ela —
+     mas se já terminou, o evento 'load' não vem mais, então registra agora. */
+  if(document.readyState === 'complete') registrar();
+  else window.addEventListener('load', registrar);
+}
+
+/* --------------------------------------------------------- sem internet -- */
+/* Mostrar horário guardado como se fosse o de agora é pior do que não mostrar
+   nada: a pessoa confia na tela e vem à toa. Então, quando o navegador diz
+   que está sem conexão, o site avisa em cima de tudo que o que está na tela
+   pode estar velho, e oferece o telefone — que funciona sem internet. */
+function atualizarAvisoDeInternet(){
+  var faixa = document.getElementById('sem-internet');
+  if(!faixa) return;
+
+  var offline = ('onLine' in navigator) && navigator.onLine === false;
+  if(!offline){ faixa.hidden = true; faixa.innerHTML = ''; return; }
+
+  faixa.innerHTML =
+    '<strong>Você está sem internet.</strong> Esta é a última informação que ' +
+    'o site guardou — pode ter mudado desde então. Se for importante, ' +
+    'confirme pelo telefone: <a href="tel:' + limpo(CONFIG.unidade.telefoneLink) + '">' +
+    limpo(CONFIG.unidade.telefone) + '</a>.';
+  faixa.hidden = false;
+}
+
+/* ------------------------------------------------------ medição de acessos -- */
+/* Desligada por padrão. Ver o item 8 do config.js — inclusive a parte sobre
+   por que isso não coleta nada que identifique a pessoa. Com tipo:'' vazio,
+   tudo aqui vira função que não faz nada, inclusive registrarEvento(), que é
+   chamada de vários lugares do arquivo. */
+/* O ?teste no fim do endereço desliga a medição junto com o resto: quem
+   abre o site assim é o próprio grupo conferindo horário de sábado, não um
+   morador. Sem isso, as dezenas de visitas de teste entrariam na contagem e
+   inflariam justamente o número que o projeto quer medir. */
+var MEDICAO = (CONFIG.medicao && CONFIG.medicao.tipo &&
+               location.search.indexOf('teste') === -1) ? CONFIG.medicao : null;
+var MEDICAO_PRONTA = false;
+var MEDICAO_FILA   = [];
+
+function enviarEvento(nome){
+  try{
+    if(MEDICAO.tipo === 'goatcounter' && window.goatcounter && window.goatcounter.count){
+      window.goatcounter.count({path: 'evento/' + nome, title: nome, event: true});
+    } else if(MEDICAO.tipo === 'vercel' && window.va){
+      window.va('event', {name: nome});
+    }
+  } catch(e){}
+}
+
+/* Guarda os eventos que acontecerem antes do script de medição terminar de
+   carregar — senão o primeiro clique de cada visita se perderia, justo o que
+   mais interessa saber. */
+function registrarEvento(nome){
+  if(!MEDICAO) return;
+  if(!MEDICAO_PRONTA){ MEDICAO_FILA.push(nome); return; }
+  enviarEvento(nome);
+}
+
+function iniciarMedicao(){
+  if(!MEDICAO) return;
+  try{
+    var s = document.createElement('script');
+
+    if(MEDICAO.tipo === 'goatcounter'){
+      if(!MEDICAO.codigo) return;
+      s.src = 'https://gc.zgo.at/count.js';
+      s.setAttribute('data-goatcounter', MEDICAO.codigo);
+    } else if(MEDICAO.tipo === 'vercel'){
+      window.va = window.va || function(){ (window.vaq = window.vaq || []).push(arguments); };
+      s.src = '/_vercel/insights/script.js';
+    } else {
+      return;   /* nome de serviço que não existe: não faz nada */
+    }
+
+    s.async = true;
+    s.addEventListener('load', function(){
+      MEDICAO_PRONTA = true;
+      MEDICAO_FILA.forEach(enviarEvento);
+      MEDICAO_FILA = [];
+    });
+    s.addEventListener('error', function(){ MEDICAO_FILA = []; });
+    document.head.appendChild(s);
+  } catch(e){}
+}
+
+/* De onde a pessoa veio: o QR do cartaz impresso aponta pro site com
+   ?de=cartaz no fim. É assim que se sabe quantos acessos vieram do papel. */
+function registrarOrigemDoAcesso(){
+  if(!MEDICAO) return;
+  try{
+    var de = new URLSearchParams(location.search).get('de');
+    if(de) registrarEvento('veio-de-' + de.replace(/[^a-z0-9-]/gi, '').slice(0, 24));
+  } catch(e){}
+}
+
+/* Quais botões as pessoas realmente usam. Um ouvinte só, no documento
+   inteiro, em vez de um por botão — o conteúdo é redesenhado a cada minuto
+   por innerHTML, e ouvintes presos em elementos morreriam junto. */
+function ligarMedicaoDeCliques(){
+  if(!MEDICAO || MEDICAO.cliques === false) return;
+
+  document.addEventListener('click', function(e){
+    if(!e.target || !e.target.closest) return;
+    var alvo = e.target.closest('a, button, summary');
+    if(!alvo) return;
+
+    var href = alvo.getAttribute('href') || '';
+
+    if(href.indexOf('tel:') === 0)            registrarEvento(alvo.id === 'samu' ? 'ligar-samu' : 'ligar');
+    else if(alvo.id === 'bt-mapa')            registrarEvento('mapa');
+    else if(alvo.closest('#info-mapa'))       registrarEvento('mapa');
+    else if(alvo.closest('#info-instagram'))  registrarEvento('instagram');
+    else if(alvo.closest('#tel-uteis-bloco')) registrarEvento('outros-telefones');
+    else if(alvo.closest('.semana'))          registrarEvento('ver-dias-da-semana');
+    else if(alvo.closest('.ruas-equipe'))     registrarEvento('ruas-da-equipe');
+    else if(alvo.id === 'a11y-ouvir')         registrarEvento('ouvir-pagina');
+    else if(alvo.id === 'a11y-contraste')     registrarEvento('alto-contraste');
+    else if(alvo.id === 'a11y-fab')           registrarEvento('acessibilidade');
+    else if(alvo.id === 'nav-fab')            registrarEvento('menu');
+  }, true);
+}
+
 /* ------------------------------------------------------------ ajudas -- */
 function mm(t){ var p = t.split(':'); return Number(p[0])*60 + Number(p[1]); }
 function hh(v){
@@ -1200,6 +1337,14 @@ function textoParaOuvir(){
   var dataISO = iso(ULTIMA_DATA);
   var partes = [CONFIG.unidade.nome + '.'];
 
+  /* Quem está ouvindo a página não vê a tarja amarela de "sem internet" —
+     e é justamente quem mais precisa saber que o horário na tela pode
+     estar velho antes de sair de casa. */
+  if(('onLine' in navigator) && navigator.onLine === false){
+    partes.push('Atenção: você está sem internet. Esta informação pode estar ' +
+                'desatualizada. Na dúvida, ligue para a UBS.');
+  }
+
   var geral = statusGeral(diaKey, dataISO, ULTIMA_AGORA);
   if(geral.abertoAgora){
     partes.push('A UBS está aberta agora. Fecha hoje às ' + hf(hh(geral.fechaAs)) + '.');
@@ -1321,6 +1466,21 @@ function textoContadorMudanca(){
 function iniciar(){
   montarFixos();
   prepararInstalacao();
+  registrarServiceWorker();
+
+  iniciarMedicao();
+  ligarMedicaoDeCliques();
+  registrarOrigemDoAcesso();
+
+  atualizarAvisoDeInternet();
+  window.addEventListener('offline', atualizarAvisoDeInternet);
+  window.addEventListener('online', function(){
+    atualizarAvisoDeInternet();
+    /* Voltou a internet: busca a planilha de novo na hora, em vez de esperar
+       os minutos do recarregamento automático — é justo nesse momento que a
+       pessoa está olhando pra tela querendo saber se pode confiar nela. */
+    if(!document.body.classList.contains('com-teste')) buscarPlanilha().then(usarAgora);
+  });
 
   /* ---- tamanho da letra (dentro do painel de acessibilidade) ---- */
   var botoesLetra = document.querySelectorAll('.a11y-letra-btns button');

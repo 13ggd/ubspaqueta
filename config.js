@@ -30,6 +30,13 @@ const CONFIG = {
     mapa: 'https://www.google.com/maps/place/?q=place_id:ChIJV2DuZfVG35QRRnPgxVVeE5M',
     instagram: 'https://www.instagram.com/ubspaqueta/',
 
+    /* Endereço do site depois de publicado (ex: 'https://ubspaqueta.vercel.app').
+       Só é usado pelo cartaz.html, para gerar o QR code impresso. Se deixar
+       vazio, o cartaz deduz o endereço da própria janela do navegador — o que
+       funciona, mas gera um QR apontando para "localhost" se você abrir o
+       cartaz antes de publicar o site. Preencha assim que publicar. */
+    site: '',
+
     /* Foto do prédio (fachada). Deixe vazio ('') para não mostrar nada.
        Mesma regra das fotos da equipe: coloque o arquivo na pasta "fotos"
        do repositório e escreva só o nome aqui — ex: 'fachada.jpg' —
@@ -386,6 +393,47 @@ const CONFIG = {
     {deslocamento:-47, nome:'Carnaval'},
     {deslocamento:-2,  nome:'Sexta-feira Santa'},
     {deslocamento:60,  nome:'Corpus Christi'}
-  ]
+  ],
+
+  /* ---- 8. MEDIÇÃO DE ACESSOS (opcional) ---------------------------------
+     Conta quantas pessoas abrem a página e quais botões são mais usados.
+     Existe por causa do projeto de pesquisa: sem isso não dá pra dizer se o
+     site foi usado — só que ele existe. Saber que "ver no mapa" foi o botão
+     mais tocado, por exemplo, já é resultado: mostra qual informação estava
+     faltando pra quem procurava a unidade.
+
+     Nenhuma das duas opções abaixo usa cookie nem guarda nada que identifique
+     a pessoa (sem nome, sem telefone, sem IP salvo, sem rastreamento entre
+     sites). É por isso que o site não precisa de aviso de cookies — e é isso
+     que você responde se o comitê de ética perguntar. Deixe tipo:'' para não
+     medir nada; o site funciona igual, só não conta nada.
+
+     Opções:
+     'goatcounter' — funciona em qualquer hospedagem e é gratuito para uso
+        não comercial. Crie a conta em goatcounter.com e cole em "codigo" o
+        endereço de contagem, no formato https://SEUNOME.goatcounter.com/count
+     'vercel' — só funciona se o site estiver hospedado na Vercel, com o Web
+        Analytics ligado no painel do projeto; não precisa preencher "codigo".
+        Atenção: a contagem de páginas funciona no plano gratuito, mas os
+        eventos de clique exigem plano pago — nesse caso deixe cliques:false
+        para não gerar chamada que vai ser descartada.
+
+     O cartaz impresso (cartaz.html) gera o QR apontando para o site com
+     ?de=cartaz no fim, e os bilhetes de recepção com ?de=bilhete. Com a
+     medição ligada, cada um vira um evento próprio — é assim que se sabe
+     quantas pessoas chegaram pelo papel na parede e quantas pelo papel
+     entregue na mão, que são canais bem diferentes.
+
+     Abrir o site com ?teste no fim NÃO conta acesso nenhum: as visitas do
+     próprio grupo, conferindo como fica o site no sábado, ficariam
+     misturadas com as dos moradores e inflariam o número medido.
+     ---------------------------------------------------------------------- */
+  medicao: {
+    tipo:    '',
+    codigo:  '',
+    /* Registrar também os cliques nos botões principais (ligar, mapa,
+       Instagram, abrir os horários de um setor, recursos de acessibilidade). */
+    cliques: true
+  }
 };
 
