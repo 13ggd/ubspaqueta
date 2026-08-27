@@ -40,6 +40,11 @@ pessoa ligada àquele setor na aba `equipe`, o site fecha o setor sozinho nesses
 no setor, o site só escreve "Ausente hoje" no nome dela — se o setor precisar fechar mesmo
 assim, faça uma linha na aba `mudancas-horario`.
 
+A aba `equipe` também tem uma coluna `horario` — é o turno de atendimento do TIME (ex: "7h às
+13h"), não da pessoa. Só precisa preencher numa linha por equipe (por convenção, a da médica);
+o site acha esse valor sozinho e mostra o mesmo horário para o time inteiro. Nas outras pessoas
+do mesmo time, deixe em branco.
+
 ## As coisas que você mais vai fazer
 
 ### 1. O dentista não vai atender na sexta (setor fechado)
@@ -80,6 +85,18 @@ Aba `mudancas-horario`, uma linha só: escreva **`todos`** na coluna `setor` e d
 | setor | titulo | texto | inicio | fim | novo |
 |---|---|---|---|---|---|
 | todos | (pode deixar vazio) | A UBS não abre por falta de energia. | 02/09/2026 | 02/09/2026 | (vazio) |
+
+### 5. O horário de atendimento de um time mudou
+
+Aba `equipe`, coluna `horario`. Ache a linha de **uma pessoa** daquele time (por convenção, a
+médica) e escreva o novo turno ali — não precisa mexer nas outras linhas do mesmo time.
+
+| nome | funcao | equipe | setor | horario |
+|---|---|---|---|---|
+| Débora Aguiar | Médica de família | Equipe 1 | consulta | 7h às 13h |
+
+O `equipe` das duas linhas (a da médica e a dos colegas) precisa ser **exatamente igual**, letra
+por letra — `Equipe 1` e `equipe 1` viram dois times diferentes no site.
 
 ## Como escrever data e hora
 
