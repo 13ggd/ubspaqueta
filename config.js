@@ -18,8 +18,13 @@ const CONFIG = {
     subtitulo:'Unidade Básica de Saúde do bairro Paquetá',
     endereco: 'Rua Waldemar Hoffmann, sem número',
     bairro:   'Bairro Paquetá — Brusque/SC',
-    telefone: '(47) 3351-7243',
-    telefoneLink: '+554733517243',
+    telefone: '(47) 2017-0548',
+    telefoneLink: '+554720170548',
+    /* Número separado para encaminhamentos (exames e consultas) — se receber
+       uma ligação de um destes dois números, é a própria UBS ligando. */
+    telefoneEncaminhamentos: '(47) 2017-0549',
+    telefoneEncaminhamentosLink: '+554720170549',
+    avisoLigacao: 'Caso receba uma ligação de um destes números, por favor atenda: será sobre seus exames e consultas.',
     secretaria:     '(47) 3255-6800',
     secretariaLink: '+554732556800',
     mapa: 'https://www.google.com/maps/place/?q=place_id:ChIJV2DuZfVG35QRRnPgxVVeE5M',
@@ -39,9 +44,31 @@ const CONFIG = {
      https://docs.google.com/spreadsheets/d/ 1AbC...XyZ /edit#gid=0
                                              ^^^^^^^^^^ este pedaço
 
-     A planilha precisa ter quatro abas: "setores", "mudancas-horario",
-     "recados" e "equipe" — e estar compartilhada como "Qualquer pessoa
-     com o link" → Leitor.
+     A planilha precisa ter a aba "setores" (obrigatória) e pode ter também
+     "mudancas-horario", "recados", "equipe", "faltas", "ruas" e
+     "reunioes" (todas opcionais — sem elas o site usa os dados de
+     reserva do item 4) — e estar compartilhada como "Qualquer pessoa com
+     o link" → Leitor.
+
+     A aba "ruas" é a área de abrangência de cada equipe (quais ruas cada
+     time atende), pra ficar editável na planilha em vez de precisar
+     mexer em código pra atualizar — mesma lógica de "equipe": duas
+     colunas, "equipe" (precisa ser igual ao nome usado na coluna
+     "equipe" da aba "equipe") e "rua" (uma rua por linha, repetindo o
+     nome da equipe em cada linha dela). O horário de atendimento de cada
+     equipe (ex: "7h às 13h") não tem aba própria — é só mais uma coluna
+     opcional, "horario", na aba "equipe": preencha numa linha por time
+     (normalmente a da médica) que o site acha sozinho, olhando quem tem
+     esse campo preenchido dentro do mesmo grupo.
+
+     A aba "reunioes" é pra avisos tipo "toda 2ª e 4ª quarta-feira do mês
+     a equipe está em reunião" — o site calcula sozinho as datas de
+     verdade daquele mês, sem precisar de uma linha nova a cada
+     ocorrência. Colunas: "setores" (um ou mais códigos separados por
+     vírgula, ex: "consulta,enfermagem"), "dia" (seg/ter/qua/qui/sex/
+     sab/dom), "ocorrencias" (quais dessas semanas no mês contam —
+     1=primeira, 2=segunda... ex: "2,4") e "texto" (o que aparece depois
+     da data, ex: "a equipe está em reunião das 13h às 15h.").
 
      Por que "mudancas-horario" e "recados" são abas separadas (em vez de
      uma única aba "avisos" com um tipo pra escolher): assim ninguém
@@ -65,6 +92,8 @@ const CONFIG = {
   abaRecados:  'recados',
   abaEquipe:   'equipe',
   abaFaltas:   'faltas',
+  abaRuas:     'ruas',
+  abaReunioes: 'reunioes',
 
   /* De quanto em quanto tempo o site relê a planilha (em minutos) */
   recarregarACada: 5,
@@ -115,18 +144,60 @@ const CONFIG = {
     { nome:'Delegacia da Criança, Mulher, Adolescente e Idoso', telefone:'(47) 3251-8303', telefoneLink:'+554732518303' }
   ],
 
-  /* ---- 3c. REUNIÕES RECORRENTES DA EQUIPE ------------------------------- */
-  /* Pra avisos tipo "toda 2ª e 4ª quarta-feira do mês" — em vez de escrever
-     essa regra por extenso (obrigando quem lê a contar no calendário qual
-     quarta é a 2ª), o site CALCULA as datas de verdade do mês atual e
-     escreve na descrição do setor, tipo "Nos dias 12 e 26 de agosto...".
-     Atualiza sozinho todo mês, sem precisar mexer em nada aqui.
-     "ocorrencias": 1=primeira, 2=segunda, 3=terceira... daquele dia da
-     semana no mês. */
-  notasRecorrentes: [
-    { setores:['consulta','enfermagem'], dia:'qua', ocorrencias:[2,4],
-      texto:'a equipe está em reunião das 13h às 15h.' }
+  /* ---- 3c-2. RUAS ATENDIDAS POR EQUIPE (RESERVA) ------------------------ */
+  /* Igual a equipeReserva/faltasReserva: só usado enquanto a aba "ruas" da
+     planilha não existir (ou estiver fora do ar) — assim que ela existir,
+     o site troca por essa aba mesmo que venha vazia. Área de abrangência
+     de cada equipe de saúde da família, copiada dos murais impressos na
+     própria unidade. Aparece embaixo de cada time no card "Quem trabalha
+     aqui", atrás de "Ruas atendidas ▾". O nome em "equipe" precisa ser
+     igual ao campo "equipe" da pessoa (em equipeReserva ou na aba
+     "equipe" da planilha) pra ligar a lista ao time certo — se não bater
+     com nenhum time, a lista simplesmente não aparece. Fica de fora se a
+     equipe não tiver rua cadastrada ainda. */
+  areasEquipeReserva: [
+    { equipe:'Equipe 1', ruas:[
+      '13 de março','Abelardo Joaquim Nazário','Ana Klabunde','AZ 026','AZ 027','AZ 030','AZ 060',
+      'Carlos Antonio Campos de Souza','Carmelina Groh','Carola Dias','Dr Euclides Cardeal',
+      'Dr Ivo Szpoganicz','Eduarda R Antunes','Elisa Klabunde','Elsa Popper','Emma Jeske',
+      'Flor-de-lis','Gardênia','Girassol','Hilda Wegner','Ilza Jeske Dias de Oliveira',
+      'Inacio Gullini','João Alves Cabral','José Adriano','José João Wanatt',
+      'José Venancio Pinheiro','Leopoldo Klabunde','Orquídeas','Odemar de Melo','PA 006',
+      'Padre Antônio Eising (semáforo do Colzani até esquina do mercado Rainha)',
+      'Reinoldo Wegner','Travessa Lagoa Dourada (até nº 413)','Tulipa','Vitória-régia',
+      'Waldemar Hoffmann'
+    ] },
+    { equipe:'Equipe 2', ruas:[
+      '23 de setembro','Abraão Alfredo Maçaneiro','Alfredo Carlos Klabunde','Alma Klann',
+      'Jacob Schmidt','Jaison Knihs','Jorge Teixeira','Luiz Eccel','Ramiro Cabral e Silva'
+    ] },
+    { equipe:'Equipe 3', ruas:[
+      '17 de julho','AC 032','AC 033','AC 039','Alberto Klabunde','Alvin Augusto Klann',
+      'Andrino Leopoldo de Souza','Augusto Klabunde','Carlos Jeske','Celso Arthur de Oliveira',
+      'CD 001','CD 002','CD 003','Ervin Kreidlow','Guilherme Kreidlow',
+      'Loteamento Independencia','Luiz Mafra','Messina','Ovidio Boni','PA 001',
+      'Paulina Gelatti de Oliveira','Pinheiros','Roma',
+      'Santa Cruz (Semáforo Colzani até Agropecuária Mistura)','Sebastião Raiser',
+      'Sem nome - Rua do Ferro Velho','Veneza','Wanda Kreidlow'
+    ] }
   ],
+
+  /* ---- 3c. REUNIÕES RECORRENTES DA EQUIPE (RESERVA) --------------------- */
+  /* Igual a faltasReserva: vazio por padrão — só é usado se a planilha
+     estiver fora do ar. Veja a aba "reunioes" pra uso real. Serve pra
+     avisos tipo "toda 2ª e 4ª quarta-feira do mês" — em vez de escrever
+     essa regra por extenso (obrigando quem lê a contar no calendário
+     qual quarta é a 2ª), o site CALCULA as datas de verdade do mês
+     atual e escreve na descrição do setor, tipo "Nos dias 12 e 26 de
+     agosto...". "ocorrencias": 1=primeira, 2=segunda, 3=terceira...
+     daquele dia da semana no mês. Deixado vazio de propósito (em vez de
+     um exemplo preenchido): essa regra é específica de cada unidade, e
+     ao replicar o template pra outra UBS ninguém deveria herdar sem
+     querer um horário de reunião que não é o dela. Exemplo de como
+     preencher (uma linha, igual à da aba "reunioes"):
+     { setores:['consulta','enfermagem'], dia:'qua', ocorrencias:[2,4],
+       texto:'a equipe está em reunião das 13h às 15h.' } */
+  notasRecorrentesReserva: [],
 
   /* ---- 4. DADOS DE RESERVA --------------------------------------------- */
   /*
@@ -192,6 +263,11 @@ const CONFIG = {
 
   avisosReserva: [
     { tipo:'recado', setor:'', ativo:true,
+      titulo:'Atenção, beneficiários do Bolsa Família: acompanhamento obrigatório de saúde',
+      texto:'Venha até a UBS Paquetá para pesar, medir e atualizar as informações de saúde da sua família. Para manter o benefício, é obrigatório que crianças estejam com a caderneta de vacinação atualizada e gestantes estejam com o pré-natal em dia. Não precisa agendar horário — a não realização do acompanhamento pode resultar em perda do benefício.',
+      inicio:'2026-08-26', fim:'2027-12-31', novo:'' },
+
+    { tipo:'recado', setor:'', ativo:true,
       titulo:'Neste sábado a UBS Paquetá não abre',
       texto:'No sábado, dia 22 de agosto, tem Dia D de vacinação das 7 às 13 horas, mas só nas UBS Águas Claras, Limeira Baixa, Dom Joaquim e São Luiz, e também na Policlínica. Leve documento e a carteirinha de vacinação. Não precisa marcar: é por ordem de chegada.',
       inicio:'2026-08-22', fim:'2026-08-22', novo:'' },
@@ -224,17 +300,49 @@ const CONFIG = {
      "faltas" logo abaixo. Pode ter mais de um setor, separado por
      vírgula. Deixe vazio se a pessoa não estiver ligada a nenhum setor
      específico (ex: recepção).
+
+     O campo "horario" é opcional e é do TIME, não da pessoa — vira um
+     selo ao lado do nome da equipe (ex: "Equipe 1 · 7h às 13h") e some
+     no card de detalhe de qualquer pessoa daquele time. Só precisa
+     preencher numa pessoa por equipe (por convenção, a médica); o site
+     usa o primeiro valor que encontrar dentro do grupo.
   */
   equipeReserva: [
-    { nome:'(nome de exemplo)', funcao:'Médica de família', equipe:'Equipe 1', setor:'consulta',   foto:'', obs:'' },
-    { nome:'(nome de exemplo)', funcao:'Enfermeira',        equipe:'Equipe 1', setor:'enfermagem', foto:'', obs:'' },
-    { nome:'(nome de exemplo)', funcao:'Técnica de enfermagem', equipe:'Equipe 1', setor:'enfermagem', foto:'', obs:'' },
+    /* Equipe 1 — atendimento das 7h às 13h. Técnicos de enfermagem e
+       Agentes Comunitárias de Saúde deste time ainda não confirmados
+       (não apareciam completos no mural da unidade). */
+    { nome:'Débora Aguiar',  funcao:'Médica de família', equipe:'Equipe 1', setor:'consulta',
+      foto:'', obs:'', horario:'7h às 13h' },
+    { nome:'Cleber Mossini', funcao:'Enfermeiro', equipe:'Equipe 1', setor:'enfermagem', foto:'', obs:'' },
 
-    { nome:'(nome de exemplo)', funcao:'Médico de família', equipe:'Equipe 2', setor:'consulta', foto:'', obs:'' },
-    { nome:'(nome de exemplo)', funcao:'Enfermeiro',        equipe:'Equipe 2', setor:'',          foto:'', obs:'' },
+    /* Equipe 2 — atendimento das 7h às 13h. */
+    { nome:'Marcela Athayde', funcao:'Médica de família', equipe:'Equipe 2', setor:'consulta',
+      foto:'', obs:'', horario:'7h às 13h' },
+    { nome:'Thaila Ploêncio',  funcao:'Enfermeira', equipe:'Equipe 2', setor:'enfermagem', foto:'', obs:'' },
+    { nome:'Ildonilso Mendes', funcao:'Técnico de enfermagem', equipe:'Equipe 2', setor:'enfermagem', foto:'', obs:'' },
+    { nome:'Lindaura Merchol', funcao:'Técnica de enfermagem', equipe:'Equipe 2', setor:'enfermagem', foto:'', obs:'' },
+    { nome:'Simara Marques',   funcao:'Agente Comunitária de Saúde', equipe:'Equipe 2', setor:'', foto:'', obs:'' },
+    { nome:'Suely Kuhnen',     funcao:'Agente Comunitária de Saúde', equipe:'Equipe 2', setor:'', foto:'', obs:'' },
 
-    { nome:'(nome de exemplo)', funcao:'Dentista', equipe:'Equipe 3', setor:'dentista', foto:'', obs:'Atende às segundas, quartas e sextas' },
-    { nome:'(nome de exemplo)', funcao:'Recepção e acolhimento', equipe:'', setor:'', foto:'', obs:'' }
+    /* Equipe 3 — atendimento das 13h às 19h. */
+    { nome:'Aline Magalhães',       funcao:'Médica de família', equipe:'Equipe 3', setor:'consulta',
+      foto:'', obs:'', horario:'13h às 19h' },
+    { nome:'Alessandra Nunes',      funcao:'Enfermeira', equipe:'Equipe 3', setor:'enfermagem', foto:'', obs:'' },
+    { nome:'Claudete Scarsanella',  funcao:'Técnica de enfermagem', equipe:'Equipe 3', setor:'enfermagem', foto:'', obs:'' },
+    { nome:'Maria Dinair Costa',    funcao:'Técnica de enfermagem', equipe:'Equipe 3', setor:'enfermagem', foto:'', obs:'' },
+    { nome:'Glacia Klabunde',       funcao:'Agente Comunitária de Saúde', equipe:'Equipe 3', setor:'', foto:'', obs:'' },
+    { nome:'Iran Mariano',          funcao:'Agente Comunitária de Saúde', equipe:'Equipe 3', setor:'', foto:'', obs:'' },
+
+    /* Demais profissionais — não ligados a um único time. */
+    { nome:'Elisa Remor',         funcao:'Dentista', equipe:'Demais profissionais', setor:'dentista', foto:'', obs:'' },
+    { nome:'Gisele dos Santos',   funcao:'Auxiliar de Saúde Bucal', equipe:'Demais profissionais', setor:'dentista', foto:'', obs:'' },
+    { nome:'Ana Maria Lorena',    funcao:'Vacinadora', equipe:'Demais profissionais', setor:'vacina', foto:'', obs:'' },
+    { nome:'Juliana Pering',      funcao:'Vacinadora', equipe:'Demais profissionais', setor:'vacina', foto:'', obs:'' },
+    { nome:'Camila Grisa',        funcao:'Regulação', equipe:'Demais profissionais', setor:'', foto:'', obs:'' },
+    { nome:'Raquel Betinelli',    funcao:'Regulação', equipe:'Demais profissionais', setor:'', foto:'', obs:'' },
+    { nome:'Adriana Veber',       funcao:'Higienização', equipe:'Demais profissionais', setor:'', foto:'', obs:'' },
+    { nome:'Lurdes Ortiz',        funcao:'Higienização', equipe:'Demais profissionais', setor:'', foto:'', obs:'' },
+    { nome:'Ana Cláudia Fischer', funcao:'Estagiária de farmácia', equipe:'Demais profissionais', setor:'farmacia', foto:'', obs:'' }
   ],
 
   /* ---- 6. FALTAS (EXEMPLO) ----------------------------------------------

@@ -27,8 +27,11 @@ var SETORES  = CONFIG.setoresReserva;
 var AVISOS   = CONFIG.avisosReserva;
 var EQUIPE   = CONFIG.equipeReserva;
 var FALTAS   = CONFIG.faltasReserva;
+var RUAS     = CONFIG.areasEquipeReserva;   /* ruas atendidas por equipe — [{equipe, ruas:[...]}] */
+var REUNIOES = CONFIG.notasRecorrentesReserva;   /* regras "toda 2ª/4ª quarta..." — [{setores, dia, ocorrencias, texto}] */
 var ORIGEM   = 'reserva';   /* 'planilha' | 'reserva' | 'erro' */
 var AVISOS_DA_PLANILHA = false;   /* true só quando horarios ou recados vieram da planilha de verdade */
+var painelPessoa = null;   /* preenchido em iniciar(); abre o detalhe de quem foi clicado na equipe */
 
 /* --------------------------------------------------------- favicon -- */
 /* Troca o ícone da aba do navegador por um emoji. Desenha o emoji num
@@ -176,11 +179,11 @@ function formatarDatas(dias, mes){
   return rotulo + ' de ' + nomeMes;
 }
 
-/* Junta as regras de config.notasRecorrentes que valem pra esse setor,
-   já com a data de verdade calculada em cima da data mostrada na tela
-   (respeita a barra de teste "?teste", não usa o relógio real direto). */
+/* Junta as regras de REUNIOES que valem pra esse setor, já com a data de
+   verdade calculada em cima da data mostrada na tela (respeita a barra
+   de teste "?teste", não usa o relógio real direto). */
 function notasRecorrentesDoSetor(setorId, data){
-  return (CONFIG.notasRecorrentes || [])
+  return (REUNIOES || [])
     .filter(function(r){ return r.setores.indexOf(setorId) !== -1; })
     .map(function(r){
       var p = proximasDatas(data, r.dia, r.ocorrencias);
@@ -413,7 +416,11 @@ function buscarPlanilha(){
         equipe: r.equipe || r.time || r.grupo || '',
         setor:  r.setor || '',
         foto:   r.foto || r.imagem || r.foto_url || '',
-        obs:    r.obs || r.observacao || r['observação'] || ''
+        obs:    r.obs || r.observacao || r['observação'] || '',
+        /* Horário do TIME, não da pessoa — só precisa preencher numa linha
+           por equipe (ex: só na médica) que o site acha sozinho, olhando
+           quem tiver esse campo preenchido dentro do mesmo grupo "equipe". */
+        horario: r.horario || r['horário'] || ''
       };
     }).filter(function(p){ return p.nome; });
     /* Diferente de setores: aqui uma planilha vazia É um resultado válido
@@ -446,7 +453,53 @@ function buscarPlanilha(){
     /* Sem aba faltas ainda — mantém os dados de reserva (vazio), sem barulho. */
   });
 
-  return Promise.all([principal, horarios, recados, equipe, faltas]).then(function(res){
+  /* Aba "ruas": equipe, rua — uma linha por rua atendida por cada equipe
+     (área de abrangência). Igual a "equipe"/"faltas": opcional, e troca
+     mesmo que venha vazia (só mantém a reserva se a aba nem existir). */
+  var ruas = buscarComLimite(urlCSV(CONFIG.abaRuas)).then(function(r){
+    if(!r.ok) throw new Error('sem aba ruas');
+    return r.text();
+  }).then(function(txt){
+    var linhas = paraObjetos(txt).map(function(r){
+      return {
+        equipe: r.equipe || r.time || r.grupo || '',
+        rua:    r.rua || r.endereco || r['endereço'] || ''
+      };
+    }).filter(function(x){ return x.equipe && x.rua; });
+    var mapa = {}, ordem = [];
+    linhas.forEach(function(x){
+      if(!mapa[x.equipe]){ mapa[x.equipe] = []; ordem.push(x.equipe); }
+      mapa[x.equipe].push(x.rua);
+    });
+    RUAS = ordem.map(function(equipe){ return { equipe: equipe, ruas: mapa[equipe] }; });
+  }).catch(function(){
+    /* Sem aba ruas ainda — mantém os dados de reserva, sem barulho. */
+  });
+
+  /* Aba "reunioes": setores, dia, ocorrencias, texto — regra tipo "toda
+     2ª e 4ª quarta-feira do mês", em vez de uma linha nova a cada
+     ocorrência: o site calcula as datas de verdade sozinho (mesma ideia
+     de equipe/faltas/ruas — opcional, falha silenciosa). */
+  var reunioes = buscarComLimite(urlCSV(CONFIG.abaReunioes)).then(function(r){
+    if(!r.ok) throw new Error('sem aba reunioes');
+    return r.text();
+  }).then(function(txt){
+    REUNIOES = paraObjetos(txt).map(function(r){
+      return {
+        setores: String(r.setores || '').split(',').map(function(s){ return s.trim(); }).filter(Boolean),
+        dia: (r.dia || '').trim().toLowerCase(),
+        ocorrencias: String(r.ocorrencias || '').split(',')
+          .map(function(n){ return parseInt(n.trim(), 10); }).filter(function(n){ return !isNaN(n); }),
+        texto: r.texto || ''
+      };
+    }).filter(function(r){
+      return r.setores.length && K.indexOf(r.dia) !== -1 && r.ocorrencias.length && r.texto;
+    });
+  }).catch(function(){
+    /* Sem aba reunioes ainda — mantém os dados de reserva, sem barulho. */
+  });
+
+  return Promise.all([principal, horarios, recados, equipe, faltas, ruas, reunioes]).then(function(res){
     var h = res[1], r = res[2];
     /* Só substitui os avisos de reserva se pelo menos uma das duas abas
        (horarios ou recados) respondeu de verdade. Se as duas ainda não
@@ -762,7 +815,13 @@ function montarFixos(){
   document.getElementById('info-endereco').innerHTML =
     limpo(u.endereco) + '<br>' + limpo(u.bairro);
   document.getElementById('info-telefone').innerHTML =
-    '<a href="tel:' + limpo(u.telefoneLink) + '">' + limpo(u.telefone) + '</a>';
+    (u.telefoneEncaminhamentos
+      ? '<div class="tel-linha"><span class="tel-rot">Recepção</span>' +
+          '<a class="tel-num" href="tel:' + limpo(u.telefoneLink) + '">' + limpo(u.telefone) + '</a></div>' +
+        '<div class="tel-linha"><span class="tel-rot">Encaminhamentos</span>' +
+          '<a class="tel-num" href="tel:' + limpo(u.telefoneEncaminhamentosLink) + '">' + limpo(u.telefoneEncaminhamentos) + '</a></div>'
+      : '<a class="tel-num" href="tel:' + limpo(u.telefoneLink) + '">' + limpo(u.telefone) + '</a>') +
+    (u.avisoLigacao ? '<p class="tel-aviso">' + limpo(u.avisoLigacao) + '</p>' : '');
   document.getElementById('info-secretaria').innerHTML =
     '<a href="tel:' + limpo(u.secretariaLink) + '">' + limpo(u.secretaria) + '</a>';
   document.getElementById('info-mapa').innerHTML =
@@ -823,8 +882,10 @@ function cartaoAviso(a, futuro){
   if(per) rodape.push('Quando: ' + per);
   var quandoHtml = rodape.length ? '<p class="av-quando">' + rodape.join(' · ') + '</p>' : '';
   var textoHtml = (a.texto || a.novo)
-    ? '<p class="av-texto">' + limpo(a.texto) +
-        (a.novo ? '<br>Novo horário: <strong>' + fala(a.novo) + '</strong>.' : '') + '</p>'
+    ? '<p class="av-texto">' +
+        (a.texto ? limpo(a.texto) + (a.novo ? '<br>' : '') : '') +
+        (a.novo ? 'Novo horário: <strong>' + fala(a.novo) + '</strong>.' : '') +
+      '</p>'
     : '';
   return '<div class="aviso ' + cls + '">' +
     '<span class="av-tarja">' + selo + '</span>' +
@@ -870,7 +931,8 @@ function cartaoPessoa(p, dataISO){
     ? '<p class="pessoa-ausente">🔴 Ausente hoje' + (falta.motivo ? ': ' + limpo(falta.motivo) : '') + '</p>'
     : '';
 
-  return '<div class="pessoa' + (falta ? ' pessoa-com-falta' : '') + '">' + fotoHtml +
+  return '<div class="pessoa' + (falta ? ' pessoa-com-falta' : '') + '" ' +
+      'role="button" tabindex="0" aria-haspopup="dialog">' + fotoHtml +
     '<div class="pessoa-txt">' +
       '<p class="pessoa-nome">' + limpo(p.nome) + '</p>' +
       '<p class="pessoa-funcao">' + limpo(p.funcao) + '</p>' +
@@ -878,6 +940,42 @@ function cartaoPessoa(p, dataISO){
       faltaHtml +
     '</div>' +
   '</div>';
+}
+
+/* Abre o painel de detalhe com a foto grande e as informações completas
+   da pessoa clicada — chamado pelos listeners ligados nos cards depois
+   que #equipe é (re)desenhado, em desenhar(). "horario" é o turno do
+   TIME dela (achado entre as pessoas do mesmo grupo "equipe" — só
+   costuma vir preenchido numa pessoa por time), não um campo dela
+   mesma — por isso é passado à parte. */
+function abrirPessoaPainel(p, horario, dataISO){
+  var iniciais = iniciaisDe(p.nome);
+  var src = urlFoto(p.foto);
+  var fotoHtml = src
+    ? '<img class="pessoa-foto-grande" src="' + limpo(src) + '" alt="" ' +
+        'onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
+      '<div class="pessoa-foto-grande" aria-hidden="true" style="display:none">' + limpo(iniciais || '?') + '</div>'
+    : '<div class="pessoa-foto-grande" aria-hidden="true">' + limpo(iniciais || '?') + '</div>';
+
+  var linhas = [];
+  if(p.funcao) linhas.push(p.funcao);
+  if(p.equipe) linhas.push(p.equipe);
+  if(horario)  linhas.push('Atendimento: ' + horario);
+
+  var falta = dataISO ? faltaDe(p.nome.trim(), dataISO) : null;
+  var faltaHtml = falta
+    ? '<p class="pessoa-ausente">🔴 Ausente hoje' + (falta.motivo ? ': ' + limpo(falta.motivo) : '') + '</p>'
+    : '';
+
+  document.getElementById('pessoa-nome').textContent = p.nome;
+  document.getElementById('pessoa-detalhe').innerHTML = fotoHtml +
+    '<ul class="pessoa-detalhe-lista">' +
+      linhas.map(function(l){ return '<li>' + limpo(l) + '</li>'; }).join('') +
+    '</ul>' +
+    (p.obs ? '<p class="pessoa-detalhe-obs">' + limpo(p.obs) + '</p>' : '') +
+    faltaHtml;
+
+  if(painelPessoa) painelPessoa.abrir();
 }
 
 /* Agrupa por equipe só se pelo menos uma pessoa tiver o campo preenchido.
@@ -1023,15 +1121,54 @@ function desenhar(data, agora){
     equipeEl.innerHTML = '<p class="ajuda">Em breve, informações da equipe.</p>';
   } else {
     var grupos = agruparPorEquipe(EQUIPE);
+    var ruasPorEquipe = {};
+    (RUAS || []).forEach(function(a){ ruasPorEquipe[a.equipe] = a.ruas; });
+    /* Lista paralela, na mesma ordem em que os cards saem no HTML — depois
+       de desenhar, zippa com os elementos .pessoa de verdade pra saber
+       qual card abre qual pessoa (ver abaixo). */
+    var pessoasFlat = [];
     equipeEl.innerHTML = grupos.map(function(g){
-      var cartoes = g.pessoas.map(function(p){ return cartaoPessoa(p, dataISO); }).join('');
+      /* O horário é do time, não de uma pessoa só — pega o primeiro que
+         aparecer preenchido dentro do grupo (normalmente só a médica tem). */
+      var horario = (g.pessoas.filter(function(p){ return p.horario; })[0] || {}).horario || '';
+      var cartoes = g.pessoas.map(function(p){
+        pessoasFlat.push({ pessoa:p, horario: horario });
+        return cartaoPessoa(p, dataISO);
+      }).join('');
       if(g.nome === null) return '<div class="pessoas">' + cartoes + '</div>';
       var conta = g.pessoas.length === 1 ? '1 pessoa' : g.pessoas.length + ' pessoas';
+      var horarioHtml = horario
+        ? '<span class="time-conta time-horario">' + limpo(horario) + '</span>' : '';
+      var ruas = ruasPorEquipe[g.nome];
+      var ruasHtml = (ruas && ruas.length)
+        ? '<details class="ruas-equipe"><summary>Ruas atendidas</summary>' +
+            '<ul class="ruas-lista">' + ruas.map(function(r){ return '<li>' + limpo(r) + '</li>'; }).join('') + '</ul>' +
+          '</details>'
+        : '';
       return '<div class="time">' +
-        '<h3 class="time-nome">' + limpo(g.nome) + '<span class="time-conta">' + conta + '</span></h3>' +
+        '<h3 class="time-nome">' + limpo(g.nome) + '<span class="time-conta">' + conta + '</span>' + horarioHtml + '</h3>' +
         '<div class="pessoas">' + cartoes + '</div>' +
+        ruasHtml +
       '</div>';
     }).join('');
+
+    /* Cada card de pessoa abre o painel de detalhe — no clique ou com
+       Enter/espaço (o card já tem role="button" tabindex="0"). Precisa
+       ser refeito a cada desenhar(), porque o innerHTML acima troca os
+       elementos toda vez. */
+    var elsPessoa = equipeEl.querySelectorAll('.pessoa');
+    Array.prototype.forEach.call(elsPessoa, function(el, i){
+      var item = pessoasFlat[i];
+      if(!item) return;
+      el.addEventListener('click', function(){
+        abrirPessoaPainel(item.pessoa, item.horario, dataISO);
+      });
+      el.addEventListener('keydown', function(e){
+        if(e.key !== 'Enter' && e.key !== ' ') return;
+        e.preventDefault();
+        abrirPessoaPainel(item.pessoa, item.horario, dataISO);
+      });
+    });
   }
 
   /* de onde vieram os dados */
@@ -1157,7 +1294,7 @@ function lerGuardado(chave){
    ninguém mexe na planilha há muito tempo. */
 function textoContadorMudanca(){
   try{
-    var atual = JSON.stringify({s:SETORES, a:AVISOS, e:EQUIPE, f:FALTAS});
+    var atual = JSON.stringify({s:SETORES, a:AVISOS, e:EQUIPE, f:FALTAS, r:RUAS, m:REUNIOES});
     var anterior = lerGuardado('ubs-conteudo-anterior');
     var hojeISO = iso(new Date());
     var dataMudanca = lerGuardado('ubs-data-mudanca');
@@ -1230,8 +1367,12 @@ function iniciar(){
   /* ---- abre/fecha painéis flutuantes — mesmo código serve para o de
      acessibilidade e para o menu "ir para"; abrir um fecha o outro. ---- */
   var outrosPaineis = [];
+  /* idBotao é opcional — o painel de detalhe da pessoa não tem um botão
+     fixo de abrir (quem abre é o card clicado, que muda a cada render),
+     então esse painel é aberto de fora, chamando controle.abrir()
+     diretamente, em vez de por um clique de botão aqui dentro. */
   function criarPainel(idBotao, idPainel, idFundo, idFechar){
-    var botao  = document.getElementById(idBotao);
+    var botao  = idBotao ? document.getElementById(idBotao) : null;
     var painel = document.getElementById(idPainel);
     var fundo  = document.getElementById(idFundo);
     var fechar = document.getElementById(idFechar);
@@ -1242,7 +1383,7 @@ function iniciar(){
       outrosPaineis.forEach(function(p){ if(p !== controle) p.fechar(); });
       painel.hidden = false;
       fundo.hidden  = false;
-      botao.setAttribute('aria-expanded','true');
+      if(botao) botao.setAttribute('aria-expanded','true');
       fechar.focus();
       document.addEventListener('keydown', aoTeclar);
     }
@@ -1250,13 +1391,13 @@ function iniciar(){
       if(painel.hidden) return;
       painel.hidden = true;
       fundo.hidden  = true;
-      botao.setAttribute('aria-expanded','false');
+      if(botao) botao.setAttribute('aria-expanded','false');
       document.removeEventListener('keydown', aoTeclar);
     }
 
-    botao.addEventListener('click', abrirEste);
-    fechar.addEventListener('click', function(){ fecharEste(); botao.focus(); });
-    fundo.addEventListener('click', function(){ fecharEste(); botao.focus(); });
+    if(botao) botao.addEventListener('click', abrirEste);
+    fechar.addEventListener('click', function(){ fecharEste(); if(botao) botao.focus(); });
+    fundo.addEventListener('click', function(){ fecharEste(); if(botao) botao.focus(); });
 
     var controle = { abrir:abrirEste, fechar:fecharEste };
     outrosPaineis.push(controle);
@@ -1265,6 +1406,7 @@ function iniciar(){
 
   criarPainel('a11y-fab', 'a11y-painel', 'a11y-fundo', 'a11y-fechar');
   var painelNav = criarPainel('nav-fab', 'nav-painel', 'nav-fundo', 'nav-fechar');
+  painelPessoa  = criarPainel(null, 'pessoa-painel', 'pessoa-fundo', 'pessoa-fechar');
 
   /* cada link do menu fecha o painel ao ser clicado — a rolagem suave até
      a seção acontece sozinha, via CSS (scroll-behavior), sem precisar de JS */

@@ -19,15 +19,18 @@ sua própria planilha do Google e um arquivo de configuração — sem escrever 
 
 ## Editando o conteúdo do dia a dia (para quem não mexe em código)
 
-Tudo isso é feito direto na planilha do Google da unidade, em 4 abas:
+Tudo isso é feito direto na planilha do Google da unidade, em 7 abas (só `setores` é obrigatória —
+as outras são opcionais, e sem elas o site usa os dados de reserva do `config.js`):
 
 | Aba | Serve para |
 |---|---|
 | `setores` | Horário padrão de cada setor (consulta, vacina, farmácia...) — a coluna que identifica cada um se chama `setor` |
 | `mudancas-horario` | O que muda **hoje/nesta semana** em relação ao horário padrão (fechamento pontual ou horário diferente) |
 | `recados` | Avisos gerais, sem ligação com um setor específico |
-| `equipe` | Quem trabalha na unidade e sua função |
+| `equipe` | Quem trabalha na unidade, sua função e (opcional) o horário de atendimento do time dela |
 | `faltas` | Ausências da equipe (fecha o setor automaticamente se só houver uma pessoa responsável por ele) |
+| `ruas` | Área de abrangência de cada equipe de saúde da família (qual rua cada time atende) |
+| `reunioes` | Avisos recorrentes tipo "toda 2ª e 4ª quarta-feira do mês" — o site calcula as datas sozinho |
 
 A planilha precisa estar compartilhada como **"Qualquer pessoa com o link → Leitor"** para o site
 conseguir lê-la.
@@ -39,14 +42,15 @@ um arquivo.
 
 1. **Crie um repositório novo no GitHub** a partir deste (copie a pasta inteira, ou use "Use this
    template" se este repositório virar um template do GitHub).
-2. **Crie uma planilha do Google nova** para a unidade, com as 5 abas da tabela acima
-   (`setores`, `mudancas-horario`, `recados`, `equipe`, `faltas`) e compartilhe como "Qualquer pessoa
-   com o link → Leitor".
+2. **Crie uma planilha do Google nova** para a unidade, com a aba `setores` (obrigatória) e as que
+   fizerem sentido entre `mudancas-horario`, `recados`, `equipe`, `faltas`, `ruas` e `reunioes` (veja a
+   tabela acima), e compartilhe como "Qualquer pessoa com o link → Leitor".
 3. **Edite só o [`config.js`](config.js)** da cópia nova:
    - Seção 1 — nome, endereço, telefones, link do mapa e do Instagram, foto da unidade.
    - Seção 2 — cole o ID da nova planilha em `planilhaId` (o pedaço do meio do link do Google Sheets).
-   - Seções 3 a 6 — atualize os dados de reserva (`setoresReserva`, `avisosReserva`, `equipeReserva`)
-     com informações reais da nova unidade, para que o site nunca fique vazio caso a planilha falhe.
+   - Seções 3 a 6 — atualize os dados de reserva (`setoresReserva`, `avisosReserva`, `equipeReserva`,
+     `areasEquipeReserva`, `notasRecorrentesReserva`) com informações reais da nova unidade, para que o
+     site nunca fique vazio caso a planilha falhe.
 4. **Publique o site** (Vercel ou GitHub Pages funcionam bem para esse tipo de site estático e são
    gratuitos).
 

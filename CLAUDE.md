@@ -29,22 +29,30 @@ then open `http://localhost:8000/?teste` (see "Manual time-travel testing" below
   address, phones, map link), the Google Sheet ID + tab names, `urgencia.lugares` (emergency
   alternatives), `telefonesUteis` (municipal numbers unrelated to the clinic itself — police, CAPS,
   Conselho Tutelar), and `*Reserva` fallback data (`setoresReserva`, `avisosReserva`, `equipeReserva`,
-  `faltasReserva`) used whenever the sheet is unreachable or not yet configured. `telefonesUteis`, like
-  `urgencia.lugares`, is hardcoded here rather than sheet-driven — both are near-static reference lists
-  unrelated to day-to-day clinic operation, so a spreadsheet tab for them would add fetch/parse
-  complexity without a real editing-frequency payoff. Rendered collapsed behind "Outros telefones
-  úteis ▾" (`#tel-uteis-bloco`, only unhidden in `montarFixos()` if the list is non-empty) at the bottom
-  of the "Onde fica e telefones" card, deliberately kept out of the way of the clinic's own info.
-  `notasRecorrentes` (setores, weekday, month-occurrence indices, tail text) covers "every 2nd/4th
-  Wednesday"-style facts — `proximasDatas()`/`diasDoMesPorOcorrencia()` in `app.js` compute the actual
-  calendar dates for the currently-viewed month (rolling to next month once this month's dates have all
-  passed, `dia >= data.getDate()`), appended to the setor's `para` text on every render. This was
-  deliberately chosen over two more obvious designs: (1) a static sentence baked into `para` — works but
-  forces the reader to do calendar math ("which Wednesday is the 2nd one?"); (2) a same-day-only banner
-  (mirroring `mudancas-horario`'s `avisoDe()`) — worse, since it stays invisible to someone planning a
-  visit until the affected day itself, the same failure mode `avisosFuturos()` exists to avoid.
-  Computing real dates and always showing them keeps the info visible in advance *and* removes the
-  mental math, with zero planilha upkeep going forward.
+  `faltasReserva`, `areasEquipeReserva`, `notasRecorrentesReserva`) used whenever the sheet is
+  unreachable or not yet configured. `telefonesUteis`, like `urgencia.lugares`, is hardcoded here rather
+  than sheet-driven — both are near-static reference lists unrelated to day-to-day clinic operation, so
+  a spreadsheet tab for them would add fetch/parse complexity without a real editing-frequency payoff.
+  Rendered collapsed behind "Outros telefones úteis ▾" (`#tel-uteis-bloco`, only unhidden in
+  `montarFixos()` if the list is non-empty) at the bottom of the "Onde fica e telefones" card,
+  deliberately kept out of the way of the clinic's own info. `areasEquipeReserva` is different from
+  those two — it's real operational data (which streets each saúde-da-família team covers) that changes
+  with normal neighborhood/team-assignment churn, so unlike `telefonesUteis` it *is* sheet-driven (the
+  `ruas` tab, see below); the config.js array is only the reserve fallback, same role as
+  `equipeReserva`/`faltasReserva`. `notasRecorrentesReserva` (setores, weekday, month-occurrence
+  indices, tail text) covers "every 2nd/4th Wednesday"-style facts — `proximasDatas()`/
+  `diasDoMesPorOcorrencia()` in `app.js` compute the actual calendar dates for the currently-viewed
+  month (rolling to next month once this month's dates have all passed, `dia >= data.getDate()`),
+  appended to the setor's `para` text on every render. This was deliberately chosen over two more
+  obvious designs: (1) a static sentence baked into `para` — works but forces the reader to do calendar
+  math ("which Wednesday is the 2nd one?"); (2) a same-day-only banner (mirroring `mudancas-horario`'s
+  `avisoDe()`) — worse, since it stays invisible to someone planning a visit until the affected day
+  itself, the same failure mode `avisosFuturos()` exists to avoid. Computing real dates and always
+  showing them keeps the info visible in advance *and* removes the mental math, with zero planilha
+  upkeep going forward *per occurrence* — the RULE itself (which weekday, which occurrences, which
+  setores, the text) is also sheet-driven (the `reunioes` tab, see below), same reserve-fallback role as
+  `areasEquipeReserva`/`ruas`, so replicating the template for another UBS never requires editing this
+  file's rule to match a different meeting schedule.
 - **`app.js`** — a single IIFE (`(function(){ ... })()`), no modules/bundler. On load it tries to fetch
   the Google Sheet as CSV (via the `gviz/tq?tqx=out:csv` endpoint, no API key needed since the sheet is
   shared as "anyone with the link"); on any failure it silently keeps using the `config.js` reserve data.
@@ -55,8 +63,9 @@ then open `http://localhost:8000/?teste` (see "Manual time-travel testing" below
 
 ### The Google Sheet contract
 
-The spreadsheet must have tabs `setores`, `mudancas-horario`, `recados`, `equipe`, `faltas` (names
-configurable in `config.js`). Each is fetched and parsed independently in `buscarPlanilha()`:
+The spreadsheet must have tabs `setores`, `mudancas-horario`, `recados`, `equipe`, `faltas`, `ruas`,
+`reunioes` (names configurable in `config.js`). Each is fetched and parsed independently in
+`buscarPlanilha()`:
 - `setores` is the only required tab — if it fails, `ORIGEM` is set to `'erro'` and the UI shows a
   "couldn't load" banner while still displaying the last known data. Its identifying column is itself
   called `setor` (e.g. `dentista`, `vacina`) — the same short code that `mudancas-horario`'s `setor`
@@ -82,11 +91,26 @@ configurable in `config.js`). Each is fetched and parsed independently in `busca
 - `recados` are general notices not tied to a setor. Unlike `mudancas-horario`, a blank `titulo` here
   *does* drop the row — there's no setor name to fall back on, so an untitled recado carries no
   recoverable signal of what it's about.
-- `equipe`/`faltas` are optional and fail silently, keeping reserve data, since a clinic may not have
-  set them up yet.
+- `equipe`/`faltas`/`ruas`/`reunioes` are optional and fail silently, keeping reserve data, since a
+  clinic may not have set them up yet.
 - `faltas` (staff absences) feeds `sintetizarFechamentosPorFalta()`, which auto-generates a "closed"
   notice for a setor **only** when exactly one staff member is linked to that `setor` — with 2+ people
   covering it, the app can't infer coverage and leaves it to a manual `mudancas-horario` entry instead.
+- `equipe` also carries an optional `horario` column — the team's shift (e.g. "7h às 13h"), not a
+  per-person fact. It only needs to be filled on one row per `equipe` group (by convention, the médica's
+  row); `desenhar()` derives each group's badge/detail-panel horário by taking the first non-empty
+  `horario` found among that group's people (`g.pessoas.filter(...)[0]`), so every other person in the
+  same team inherits it without repeating the value on every row.
+- `ruas` is a flat `equipe, rua` table (one row per street) — grouped client-side in `buscarPlanilha()`
+  into the same `{equipe, ruas:[...]}` shape as the `areasEquipeReserva` fallback, and stored in the
+  `RUAS` global. Rendered as a collapsed "Ruas atendidas ▾" under each team in `desenhar()`. The `equipe`
+  value in each row must match the `equipe` field used in the `equipe` tab/`equipeReserva` — a mismatch
+  means the streets just don't show up for any team, no error.
+- `reunioes` holds the recurring-meeting rules described above for `notasRecorrentesReserva` — columns
+  `setores` (comma-separated codes), `dia` (`seg`/`ter`/.../`dom`), `ocorrencias` (comma-separated
+  1-indexed week numbers, e.g. `2,4`) and `texto`. Rows failing basic shape validation (unknown weekday,
+  no setores, no occurrences, no texto) are dropped silently rather than crashing `proximasDatas()` on
+  bad input. Stored in the `REUNIOES` global, read by `notasRecorrentesDoSetor()`.
 
 Dates/times coming from the sheet are free-text and normalized by `normalizaData()` /
 `normalizaHorario()` before anything else touches them. `normalizaData()` accepts `19/08/2026`,

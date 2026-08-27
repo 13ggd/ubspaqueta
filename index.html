@@ -72,6 +72,13 @@
   <section class="secao" id="equipe-secao">
     <h2>Quem trabalha aqui</h2>
     <p class="ajuda">A equipe da unidade e o que cada pessoa faz.</p>
+
+    <details class="mapa-equipes">
+      <summary>Ver mapa das áreas de cada equipe</summary>
+      <img src="fotos/mapa-equipes.jpg" loading="lazy"
+           alt="Mapa das ruas atendidas por cada equipe de saúde da família da UBS Paquetá, colorido por time: azul para a Equipe 1, rosa para a Equipe 2 e amarelo para a Equipe 3.">
+    </details>
+
     <div class="pessoas" id="equipe"></div>
   </section>
 
@@ -103,7 +110,7 @@
       </div>
       <div class="info">
         <p class="info-rot">Telefone da UBS</p>
-        <p class="info-val" id="info-telefone"></p>
+        <div class="info-val" id="info-telefone"></div>
       </div>
       <div class="info">
         <p class="info-rot">Secretaria de Saúde</p>
@@ -237,6 +244,21 @@
     <li><a class="nav-item" href="#urgencia-secao"><span class="ic" aria-hidden="true">🚑</span> Urgência</a></li>
     <li><a class="nav-item" href="#contato-secao"><span class="ic" aria-hidden="true">📍</span> Onde fica e telefones</a></li>
   </ul>
+</div>
+
+<!-- ================ DETALHE DA PESSOA (clique num card da equipe) =======
+     Painel único, reaproveitado pra qualquer pessoa clicada — o conteúdo
+     é preenchido na hora pelo JS (ver abrirPessoaPainel em app.js).
+     ======================================================================= -->
+<div id="pessoa-fundo" class="a11y-fundo" hidden></div>
+
+<div id="pessoa-painel" class="a11y-painel pessoa-painel" role="dialog" aria-modal="true"
+     aria-labelledby="pessoa-nome" hidden>
+  <div class="a11y-topo">
+    <h2 id="pessoa-nome"></h2>
+    <button type="button" id="pessoa-fechar" class="a11y-fechar" aria-label="Fechar">✕</button>
+  </div>
+  <div id="pessoa-detalhe"></div>
 </div>
 
 <!-- ================== LIBRAS (VLibras — widget oficial do Governo Federal)
