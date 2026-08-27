@@ -93,6 +93,10 @@ Aba `mudancas-horario`, uma linha só: escreva **`todos`** na coluna `setor` e d
 **Minuto sempre com dois números.** Escreva `18:30`, nunca `18:3`. Isso é de propósito:
 o site prefere mostrar "não atende" a mostrar um horário errado que parece certo.
 
+**Data que não existe no calendário faz a linha inteira ser ignorada.** `32/13/2026`, ou o dia e o
+mês trocados de lugar (`13/25/2026`), não viram data nenhuma: o site descarta a linha, como se ela
+não tivesse sido escrita. Confira o `inicio` quando um aviso não aparecer.
+
 ## O que você NÃO precisa fazer
 
 - **Não precisa apagar aviso vencido na hora.** Passou a data do `fim`, ele some sozinho do site.
@@ -110,6 +114,6 @@ o site prefere mostrar "não atende" a mostrar um horário errado que parece cer
 |---|---|
 | O site mostra "Não foi possível carregar a planilha" | Abra a planilha, clique em **Compartilhar** e confira se está como **"Qualquer pessoa com o link" → Leitor**. Se estiver "Restrito", mude para essa opção. |
 | Um horário aparece errado no site | Se é o horário **normal**, corrija na aba `setores`. Se é só de alguns dias, ache a linha na aba `mudancas-horario` e veja as datas e a coluna `novo`. |
-| Um aviso não aparece no site | Confira: as datas de `inicio` e `fim` cobrem o dia de hoje? Se a sua planilha tiver a coluna `ativo`, a caixinha dessa linha está marcada? (Se a planilha não tiver essa coluna, tudo bem: sem ela o site conta a linha como ativa.) Na aba `recados`, o `titulo` está preenchido? Na aba `mudancas-horario`, a coluna `setor` está preenchida? |
+| Um aviso não aparece no site | Confira primeiro se a data existe mesmo (dia até 31, mês até 12, ano com 4 números) — data impossível faz a linha ser ignorada. Depois: as datas de `inicio` e `fim` cobrem o dia de hoje? Se a sua planilha tiver a coluna `ativo`, a caixinha dessa linha está marcada? (Se a planilha não tiver essa coluna, tudo bem: sem ela o site conta a linha como ativa.) Na aba `recados`, o `titulo` está preenchido? Na aba `mudancas-horario`, a coluna `setor` está preenchida? |
 
 Se nada resolver, fale com [nome e contato do responsável].

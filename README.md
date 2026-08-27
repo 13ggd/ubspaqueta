@@ -94,8 +94,13 @@ Quando está sem internet, aparece uma tarja amarela em cima avisando que a info
 com o telefone da UBS do lado — porque ligar funciona sem internet. Assim que a conexão volta, o site
 busca a planilha na hora, sem esperar.
 
+Os horários que aparecem nessa hora são os últimos que o site conseguiu ler da planilha, e a linha
+cinza no fim da página diz de quando eles são ("guardados no aparelho ontem às 16h"). Só se a pessoa
+nunca tiver conseguido abrir o site com internet é que ele cai nos dados de reserva do `config.js` —
+e a mesma linha avisa isso também, com todas as letras.
+
 Quem cuida disso é o arquivo [`sw.js`](sw.js). **Se você mexer em qualquer arquivo do site, troque o
-número em `VERSAO`, na primeira linha dele** (`'ubs-v1'` → `'ubs-v2'`) — é isso que faz o celular das
+número em `VERSAO`, na primeira linha dele** (`'ubs-v2'` → `'ubs-v3'`) — é isso que faz o celular das
 pessoas jogar fora a versão antiga. Sem trocar, quem já visitou pode continuar vendo o site velho.
 
 ## Medindo os acessos (opcional)
