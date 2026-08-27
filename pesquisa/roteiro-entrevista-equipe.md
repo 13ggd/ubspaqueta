@@ -3,7 +3,8 @@
 **Para que serve:** entender o que a equipe achou do site de horários e, principalmente, se
 alguém vai continuar mantendo a planilha depois que o semestre acabar.
 **Quem aplica:** duas pessoas do grupo — uma conduz a conversa, a outra anota.
-**Quando:** em horário combinado com a unidade, de preferência fora do pico de atendimento.
+**Quando:** durante o T1 — semanas 10 e 11 da linha do tempo do plano de avaliação
+([`README.md`](README.md)) —, em horário combinado com a unidade e de preferência fora do pico.
 **Duração alvo:** 25 a 30 minutos por pessoa (com a coordenação, some uns 10 do bloco extra). Se a
 pessoa só tiver 15 minutos, faça só as dez perguntas marcadas **(essencial)**.
 **Onde:** numa sala da própria UBS, com porta fechada, sem paciente ou colega escutando.
@@ -352,7 +353,11 @@ partes da avaliação: a folha de contagem da recepção e os questionários com
 ## Verificação objetiva
 
 Perguntar não basta. As pessoas superestimam, de boa-fé, com que frequência fazem uma tarefa. O
-grupo precisa checar o registro real:
+grupo precisa checar o registro real.
+
+**Esta checagem é feita duas vezes**, com a mesma tabela: uma junto com as entrevistas, no T1, e
+outra 4 semanas depois do fim do semestre — é o indicador de sustentabilidade do plano de avaliação.
+Imprima duas cópias desta seção e anote a data em cada uma.
 
 1. Peça para alguém que tem permissão de **editar** a planilha abrir junto com vocês. Quem só tem
    o link de leitura não enxerga o histórico nem a tela de compartilhamento — não adianta tentar
@@ -361,6 +366,8 @@ grupo precisa checar o registro real:
 3. Anote as datas das últimas edições e quem editou.
 
 Preencha:
+
+Data desta checagem: ____/____/______   Rodada: [ ] T1   [ ] 4 semanas depois do fim do semestre
 
 | O que checar | Resultado |
 |---|---|

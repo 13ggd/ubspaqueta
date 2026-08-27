@@ -10,6 +10,22 @@ Brusque/SC). It is written as a **reusable template**: to stand up the site for 
 the whole folder and edit only `config.js`. The step-by-step replication checklist for a new UBS lives in
 [`README.md`](README.md), not here.
 
+Around that core sit four things that exist because the site is also a **first-semester intervention
+research project**, not just a website — and a website nobody finds, nobody maintains, and nobody
+measured is not an intervention:
+
+- `sw.js` — makes the site open without internet (see "Offline" below).
+- `cartaz.html` + `qr.js` — printable A4 poster and hand-out slips with a QR code, the physical bridge
+  that gets people to the URL at all.
+- `CONFIG.medicao` — optional, cookieless access counting, so the project can say whether the site was
+  *used*, not merely that it exists.
+- `pesquisa/` + `guia-da-planilha.md` — the evaluation instruments (baseline/post questionnaires, SUS,
+  reception tally, staff interview) and the one-page operational guide for whoever keeps the
+  spreadsheet alive after the semester ends.
+
+None of these four are needed to serve hours to a resident, and each can be deleted without touching
+the others.
+
 ## Commands
 
 There is no build, package manager, linter, or test runner — it's plain HTML/CSS/JS loaded directly by
@@ -20,6 +36,16 @@ python -m http.server 8000
 ```
 
 then open `http://localhost:8000/?teste` (see "Manual time-travel testing" below).
+
+Opening `index.html` straight from the folder (`file://`) still works, but service workers only exist
+on `http`/`https`, so the offline behaviour can only be exercised through a server —
+`registrarServiceWorker()` bails out early on any other protocol rather than throwing.
+
+There are no automated tests in the repo. `qr.js` and `sw.js` were each verified once with a throwaway
+harness page (QR matrices round-tripped through a real decoder; `sw.js` executed against mocked
+`caches`/`fetch` to assert which strategy each request class takes). If you change either, rebuild a
+similar throwaway page rather than trusting a read-through — both are the kind of code that looks right
+and is wrong.
 
 ## Architecture
 
@@ -158,3 +184,103 @@ Text-to-speech uses the browser's `SpeechSynthesisUtterance` API directly (no ex
 Language switching just opens Google Translate in a new tab (`linkTraducao()`) rather than embedding a
 translate widget. VLibras (Brazilian Sign Language) is a third-party government script loaded at the
 bottom of `index.html`; the comment above it notes it can be deleted wholesale if not wanted.
+
+### Offline (`sw.js`) and the stale-data problem
+
+`registrarServiceWorker()` (in `app.js`) registers `sw.js`, which caches the app shell so the page opens
+with no connection. The reason is not polish: a lot of the clinic's public is on prepaid data that runs
+out near the end of the month, and signal in the neighbourhood is uneven — exactly the people most
+likely to want to check before walking there.
+
+The strategies are deliberately *not* uniform, and the split is the whole design:
+
+- **Site's own files** (`./`, `index.html`, `estilo.css`, `app.js`, `config.js`) and **Google Fonts** —
+  cache-first, revalidating in the background. Opens instantly; a code change reaches a returning
+  visitor on their *next* load, which is why `VERSAO` at the top of `sw.js` must be bumped when
+  shipping (that string is what evicts every old cache in `activate`).
+- **The Google Sheet CSV** — network-first, cache only as a fallback. Serving yesterday's hours from
+  cache while the network was available would be the worst possible failure for this site.
+- **Everything else** (VLibras, the measurement script) — not intercepted at all.
+
+`cachePrimeiro()` deliberately **rejects** when there is neither a cached copy nor a network, instead of
+resolving with `undefined`. Resolving with undefined makes `respondWith` fail as a network error but
+silently, which would swallow the navigation fallback; rejecting is what lets the `navigate` branch fall
+through to the cached page. Same reasoning on the data side: a rejected CSV fetch is what makes
+`buscarPlanilha()` drop to `config.js`'s reserve data, which is the behaviour that already existed.
+
+Navigations do not go through `cachePrimeiro()` — they use `paginaPrincipal()`, which reads and writes
+one fixed key (`./index.html`) regardless of query string. `?teste` and `?de=cartaz` (the address the
+printed QR points at) are the same page; keying by full URL would both miss the cache offline and
+accumulate a copy per query string. An earlier version passed `{ignoreSearch: true}` to `cache.match`,
+which fixed the read but not the write.
+
+Because the page can now show data captured at an unknown earlier time, `atualizarAvisoDeInternet()`
+renders `#sem-internet` — an amber band above the status card saying the information may be old, with
+the clinic's phone number as a `tel:` link (which works with no data connection). It uses the "atenção"
+palette rather than "alerta": being offline is a caveat about the age of what's on screen, not an
+emergency. On the `online` event the sheet is refetched immediately instead of waiting for the polling
+interval, since that is precisely the moment someone is staring at the screen deciding whether to trust
+it.
+
+### Printed material: `cartaz.html` + `qr.js`
+
+`cartaz.html` is not part of the site a resident sees; it is a generator for the paper that sends them
+there. Two formats behind a radio button: an A4 wall poster and a sheet of 8 hand-out slips. It reads
+`config.js` for identity and `setoresReserva` for the hours table, so it never drifts from the site.
+
+The poster **repeats the opening hours in print on purpose**. The QR is a shortcut, not the only door —
+someone without a smartphone has to get the information from the same sheet of paper.
+
+`qr.js` is a from-scratch QR encoder (byte mode, versions 1–10, all four EC levels, ~440 lines) rather
+than a CDN library or an image API such as `api.qrserver.com`. Two reasons: the poster has to be
+printable when the clinic's wifi is down, and the whole project's constraint is no build step and no
+external dependency. It was verified by decoding its own output with a real decoder across every
+version/level combination — a QR that *looks* like a QR but does not scan is the obvious failure mode.
+Text past a version-10 capacity throws, and `cartaz.html` catches that and asks for a shorter URL.
+
+`CONFIG.unidade.site` holds the published address. Left empty, the poster derives the URL from
+`location`, which silently yields a `localhost` QR if someone opens the poster before deploying —
+hence the checkbox and the visible URL text under the code, so a wrong address is caught by eye before
+it is printed 40 times.
+
+`resumoSemana()` groups weekdays by identical hours rather than by consecutive runs: the dentist works
+Monday, Wednesday and Friday, and a consecutive-run grouping would print the same time three times and
+eat a line of a poster meant to be read from across a waiting room.
+
+### Access measurement (`CONFIG.medicao`)
+
+Off by default (`tipo: ''`), in which case every function in the block — including `registrarEvento()`,
+which is called from several places — is a no-op. Two backends are supported: `goatcounter` (works on
+any host) and `vercel` (Vercel-hosted only; page views are free but click events need a paid plan,
+which is why `cliques` can be turned off independently).
+
+Neither uses cookies nor stores anything identifying, which is both why the site needs no cookie banner
+and the answer to give an ethics committee. Events are queued in `MEDICAO_FILA` until the third-party
+script fires `load`, otherwise the first click of each visit — the most interesting one — would be lost.
+Click tracking is a single delegated listener on `document`: the page is rebuilt via `innerHTML` every
+minute, so per-element listeners would die on the next redraw.
+
+`registrarOrigemDoAcesso()` reads `?de=` and records it as its own event, sanitised to `[a-z0-9-]` and
+24 chars. The poster appends `?de=cartaz` and the hand-out slips `?de=bilhete` — deliberately different,
+since a sheet taped to a wall and a slip handed over at reception are different distribution channels and
+collapsing them would erase the only thing this measurement could tell you.
+
+`MEDICAO` is additionally forced to `null` when the URL contains `teste`, so the group's own
+time-travel testing does not inflate the very number the project is trying to measure.
+
+### The research side (`pesquisa/`, `guia-da-planilha.md`)
+
+`pesquisa/` holds the evaluation instruments — plan, baseline questionnaire, post questionnaire with the
+SUS usability scale, reception tally sheet, staff interview script. They are Markdown meant to be pasted
+into a document and **printed**, not read in a terminal. Two constraints run through all of them and are
+worth preserving on any edit: instructions to whoever administers the questionnaire are kept visually
+separate from text read aloud to a resident, and nothing is pre-filled with invented numbers,
+institutions, or ethics approvals — those are bracketed placeholders.
+
+The baseline and post questionnaires share a block of behaviour questions that **must stay identical in
+wording**; if someone improves the phrasing in one, the before/after comparison stops meaning anything.
+
+`guia-da-planilha.md` is the one-page card for whoever edits the spreadsheet at the clinic. It is the
+highest-leverage document here and the one most likely to rot: it names actual tab and column names, so
+any change to the Google Sheet contract above has to be mirrored there. A site showing confidently wrong
+hours is worse than no site, and that failure mode is a staffing problem, not a code problem.

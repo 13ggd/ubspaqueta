@@ -2,7 +2,8 @@
 
 **Para que serve:** saber, ANTES de qualquer divulgação, como o morador descobre hoje se a UBS Paquetá está aberta e se o setor vai atender.
 **Quem aplica:** estudantes do grupo, na sala de espera da UBS Paquetá (Rua Waldemar Hoffmann, s/nº — bairro Paquetá).
-**Quando:** momento T0, antes de colar cartaz, entregar bilhete ou falar do site com qualquer pessoa.
+**Quando:** momento T0, antes de colar cartaz, entregar bilhete ou falar do site com qualquer pessoa —
+são as semanas 2 e 3 da linha do tempo do plano de avaliação ([`README.md`](README.md)).
 **Quanto tempo:** de 3 a 5 minutos por pessoa.
 **Pendência de ética:** este projeto **não tem aprovação de comitê de ética**. Antes de aplicar a primeira folha, confira com [nome do professor orientador] e com a coordenação da UBS o que é exigido aqui (autorização da unidade, envio a comitê ou dispensa).
 
@@ -20,6 +21,10 @@ O que vai para a pessoa começa em "Leia em voz alta" e termina no rodapé: uma 
 **Quem não entra:** menor de 18 anos; quem trabalha ou estagia na UBS; integrante do próprio grupo; pessoa que está passando mal, com dor ou visivelmente abalada; pessoa que já respondeu antes.
 
 **Para não repetir a mesma pessoa:** antes de começar, pergunte "o senhor(a) já respondeu essas perguntas com a gente em outro dia?". Se disser que sim, agradeça e não aplique. Anote no final do turno quantas pessoas não entraram por já terem respondido.
+
+**Meta desta rodada:** **50 questionários**, mínimo aceitável 40 — é o número que está no plano de avaliação ([`README.md`](README.md)), o mesmo do T1. Anote também quantas pessoas recusaram, só o número. Recusas: ____________
+
+**Onde e quando aplicar:** sala de espera, manhã e tarde, espalhando os turnos pelos cinco dias da semana. Anote esses dias e turnos: o T1 vai ter que repetir os mesmos, senão a comparação fica torta.
 
 **Se a pessoa quiser parar no meio:** pare na hora, sem insistir e sem perguntar o motivo. Agradeça, marque "parou no meio" no rodapé da folha e guarde a folha assim mesmo.
 
@@ -49,7 +54,10 @@ O que vai para a pessoa começa em "Leia em voz alta" e termina no rodapé: uma 
 
 ---
 
-## Perguntas
+## PARTE A — as perguntas (todo mundo responde)
+
+*Para quem aplica: no T1 este bloco reaparece com o mesmo nome, "Parte A", e com as mesmas perguntas —
+menos a 5c, a 7 e a 8, que ficam só aqui.*
 
 **1. Qual é a sua idade?** *(marque a faixa em que a idade que a pessoa disser se encaixa)*
 
@@ -130,9 +138,19 @@ ____________________________________________________________
 
 ---
 
-Questionário nº ________   Data ____/____/______   Quem aplicou (só as iniciais) ________   Turno: [ ] manhã  [ ] tarde
+## Rodapé do formulário
 
-A pessoa chegou até o fim? [ ] sim  [ ] parou no meio
+*Preenchido por quem aplica, depois que a pessoa sai. É o mesmo rodapé do T1, de propósito.*
+
+| Campo | Preencher |
+|---|---|
+| Número do questionário | ______ |
+| Data | ____ / ____ / ______ |
+| Turno | [ ] Manhã  [ ] Tarde |
+| Onde foi | [ ] Sala de espera  [ ] Outro: __________ (anote por quê) |
+| Quem aplicou (só as iniciais) | ______ |
+| A pessoa chegou até o fim? | [ ] Sim  [ ] Parou no meio |
+| Observação de quem aplicou | ______________________________________ |
 
 ---
 
@@ -189,9 +207,12 @@ Colunas sugeridas, nesta ordem:
 | `q7_outro` | sim / nao |
 | `q7_outro_texto` | o que a pessoa disse |
 | `comentario_aberto` | resposta da pergunta 8, copiada como foi dita |
+| `obs` | observação de quem aplicou |
 
 No fim de cada turno, anote também numa aba à parte: quantas pessoas foram convidadas, quantas aceitaram, quantas recusaram e quantas já tinham respondido antes. Com esses números dá para escrever no relatório quantas pessoas foram convidadas e quantas recusaram — sem isso, só se sabe quem respondeu.
 
 **Importante:** use exatamente as mesmas colunas e as mesmas palavras de resposta no questionário de reavaliação (T1). Se mudar uma opção no meio do caminho, os dois momentos deixam de poder ser comparados.
 
-**Confira antes de imprimir o T1:** hoje o arquivo [`questionario-pos-e-sus.md`](questionario-pos-e-sus.md) faz as perguntas repetidas com outra redação e outros nomes de coluna — por exemplo, pergunta sobre os **últimos 3 meses**, e aqui a pergunta 5 é sobre os **últimos 6 meses**. Antes de aplicar o T1, alinhe aquele arquivo com este (a redação que vale é a deste, que é aplicado primeiro). Se os dois forem a campo diferentes, não existe comparação antes/depois.
+**O que o T1 repete e o que não repete.** A Parte A do arquivo [`questionario-pos-e-sus.md`](questionario-pos-e-sus.md) traz as perguntas 1, 2, 3, 3b, 3c, 4, 5, 5b e 6 deste questionário com a mesma redação, as mesmas opções e os mesmos nomes de coluna. As perguntas 5c, 7 e 8 ficam só aqui — no T1 elas dariam um questionário longo demais, e deixar uma pergunta de fora não atrapalha a comparação das que ficaram. Ou seja: as colunas `depois_*`, `q7_*` e `comentario_aberto` existem só na aba do T0, e a coluna `q4_citou_site` existe só na aba do T1.
+
+**Confira antes de imprimir o T1:** abra os dois arquivos lado a lado e leia palavra por palavra as perguntas da Parte A. Se achar qualquer diferença, **vale a redação deste arquivo**, que é aplicado primeiro — corrija o T1, nunca este. Se os dois forem a campo diferentes, não existe comparação antes/depois.
