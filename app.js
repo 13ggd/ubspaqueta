@@ -1027,6 +1027,17 @@ function montarFixos(){
     (u.avisoLigacao ? '<p class="tel-aviso">' + limpo(u.avisoLigacao) + '</p>' : '');
   document.getElementById('info-secretaria').innerHTML =
     '<a href="tel:' + limpo(u.secretariaLink) + '">' + limpo(u.secretaria) + '</a>';
+
+  /* Link para a lista de todas as unidades, no site da Secretaria. Só
+     aparece se CONFIG.unidade.paginaUnidades estiver preenchido. Abre na
+     mesma aba de propósito: é navegação "para cima", de volta ao portal —
+     não um recurso externo como o mapa ou o Instagram. */
+  if(u.paginaUnidades){
+    document.getElementById('info-unidades').innerHTML =
+      '<a href="' + limpo(u.paginaUnidades) + '">Ver todas as unidades de saúde</a>';
+    document.getElementById('info-unidades-linha').hidden = false;
+  }
+
   document.getElementById('info-mapa').innerHTML =
     '<a href="' + limpo(u.mapa) + '" target="_blank" rel="noopener">Abrir o mapa no celular</a>';
 

@@ -6,6 +6,36 @@
 <title>UBS Paquetá</title>
 <meta name="description" content="Horários, avisos e telefones da Unidade Básica de Saúde do bairro Paquetá, em Brusque, Santa Catarina.">
 <meta name="theme-color" content="#02301A">
+
+<!-- ===================== COMPARTILHAMENTO (Open Graph) ====================
+     A imagem + título que aparecem quando alguém cola o link no WhatsApp,
+     Facebook, Telegram etc. Precisa ficar aqui no HTML fixo: o robô dessas
+     redes NÃO lê o config.js (não roda JavaScript).
+
+     >>> TROQUE o endereço "https://ubspaqueta.vercel.app" nas linhas
+         og:url e og:image (e nas twitter:image) pelo endereço REAL do
+         site publicado — o mesmo valor de CONFIG.unidade.site no
+         config.js, só que escrito por extenso e com https:// na frente.
+         Se ficar errado, o WhatsApp mostra o link sem imagem.
+
+     A imagem "fotos/compartilhamento.jpg" precisa ter no máximo ~300 KB
+     (senão o WhatsApp não mostra) e o tamanho declarado abaixo (1200x800).
+     ====================================================================== -->
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:site_name" content="UBS Paquetá">
+<meta property="og:title" content="UBS Paquetá — está aberta agora?">
+<meta property="og:description" content="Horários de cada setor, avisos do dia, equipe e telefones de urgência da Unidade Básica de Saúde do bairro Paquetá, em Brusque/SC.">
+<meta property="og:url" content="https://ubspaqueta.vercel.app/">
+<meta property="og:image" content="https://ubspaqueta.vercel.app/fotos/compartilhamento.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="800">
+<meta property="og:image:alt" content="Fachada da UBS Paquetá, em Brusque, Santa Catarina.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="UBS Paquetá — está aberta agora?">
+<meta name="twitter:description" content="Horários de cada setor, avisos do dia, equipe e telefones de urgência da Unidade Básica de Saúde do bairro Paquetá, em Brusque/SC.">
+<meta name="twitter:image" content="https://ubspaqueta.vercel.app/fotos/compartilhamento.jpg">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="UBS Paquetá">
@@ -121,6 +151,10 @@
       <div class="info">
         <p class="info-rot">Secretaria de Saúde</p>
         <p class="info-val" id="info-secretaria"></p>
+      </div>
+      <div class="info" id="info-unidades-linha" hidden>
+        <p class="info-rot">Outras unidades</p>
+        <p class="info-val" id="info-unidades"></p>
       </div>
       <div class="info">
         <p class="info-rot">Localização</p>

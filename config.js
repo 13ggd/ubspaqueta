@@ -27,7 +27,14 @@ const CONFIG = {
     avisoLigacao: 'Caso receba uma ligação de um destes números, por favor atenda: será sobre seus exames e consultas.',
     secretaria:     '(47) 3255-6800',
     secretariaLink: '+554732556800',
-    mapa: 'https://www.google.com/maps/place/?q=place_id:ChIJV2DuZfVG35QRRnPgxVVeE5M',
+    /* Link "Abrir o mapa no celular". Use o formato oficial do Google
+       ("Maps URLs"): search/?api=1&query=<nome ou endereço>&query_place_id=<ID>.
+       O "query" é obrigatório e é o que aparece caso o celular não reconheça
+       o ID; o "query_place_id" é o que crava o ponto exato. O formato antigo
+       maps/place/?q=place_id:<ID> não é documentado e, no APP do Google Maps
+       do celular, às vezes cai numa busca pelo texto literal "place_id:ChIJ…"
+       em vez de abrir a unidade. */
+    mapa: 'https://www.google.com/maps/search/?api=1&query=UBS%20Paquet%C3%A1%2C%20Rua%20Waldemar%20Hoffmann%2C%20Brusque%20-%20SC&query_place_id=ChIJV2DuZfVG35QRRnPgxVVeE5M',
     instagram: 'https://www.instagram.com/ubspaqueta/',
 
     /* Endereço do site depois de publicado (ex: 'https://ubspaqueta.vercel.app').
@@ -36,6 +43,17 @@ const CONFIG = {
        funciona, mas gera um QR apontando para "localhost" se você abrir o
        cartaz antes de publicar o site. Preencha assim que publicar. */
     site: '',
+
+    /* Endereço da página que lista TODAS as unidades de saúde, no site da
+       Secretaria. Vira um link "Ver todas as unidades de saúde" no card
+       "Onde fica e telefones", logo abaixo do telefone da Secretaria.
+       Serve principalmente quando este site é publicado sob o domínio da
+       Secretaria (ex: paqueta.smsbrusque.sc.gov.br): ali não existe o menu
+       do portal em volta, então quem chega direto (QR, link, favorito)
+       precisa de um caminho de volta para achar outra unidade. NÃO é
+       redirecionamento automático — é só um link visível. Deixe vazio ('')
+       para não mostrar nada. */
+    paginaUnidades: 'https://www.smsbrusque.sc.gov.br/unidade',
 
     /* Foto do prédio (fachada). Deixe vazio ('') para não mostrar nada.
        Mesma regra das fotos da equipe: coloque o arquivo na pasta "fotos"
