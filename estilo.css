@@ -396,8 +396,11 @@ body.alto-contraste .time-nome{color:var(--tinta)}
   background:var(--verde-claro);padding:3px 10px;border-radius:99px;
 }
 body.alto-contraste .time-conta{background:#052012;color:#00E676}
-.time-horario{background:transparent;border:2px solid var(--verde-claro)}
-body.alto-contraste .time-horario{background:transparent;border-color:#052012}
+/* Contraste próprio: a borda na cor de --verde-claro ficava quase da mesma
+   cor do fundo da página, e o selo virava texto solto sem contorno visível.
+   Aqui a borda usa a mesma cor escura do texto, como qualquer selo normal. */
+.time-horario{background:transparent;border:2px solid var(--verde-escuro)}
+body.alto-contraste .time-horario{background:transparent;border-color:#00E676}
 
 .pessoas{display:flex;flex-direction:column;gap:10px}
 

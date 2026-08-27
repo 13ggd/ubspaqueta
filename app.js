@@ -1353,8 +1353,12 @@ function desenhar(data, agora){
       }).join('');
       if(g.nome === null) return '<div class="pessoas">' + cartoes + '</div>';
       var conta = g.pessoas.length === 1 ? '1 pessoa' : g.pessoas.length + ' pessoas';
+      /* "Atende " deixa claro que essa hora é do time, não uma repetição
+         solta do número de pessoas — sem rótulo o selo parecia texto
+         pendurado depois de "N pessoas". Mesma ideia do painel da pessoa
+         ("Atendimento: 7h às 13h"), só que mais curto pra caber no selo. */
       var horarioHtml = horario
-        ? '<span class="time-conta time-horario">' + limpo(horario) + '</span>' : '';
+        ? '<span class="time-conta time-horario">Atende ' + limpo(horario) + '</span>' : '';
       var ruas = ruasPorEquipe[g.nome];
       var ruasHtml = (ruas && ruas.length)
         ? '<details class="ruas-equipe"><summary>Ruas atendidas</summary>' +
