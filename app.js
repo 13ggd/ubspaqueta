@@ -251,6 +251,7 @@ function ligarMedicaoDeCliques(){
     if(href.indexOf('tel:') === 0)            registrarEvento(alvo.id === 'samu' ? 'ligar-samu' : 'ligar');
     else if(alvo.id === 'bt-mapa')            registrarEvento('mapa');
     else if(alvo.closest('#info-mapa'))       registrarEvento('mapa');
+    else if(alvo.closest('.lugar-mapa'))      registrarEvento('mapa-urgencia');
     else if(alvo.closest('#info-instagram'))  registrarEvento('instagram');
     else if(alvo.closest('#tel-uteis-bloco')) registrarEvento('outros-telefones');
     else if(alvo.closest('.semana'))          registrarEvento('ver-dias-da-semana');
@@ -996,6 +997,16 @@ function proximaAberturaGeral(data){
   return null;
 }
 
+/* Monta o link do botão "Como chegar" dos lugares de urgência. Aceita um
+   link pronto (https://...) ou só o endereço por extenso, que vira uma busca
+   no Google Maps — formato que abre tanto no Android quanto no iPhone. */
+function linkDoMapa(valor){
+  var v = String(valor == null ? '' : valor).trim();
+  if(!v) return '';
+  if(/^https?:\/\//i.test(v)) return v;
+  return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(v);
+}
+
 /* ------------------------------------------- partes fixas (do config) -- */
 function montarFixos(){
   var u = CONFIG.unidade;
@@ -1056,10 +1067,16 @@ function montarFixos(){
   document.getElementById('samu-lab').innerHTML = ur.chamada;
 
   document.getElementById('lugares').innerHTML = ur.lugares.map(function(l){
+    var mapa = linkDoMapa(l.mapa);
+    var btMapa = mapa
+      ? '<a class="lugar-mapa" href="' + limpo(mapa) + '" target="_blank" rel="noopener">' +
+        '<span aria-hidden="true">📍</span> Como chegar</a>'
+      : '';
     return '<div class="lugar">' +
       '<p class="lugar-nome">' + limpo(l.nome) + '</p>' +
       '<p class="lugar-det">' + limpo(l.det) + '</p>' +
-      '<span class="lugar-hora">' + limpo(l.hora) + '</span></div>';
+      '<span class="lugar-hora">' + limpo(l.hora) + '</span>' +
+      btMapa + '</div>';
   }).join('');
 
   /* Telefones úteis (Polícia, CAPS, etc.) — fica escondido atrás de um
@@ -1167,17 +1184,18 @@ function cartaoPessoa(p, dataISO){
   }
 
   var falta = dataISO ? faltaDe(p.nome.trim(), dataISO) : null;
-  var faltaHtml = falta
-    ? '<p class="pessoa-ausente">🔴 Ausente hoje' + (falta.motivo ? ': ' + limpo(falta.motivo) : '') + '</p>'
-    : '';
+  var seloFalta   = falta ? '<p class="pessoa-selo-ausente">Ausente hoje</p>' : '';
+  var motivoFalta = (falta && falta.motivo)
+    ? '<p class="pessoa-ausente-motivo">' + limpo(falta.motivo) + '</p>' : '';
 
   return '<div class="pessoa' + (falta ? ' pessoa-com-falta' : '') + '" ' +
       'role="button" tabindex="0" aria-haspopup="dialog">' + fotoHtml +
     '<div class="pessoa-txt">' +
+      seloFalta +
       '<p class="pessoa-nome">' + limpo(p.nome) + '</p>' +
       '<p class="pessoa-funcao">' + limpo(p.funcao) + '</p>' +
       (p.obs ? '<p class="pessoa-obs">' + limpo(p.obs) + '</p>' : '') +
-      faltaHtml +
+      motivoFalta +
     '</div>' +
   '</div>';
 }
@@ -1203,17 +1221,18 @@ function abrirPessoaPainel(p, horario, dataISO){
   if(horario)  linhas.push('Atendimento: ' + horario);
 
   var falta = dataISO ? faltaDe(p.nome.trim(), dataISO) : null;
-  var faltaHtml = falta
-    ? '<p class="pessoa-ausente">🔴 Ausente hoje' + (falta.motivo ? ': ' + limpo(falta.motivo) : '') + '</p>'
+  var seloFalta = falta
+    ? '<p class="pessoa-selo-ausente">Ausente hoje' +
+        (falta.motivo ? ': ' + limpo(falta.motivo) : '') + '</p>'
     : '';
 
   document.getElementById('pessoa-nome').textContent = p.nome;
   document.getElementById('pessoa-detalhe').innerHTML = fotoHtml +
+    seloFalta +
     '<ul class="pessoa-detalhe-lista">' +
       linhas.map(function(l){ return '<li>' + limpo(l) + '</li>'; }).join('') +
     '</ul>' +
-    (p.obs ? '<p class="pessoa-detalhe-obs">' + limpo(p.obs) + '</p>' : '') +
-    faltaHtml;
+    (p.obs ? '<p class="pessoa-detalhe-obs">' + limpo(p.obs) + '</p>' : '');
 
   if(painelPessoa) painelPessoa.abrir();
 }

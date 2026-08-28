@@ -536,11 +536,19 @@ body.alto-contraste .pessoa-foto{background:#052012;color:#00E676}
 .pessoa-nome{font-size:calc(19px * var(--esc));font-weight:700;line-height:1.25}
 .pessoa-funcao{font-size:calc(16px * var(--esc));color:var(--tinta2);margin-top:2px;line-height:1.35}
 .pessoa-obs{font-size:calc(14.5px * var(--esc));color:var(--tinta2);margin-top:4px;line-height:1.4}
-.pessoa-ausente{
+.pessoa-selo-ausente{
+  display:inline-block;font-size:calc(13px * var(--esc));font-weight:700;
+  text-transform:uppercase;letter-spacing:.03em;
+  background:var(--alerta-cartao);color:#fff;
+  border-radius:8px;padding:4px 10px;margin-bottom:6px;line-height:1.25;
+}
+.pessoa-ausente-motivo{
   font-size:calc(14.5px * var(--esc));font-weight:700;color:var(--alerta-cartao);
   margin-top:6px;line-height:1.4;
 }
-.pessoa-com-falta{border-color:var(--alerta);border-width:3px}
+.pessoa-com-falta{border-color:var(--alerta);border-width:3px;background:var(--alerta-claro)}
+/* No painel de detalhe o selo fica centrado, abaixo da foto grande. */
+.pessoa-painel .pessoa-selo-ausente{margin:0 auto 14px}
 
 /* Painel de detalhe (abre ao clicar num card da equipe) — mesma "folha"
    deslizante de baixo já usada pra acessibilidade/menu, só que centrado
@@ -583,6 +591,15 @@ body.alto-contraste .pessoa-detalhe-lista li:first-child{color:var(--tinta)}
   display:inline-block;font-size:calc(15px * var(--esc));font-weight:700;
   background:rgba(255,255,255,.16);border-radius:8px;padding:5px 10px;margin-top:8px;
 }
+.lugar-mapa{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-top:12px;padding:12px 16px;border-radius:var(--raio);
+  background:#fff;color:var(--verde-escuro);
+  font-size:calc(16px * var(--esc));font-weight:700;
+  text-decoration:none;min-height:48px;
+}
+.lugar-mapa:hover{opacity:.9}
+body.alto-contraste .lugar-mapa{border:3px solid #000}
 
 /* -------------------------------------------------------- ONDE FICA --- */
 .foto-unidade{
