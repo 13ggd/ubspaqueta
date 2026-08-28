@@ -33,7 +33,7 @@ as outras são opcionais, e sem elas o site usa os dados de reserva do `config.j
 | `recados` | Avisos gerais, sem ligação com um setor específico |
 | `equipe` | Quem trabalha na unidade, sua função e (opcional) o horário de atendimento do time dela |
 | `faltas` | Ausências da equipe (fecha o setor automaticamente se só houver uma pessoa responsável por ele) |
-| `ruas` | Área de abrangência de cada equipe de saúde da família (qual rua cada time atende) |
+| `ruas` | Área de abrangência de cada equipe de saúde da família — alimenta o "Ruas atendidas" de cada time e o card "Minha rua", onde a pessoa escreve a rua e descobre qual equipe atende ali e em que turno |
 | `reunioes` | Avisos recorrentes tipo "toda 2ª e 4ª quarta-feira do mês" — o site calcula as datas sozinho |
 
 A planilha precisa estar compartilhada como **"Qualquer pessoa com o link → Leitor"** para o site

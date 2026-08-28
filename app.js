@@ -29,6 +29,9 @@ var EQUIPE   = CONFIG.equipeReserva;
 var FALTAS   = CONFIG.faltasReserva;
 var RUAS     = CONFIG.areasEquipeReserva;   /* ruas atendidas por equipe — [{equipe, ruas:[...]}] */
 var REUNIOES = CONFIG.notasRecorrentesReserva;   /* regras "toda 2ª/4ª quarta..." — [{setores, dia, ocorrencias, texto}] */
+/* Rua que a pessoa escolheu no card "Minha rua". Lida do localStorage em
+   montarBuscaDeRua() e guardada só no aparelho dela — nunca sai daí. */
+var RUA_ESCOLHIDA = null;
 var ORIGEM   = 'reserva';   /* 'planilha' | 'reserva' | 'erro' */
 var AVISOS_DA_PLANILHA = false;   /* true só quando horarios ou recados vieram da planilha de verdade */
 /* Quando os dados na tela não vieram da rede agora, e sim do que o service
@@ -252,6 +255,7 @@ function ligarMedicaoDeCliques(){
     else if(alvo.closest('#tel-uteis-bloco')) registrarEvento('outros-telefones');
     else if(alvo.closest('.semana'))          registrarEvento('ver-dias-da-semana');
     else if(alvo.closest('.ruas-equipe'))     registrarEvento('ruas-da-equipe');
+    else if(alvo.closest('#minha-rua-secao')) registrarEvento('minha-rua');
     else if(alvo.id === 'a11y-ouvir')         registrarEvento('ouvir-pagina');
     else if(alvo.id === 'a11y-contraste')     registrarEvento('alto-contraste');
     else if(alvo.id === 'a11y-fab')           registrarEvento('acessibilidade');
@@ -1230,6 +1234,333 @@ function agruparPorEquipe(lista){
   return ordem.map(function(nome){ return { nome: nome, pessoas: mapa[nome] }; });
 }
 
+/* ----------------------------------------------------------- minha rua -- */
+/* A planilha já liga rua → equipe (aba "ruas") e equipe → turno (coluna
+   "horario" da aba "equipe"). O que faltava era a direção que o morador
+   usa de verdade: ele não sabe de que equipe é, ele sabe onde mora. Daqui
+   até desenharMinhaRua() é essa busca invertida — rua digitada → equipe →
+   horário → quem atende → falta de hoje —, sem pedir nenhuma coluna nova
+   na planilha.
+
+   A rua escolhida fica só no aparelho (localStorage), igual ao tamanho da
+   letra: não vai pra planilha, nem pra medição de acesso, nem pra lugar
+   nenhum. O site continua sem cookie e sem guardar nada que identifique
+   alguém — que é a resposta que o projeto dá ao comitê de ética. */
+
+/* Nome de rua digitado por gente de verdade não bate com o da planilha:
+   vem sem acento, com "R." na frente, em maiúscula, com espaço a mais.
+   Isso aqui reduz os dois lados à mesma forma antes de comparar.
+   O trecho entre parênteses sai de propósito: ele é justamente o que
+   diferencia dois PEDAÇOS da mesma rua ("Santa Cruz (semáforo até...)"),
+   e os dois precisam cair na mesma opção de busca — quem mora lá tem que
+   ver as duas equipes e escolher, em vez de o site chutar uma. */
+function chaveRua(s){
+  return String(s == null ? '' : s)
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/\(.*?\)/g, ' ')
+    .replace(/\b(rua|r|avenida|av|travessa|tv|servidao|estrada|rodovia|beco|alameda|praca|loteamento)\b\.?/g, ' ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+/* Tira o trecho entre parênteses do nome ("Santa Cruz (semáforo...)" vira
+   "Santa Cruz") e, do outro lado, devolve só o trecho. */
+function ruaSemTrecho(rua){ return String(rua).replace(/\s*\(.*?\)\s*/g, ' ').trim(); }
+function trechoDaRua(rua){
+  var m = String(rua).match(/\(([^)]*)\)/);
+  return m ? m[1].trim() : '';
+}
+
+/* Todas as ruas cadastradas, agrupadas pelo nome normalizado. Cada opção
+   pode ter mais de um item (mais de uma equipe) — é o caso das ruas
+   partidas em trechos, que aparecem uma vez em cada time. */
+function opcoesDeRua(){
+  var mapa = {}, ordem = [];
+  (RUAS || []).forEach(function(a){
+    (a.ruas || []).forEach(function(rua){
+      var chave = chaveRua(rua);
+      if(!chave) return;
+      if(!mapa[chave]){
+        mapa[chave] = { chave: chave, rotulo: ruaSemTrecho(rua), itens: [] };
+        ordem.push(chave);
+      }
+      mapa[chave].itens.push({ rua: rua, equipe: a.equipe, trecho: trechoDaRua(rua) });
+    });
+  });
+  ordem.sort();
+  return ordem.map(function(c){ return mapa[c]; });
+}
+
+function opcaoDaRua(nome){
+  var chave = chaveRua(nome);
+  if(!chave) return null;
+  var todas = opcoesDeRua();
+  for(var i = 0; i < todas.length; i++){
+    if(todas[i].chave === chave) return todas[i];
+  }
+  return null;
+}
+
+/* Busca por pedaço do nome, não por acerto exato: ninguém digita
+   "Padre Antônio Eising" inteiro e certo. Quem COMEÇA com o que foi
+   digitado vem primeiro — quem escreve "santa" quer "Santa Cruz" antes de
+   "Rua de Santa Luzia". */
+function acharRuas(texto){
+  var q = chaveRua(texto);
+  if(q.length < 2) return [];
+  return opcoesDeRua()
+    .filter(function(o){ return o.chave.indexOf(q) !== -1; })
+    .sort(function(a, b){
+      var pa = a.chave.indexOf(q) === 0 ? 0 : 1;
+      var pb = b.chave.indexOf(q) === 0 ? 0 : 1;
+      return pa - pb || a.chave.localeCompare(b.chave);
+    });
+}
+
+/* Mesma regra do card "Quem trabalha aqui": o horário está preenchido em
+   uma pessoa só (por convenção, a médica) e vale pro time inteiro. */
+function pessoasDaEquipe(nomeEquipe){
+  return (EQUIPE || []).filter(function(p){ return p.equipe === nomeEquipe; });
+}
+function horarioDaEquipe(nomeEquipe){
+  var p = pessoasDaEquipe(nomeEquipe).filter(function(x){ return x.horario; })[0];
+  return p ? p.horario : '';
+}
+
+/* "13h às 19h" vira {turno:'de tarde', texto:'das 13h às 19h'} — reaproveita
+   o mesmo parser dos horários da planilha. Se o texto for estranho demais
+   pra ele, devolve como veio e sem turno: melhor mostrar o que a planilha
+   diz do que inventar "de manhã" em cima de um horário que não foi lido. */
+function turnoDoHorario(horario){
+  var f = normalizaHorario(horario);
+  if(!f) return { turno:'', texto: horario };
+  var blocos = f.split(',').map(function(b){
+    var p = b.split('-');
+    return {ini: mm(p[0]), fim: mm(p[1])};
+  });
+  var ini = Math.min.apply(null, blocos.map(function(b){ return b.ini; }));
+  var fim = Math.max.apply(null, blocos.map(function(b){ return b.fim; }));
+  var turno = fim <= 13*60 ? 'de manhã' : (ini >= 12*60 ? 'de tarde' : 'de manhã e de tarde');
+  return { turno: turno, texto: fala(f) };
+}
+
+function telefoneDaUnidade(){
+  var u = CONFIG.unidade;
+  return '<a href="tel:' + limpo(u.telefoneLink) + '">' + limpo(u.telefone) + '</a>';
+}
+
+/* Um card por equipe que atende a rua escolhida. Quase sempre é um só;
+   quando a rua é partida em trechos, saem dois, e cada um mostra o seu
+   trecho — a pessoa decide qual é o dela, o site não chuta. */
+function cartaoRuaEquipe(item, data, agora){
+  var dataISO = iso(data);
+  var diaKey  = K[data.getDay()];
+  var pessoas = pessoasDaEquipe(item.equipe);
+
+  var h = horarioDaEquipe(item.equipe);
+  var quando;
+  if(h){
+    var t = turnoDoHorario(h);
+    quando = '<p class="rua-quando">' +
+      (t.turno ? 'Atende <strong>' + t.turno + '</strong>, ' + limpo(t.texto)
+               : 'Atende <strong>' + limpo(t.texto) + '</strong>') + '</p>';
+  } else {
+    /* Sem o horário do time não dá pra responder a pergunta que trouxe a
+       pessoa até aqui — então diz isso e manda ligar, em vez de deixar um
+       card bonito e mudo. */
+    if(!pessoas.length){
+      console.error('minha rua: a aba "ruas" aponta para a equipe "' + item.equipe +
+                    '", que não existe na aba "equipe" — confira se o nome está igual, letra por letra.');
+    }
+    quando = '<p class="rua-quando rua-sem-dado">O horário deste time ainda não está cadastrado. ' +
+             'Ligue para a UBS para confirmar: ' + telefoneDaUnidade() + '.</p>';
+  }
+
+  /* Quem atende: as pessoas do time ligadas a algum setor (médica,
+     enfermeiro). Se ninguém tiver setor preenchido, mostra o time inteiro,
+     que ainda é mais útil do que não mostrar ninguém. */
+  var comSetor = pessoas.filter(function(p){ return setoresDe(p).length; });
+  var mostrar  = comSetor.length ? comSetor : pessoas;
+  var quem = mostrar.length
+    ? '<ul class="rua-pessoas">' + mostrar.map(function(p){
+        var falta = faltaDe(p.nome.trim(), dataISO);
+        return '<li' + (falta ? ' class="rua-ausente"' : '') + '>' +
+          '<span class="rua-pessoa-nome">' + limpo(p.nome) + '</span>' +
+          (p.funcao ? '<span class="rua-funcao">' + limpo(p.funcao) + '</span>' : '') +
+          (falta ? '<span class="rua-falta">🔴 Ausente hoje' +
+                     (falta.motivo ? ': ' + limpo(falta.motivo) : '') + '</span>' : '') +
+        '</li>';
+      }).join('') + '</ul>'
+    : '';
+
+  /* Se algum setor deste time está fechado hoje (aviso da planilha ou
+     falta), quem mora na rua precisa saber ANTES de sair de casa — não
+     adianta acertar o turno e bater numa porta fechada. */
+  var ids = {};
+  pessoas.forEach(function(p){ setoresDe(p).forEach(function(id){ ids[id] = true; }); });
+  var setoresDoTime = SETORES.filter(function(s){ return ids[s.id]; });
+  var fechados = setoresDoTime.filter(function(s){
+    return situacao(s, diaKey, dataISO, agora).cls === 'alerta';
+  });
+  var alerta = fechados.length
+    ? '<p class="rua-fechado">⚠ Hoje ' +
+        (fechados.length === 1
+          ? '<strong>' + limpo(fechados[0].nome) + '</strong> não está atendendo'
+          : '<strong>' + fechados.map(function(s){ return limpo(s.nome); }).join('</strong> e <strong>') +
+            '</strong> não estão atendendo') +
+        '. <a href="#avisos-secao">Veja o aviso</a>.</p>'
+    : '';
+
+  var trecho = item.trecho
+    ? '<p class="rua-trecho">Atenção: só o trecho <strong>' + limpo(item.trecho) + '</strong>.</p>'
+    : '';
+
+  return '<div class="rua-time">' +
+    '<h3 class="rua-time-nome">' + limpo(item.equipe) + '</h3>' +
+    quando + trecho + quem + alerta +
+  '</div>';
+}
+
+/* Desenha a resposta da rua escolhida. É chamada dentro de desenhar(), então
+   acompanha o relógio e a barra de teste "?teste" — a falta de hoje e o
+   setor fechado hoje mudam junto com a data mostrada na tela. */
+function desenharMinhaRua(data, agora){
+  var secao = document.getElementById('minha-rua-secao');
+  if(!secao) return;
+
+  /* Unidade sem a aba "ruas" preenchida: some a seção inteira (e o item do
+     menu), como o bloco de telefones úteis. Um campo de busca que nunca
+     acha nada é pior do que campo nenhum. */
+  var itemNav = document.getElementById('nav-minha-rua');
+  var temRuas = !!(RUAS && RUAS.length);
+  secao.hidden = !temRuas;
+  if(itemNav) itemNav.hidden = !temRuas;
+  if(!temRuas) return;
+
+  var busca = document.getElementById('rua-busca');
+  var caixa = document.getElementById('rua-resposta');
+  busca.hidden = !!RUA_ESCOLHIDA;
+  if(!RUA_ESCOLHIDA){ caixa.innerHTML = ''; return; }
+
+  var trocar = '<button type="button" class="rua-trocar" id="rua-trocar">Ver outra rua</button>';
+  var opcao = opcaoDaRua(RUA_ESCOLHIDA);
+
+  /* A rua estava guardada neste aparelho mas sumiu da planilha (mudou de
+     nome, trocou de área). Dizer isso é melhor do que responder com o time
+     antigo, que pode não ser mais o certo. */
+  if(!opcao){
+    caixa.innerHTML = '<div class="rua-cartao">' +
+      '<p class="rua-nome">' + limpo(RUA_ESCOLHIDA) + '</p>' +
+      '<p class="rua-sem-dado">Não encontrei mais esta rua na lista da unidade — a lista pode ter mudado. ' +
+        'Ligue para a UBS: ' + telefoneDaUnidade() + '.</p>' +
+      trocar + '</div>';
+    return;
+  }
+
+  var times = opcao.itens.map(function(i){ return cartaoRuaEquipe(i, data, agora); }).join('');
+
+  var duas = opcao.itens.length > 1
+    ? '<p class="rua-duas">Esta rua está dividida entre <strong>' + opcao.itens.length +
+      ' equipes</strong>. Veja em qual trecho fica a sua casa — na dúvida, ligue para a UBS: ' +
+      telefoneDaUnidade() + '.</p>'
+    : '';
+
+  /* A frase mais importante do card. Sem ela, quem lê "atende de tarde"
+     entende que a UBS INTEIRA só abre de tarde e deixa de vir tomar vacina
+     de manhã. Os setores do time saem da própria planilha (coluna "setor"
+     da aba "equipe"), então a frase continua certa em qualquer unidade. */
+  var idsTodos = {};
+  opcao.itens.forEach(function(i){
+    pessoasDaEquipe(i.equipe).forEach(function(p){
+      setoresDe(p).forEach(function(id){ idsTodos[id] = true; });
+    });
+  });
+  var nomes = SETORES.filter(function(s){ return idsTodos[s.id]; })
+                     .map(function(s){ return '<strong>' + limpo(s.nome) + '</strong>'; });
+  var alvo = nomes.length
+    ? nomes.slice(0, -1).join(', ') + (nomes.length > 1 ? ' e ' : '') + nomes[nomes.length - 1]
+    : 'o atendimento com a sua equipe';
+  /* Se nenhum time tem horário cadastrado, não existe "este horário" para
+     explicar — fica só a segunda metade, que é a que evita a leitura errada
+     de qualquer jeito. */
+  var temHorario = opcao.itens.some(function(i){ return horarioDaEquipe(i.equipe); });
+  var deQuem = !temHorario ? ''
+    : (opcao.itens.length > 1
+        ? 'Os horários acima são dos times e valem para ' + alvo + '. '
+        : 'Este horário é o do seu time e vale para ' + alvo + '. ');
+  var nota = '<p class="rua-nota">' + deQuem +
+    'Os outros setores da UBS atendem qualquer pessoa, cada um no seu horário — ' +
+    '<a href="#setores-secao">veja a lista de horários</a>.</p>';
+
+  caixa.innerHTML = '<div class="rua-cartao">' +
+    '<p class="rua-nome">' + limpo(opcao.rotulo) + '</p>' +
+    duas + times + nota + trocar +
+  '</div>';
+}
+
+/* Liga o campo de busca. Fica fora de desenhar() de propósito: desenhar()
+   roda a cada minuto e reescreveria o campo embaixo do dedo de quem está
+   digitando. Só #rua-resposta é redesenhado junto com o resto da página. */
+function montarBuscaDeRua(){
+  var campo = document.getElementById('rua-campo');
+  var sug   = document.getElementById('rua-sugestoes');
+  var caixa = document.getElementById('rua-resposta');
+  if(!campo || !sug || !caixa) return;
+
+  RUA_ESCOLHIDA = lerGuardado('ubs-minha-rua') || null;
+
+  function redesenhar(){
+    desenharMinhaRua(ULTIMA_DATA || new Date(), ULTIMA_AGORA || 0);
+  }
+
+  campo.addEventListener('input', function(){
+    if(chaveRua(campo.value).length < 2){ sug.innerHTML = ''; return; }
+
+    var achados = acharRuas(campo.value);
+    if(!achados.length){
+      /* Nunca dizer "você não é atendido aqui": a lista de ruas é copiada à
+         mão do mural e pode estar incompleta. O erro é da lista, não de quem
+         está procurando. */
+      sug.innerHTML = '<p class="rua-nada">Não achei esta rua na lista. Ela pode estar escrita ' +
+        'de outro jeito, ou ainda não ter sido cadastrada. Ligue para a UBS: ' +
+        telefoneDaUnidade() + '.</p>';
+      return;
+    }
+
+    var mostradas = achados.slice(0, 8);
+    sug.innerHTML = mostradas.map(function(o){
+      return '<button type="button" class="rua-op" data-rua="' + limpo(o.rotulo) + '">' +
+        limpo(o.rotulo) + '</button>';
+    }).join('') +
+    (achados.length > mostradas.length
+      ? '<p class="rua-mais">Há mais ' + (achados.length - mostradas.length) +
+        ' rua(s) parecida(s) — escreva mais um pedaço do nome.</p>'
+      : '');
+  });
+
+  sug.addEventListener('click', function(e){
+    var b = e.target && e.target.closest ? e.target.closest('.rua-op') : null;
+    if(!b) return;
+    RUA_ESCOLHIDA = b.getAttribute('data-rua');
+    guardar('ubs-minha-rua', RUA_ESCOLHIDA);
+    campo.value = '';
+    sug.innerHTML = '';
+    redesenhar();
+  });
+
+  /* O botão "Ver outra rua" é redesenhado junto com a resposta a cada
+     minuto, então o clique é escutado no pai, que não muda. */
+  caixa.addEventListener('click', function(e){
+    var b = e.target && e.target.closest ? e.target.closest('#rua-trocar') : null;
+    if(!b) return;
+    RUA_ESCOLHIDA = null;
+    guardar('ubs-minha-rua', '');
+    redesenhar();
+    campo.focus();
+  });
+}
+
 function desenhar(data, agora){
   ULTIMA_DATA = data; ULTIMA_AGORA = agora;
   var diaKey  = K[data.getDay()];
@@ -1306,6 +1637,11 @@ function desenhar(data, agora){
   } else {
     blocoFuturos.hidden = true;
   }
+
+  /* minha rua — a resposta é redesenhada junto com o resto porque depende
+     do dia (falta de alguém do time, setor fechado hoje). O campo de busca
+     em si fica de fora, ligado uma vez só em montarBuscaDeRua(). */
+  desenharMinhaRua(data, agora);
 
   /* setores */
   document.getElementById('setores').innerHTML = SETORES.map(function(s){
@@ -1465,6 +1801,17 @@ function textoParaOuvir(){
     partes.push('A UBS está fechada agora.');
   }
 
+  /* Quem ouve a página não vê o card "Minha rua" — e é justamente quem mais
+     precisa da resposta pronta, em vez de caçar a rua numa lista. */
+  var minhaRua = RUA_ESCOLHIDA ? opcaoDaRua(RUA_ESCOLHIDA) : null;
+  if(minhaRua){
+    minhaRua.itens.forEach(function(i){
+      var h = horarioDaEquipe(i.equipe);
+      partes.push('Sua rua, ' + minhaRua.rotulo + ', é atendida pela ' + i.equipe +
+                  (h ? ', que atende ' + turnoDoHorario(h).texto : '') + '.');
+    });
+  }
+
   var ativos = avisosDoDia(dataISO);
   if(!ativos.length){
     partes.push('Não há nenhum aviso hoje. Todos os setores funcionam no horário de sempre.');
@@ -1578,6 +1925,7 @@ function textoContadorMudanca(){
 
 function iniciar(){
   montarFixos();
+  montarBuscaDeRua();
   prepararInstalacao();
   registrarServiceWorker();
 
