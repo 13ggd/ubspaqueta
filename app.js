@@ -1007,6 +1007,26 @@ function linkDoMapa(valor){
   return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(v);
 }
 
+/* Botão(ões) "Como chegar" de um lugar. O campo "mapa" do config pode ser:
+   - um texto (link ou endereço) → um botão só; ou
+   - uma lista, pra lugar que na verdade são dois endereços (ex: dois
+     hospitais no mesmo item) → um botão por item. Aí cada item é
+     { rotulo:'Hospital X', endereco:'Hospital X, Cidade - UF' } e o botão
+     sai "Como chegar — Hospital X". */
+function botoesDoMapa(mapa){
+  if(!mapa) return '';
+  var lista = Array.isArray(mapa) ? mapa : [mapa];
+  return lista.map(function(m){
+    var ehObj  = m && typeof m === 'object';
+    var rotulo = ehObj ? (m.rotulo || '') : '';
+    var url    = linkDoMapa(ehObj ? (m.endereco || m.mapa) : m);
+    if(!url) return '';
+    return '<a class="lugar-mapa" href="' + limpo(url) + '" target="_blank" rel="noopener">' +
+      '<span aria-hidden="true">📍</span> Como chegar' +
+      (rotulo ? ' — ' + limpo(rotulo) : '') + '</a>';
+  }).join('');
+}
+
 /* ------------------------------------------- partes fixas (do config) -- */
 function montarFixos(){
   var u = CONFIG.unidade;
@@ -1067,16 +1087,11 @@ function montarFixos(){
   document.getElementById('samu-lab').innerHTML = ur.chamada;
 
   document.getElementById('lugares').innerHTML = ur.lugares.map(function(l){
-    var mapa = linkDoMapa(l.mapa);
-    var btMapa = mapa
-      ? '<a class="lugar-mapa" href="' + limpo(mapa) + '" target="_blank" rel="noopener">' +
-        '<span aria-hidden="true">📍</span> Como chegar</a>'
-      : '';
     return '<div class="lugar">' +
       '<p class="lugar-nome">' + limpo(l.nome) + '</p>' +
       '<p class="lugar-det">' + limpo(l.det) + '</p>' +
       '<span class="lugar-hora">' + limpo(l.hora) + '</span>' +
-      btMapa + '</div>';
+      botoesDoMapa(l.mapa) + '</div>';
   }).join('');
 
   /* Telefones úteis (Polícia, CAPS, etc.) — fica escondido atrás de um
@@ -1184,15 +1199,19 @@ function cartaoPessoa(p, dataISO){
   }
 
   var falta = dataISO ? faltaDe(p.nome.trim(), dataISO) : null;
-  var seloFalta   = falta ? '<p class="pessoa-selo-ausente">Ausente hoje</p>' : '';
+  var nomeHtml = falta
+    ? '<p class="pessoa-nome-linha">' +
+        '<span class="pessoa-nome nome-ausente">' + limpo(p.nome) + '</span>' +
+        '<span class="pessoa-tag-ausente">Ausente hoje</span>' +
+      '</p>'
+    : '<p class="pessoa-nome">' + limpo(p.nome) + '</p>';
   var motivoFalta = (falta && falta.motivo)
     ? '<p class="pessoa-ausente-motivo">' + limpo(falta.motivo) + '</p>' : '';
 
   return '<div class="pessoa' + (falta ? ' pessoa-com-falta' : '') + '" ' +
       'role="button" tabindex="0" aria-haspopup="dialog">' + fotoHtml +
     '<div class="pessoa-txt">' +
-      seloFalta +
-      '<p class="pessoa-nome">' + limpo(p.nome) + '</p>' +
+      nomeHtml +
       '<p class="pessoa-funcao">' + limpo(p.funcao) + '</p>' +
       (p.obs ? '<p class="pessoa-obs">' + limpo(p.obs) + '</p>' : '') +
       motivoFalta +
@@ -1222,7 +1241,7 @@ function abrirPessoaPainel(p, horario, dataISO){
 
   var falta = dataISO ? faltaDe(p.nome.trim(), dataISO) : null;
   var seloFalta = falta
-    ? '<p class="pessoa-selo-ausente">Ausente hoje' +
+    ? '<p class="pessoa-tag-ausente pessoa-tag-ausente-bloco">Ausente hoje' +
         (falta.motivo ? ': ' + limpo(falta.motivo) : '') + '</p>'
     : '';
 
@@ -1406,9 +1425,9 @@ function cartaoRuaEquipe(item, data, agora){
         var falta = faltaDe(p.nome.trim(), dataISO);
         return '<li' + (falta ? ' class="rua-ausente"' : '') + '>' +
           '<span class="rua-pessoa-nome">' + limpo(p.nome) + '</span>' +
-          (p.funcao ? '<span class="rua-funcao">' + limpo(p.funcao) + '</span>' : '') +
-          (falta ? '<span class="rua-falta">🔴 Ausente hoje' +
+          (falta ? '<span class="rua-falta">Ausente hoje' +
                      (falta.motivo ? ': ' + limpo(falta.motivo) : '') + '</span>' : '') +
+          (p.funcao ? '<span class="rua-funcao">' + limpo(p.funcao) + '</span>' : '') +
         '</li>';
       }).join('') + '</ul>'
     : '';

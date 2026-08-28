@@ -131,16 +131,19 @@ const CONFIG = {
 
   /* ---- 3. ONDE IR EM CASO DE URGÊNCIA ---------------------------------- */
   /* O campo "mapa" de cada lugar é OPCIONAL e vira um botão "Como chegar"
-     embaixo do endereço. Aceita duas coisas:
+     embaixo do endereço. Aceita:
        - um link completo (https://...) — de preferência no formato oficial
          do Google ("search/?api=1&query=...&query_place_id=..."), igual ao
-         unidade.mapa acima, que é o que crava o ponto exato; ou
+         unidade.mapa acima, que é o que crava o ponto exato;
        - só o endereço por extenso (ex: 'Rua X, 215, Brusque - SC') — o site
-         monta o link de busca do Google sozinho.
+         monta o link de busca do Google sozinho; ou
+       - uma LISTA, quando o item na verdade são dois endereços (ex: dois
+         hospitais numa linha só): um botão por item, cada um
+         { rotulo:'Hospital X', endereco:'Hospital X, Brusque - SC' }, e o
+         botão sai "Como chegar — Hospital X".
      Funciona no Android (abre o app do Google Maps) e no iPhone (abre o app
      do Google Maps se tiver, senão no Safari, de onde o "Rotas" passa pro
-     Apple Maps). Deixe sem "mapa" pra não mostrar o botão — é o caso de
-     linhas que juntam dois lugares num item só. */
+     Apple Maps). Deixe sem "mapa" pra não mostrar botão nenhum. */
   urgencia: {
     telefone: '192',
     chamada:  'Ligue para o SAMU<br>em caso grave',
@@ -154,9 +157,12 @@ const CONFIG = {
       {
         nome: 'Hospital Azambuja e Hospital Dom Joaquim',
         det:  'Atendem pelo SUS.',
-        hora: 'Aberto todos os dias, 24 horas'
-        /* sem "mapa": são dois hospitais diferentes, um botão só apontaria
-           pra um deles e enganaria quem ia pro outro. */
+        hora: 'Aberto todos os dias, 24 horas',
+        /* São dois hospitais diferentes — um botão pra cada. */
+        mapa: [
+          { rotulo:'Hospital Azambuja',    endereco:'Hospital Azambuja, Brusque - SC' },
+          { rotulo:'Hospital Dom Joaquim', endereco:'Hospital Dom Joaquim, Brusque - SC' }
+        ]
       },
       {
         nome: 'Sala de vacina da Policlínica',

@@ -27,7 +27,7 @@
    faz o navegador de todo mundo descartar o cache antigo.
    =========================================================================== */
 
-var VERSAO       = 'ubs-v5';
+var VERSAO       = 'ubs-v6';
 var CACHE_SITE   = VERSAO + '-site';
 var CACHE_DADOS  = VERSAO + '-dados';
 var CACHE_FONTES = VERSAO + '-fontes';
