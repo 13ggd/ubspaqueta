@@ -350,6 +350,14 @@ body.alto-contraste .rua-time-nome{color:var(--tinta)}
   flex:1 0 100%;color:var(--alerta);font-weight:700;
   font-size:calc(15px * var(--esc));
 }
+/* Quem faltou hoje: o card contorna o nome inteiro (fundo + borda vermelha)
+   e risca o nome, pra dar pra ver num relance quem não está — o texto
+   "Ausente hoje" sozinho passava batido no meio da lista. */
+.rua-pessoas li.rua-ausente{
+  background:var(--alerta-claro);border:2px solid var(--alerta);
+  border-radius:10px;padding:8px 10px;
+}
+.rua-ausente .rua-pessoa-nome{text-decoration:line-through;text-decoration-thickness:2px}
 
 /* Mesma palheta do "sem internet": é uma ressalva sobre o que está na tela,
    não uma emergência. O trecho da rua e a divisão entre duas equipes são as
