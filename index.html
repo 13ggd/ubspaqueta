@@ -97,6 +97,25 @@
     </div>
   </section>
 
+  <!-- --------------------------- MINHA RUA ---------------------- -->
+  <!-- Responde "moro na rua X, que horas eu consulto?" cruzando a aba
+       "ruas" (rua → equipe) com a coluna "horario" da aba "equipe"
+       (equipe → turno). Fica escondida se a unidade não tiver ruas
+       cadastradas — quem mostra/esconde é desenharMinhaRua(), no app.js. -->
+  <section class="secao" id="minha-rua-secao" hidden>
+    <h2>Minha rua</h2>
+
+    <div id="rua-busca">
+      <p class="ajuda">Escreva o nome da sua rua para saber qual equipe atende você e em que horário.</p>
+      <label class="rua-rotulo" for="rua-campo">Nome da rua</label>
+      <input class="rua-campo" id="rua-campo" type="search" autocomplete="off"
+             autocorrect="off" spellcheck="false" placeholder="Ex.: Waldemar Hoffmann">
+      <div class="rua-sugestoes" id="rua-sugestoes" aria-live="polite"></div>
+    </div>
+
+    <div class="rua-resposta" id="rua-resposta" aria-live="polite"></div>
+  </section>
+
   <!-- ---------------------------- SETORES ------------------------ -->
   <section class="secao" id="setores-secao">
     <h2>O que você precisa?</h2>
@@ -278,6 +297,7 @@
 
   <ul class="nav-lista">
     <li><a class="nav-item" href="#avisos-secao"><span class="ic" aria-hidden="true">📣</span> Avisos de hoje</a></li>
+    <li id="nav-minha-rua" hidden><a class="nav-item" href="#minha-rua-secao"><span class="ic" aria-hidden="true">🏠</span> Minha rua</a></li>
     <li><a class="nav-item" href="#setores-secao"><span class="ic" aria-hidden="true">🕒</span> Horários dos setores</a></li>
     <li><a class="nav-item" href="#equipe-secao"><span class="ic" aria-hidden="true">👥</span> Quem trabalha aqui</a></li>
     <li><a class="nav-item" href="#urgencia-secao"><span class="ic" aria-hidden="true">🚑</span> Urgência</a></li>

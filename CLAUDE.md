@@ -141,9 +141,11 @@ The spreadsheet must have tabs `setores`, `mudancas-horario`, `recados`, `equipe
   same team inherits it without repeating the value on every row.
 - `ruas` is a flat `equipe, rua` table (one row per street) — grouped client-side in `buscarPlanilha()`
   into the same `{equipe, ruas:[...]}` shape as the `areasEquipeReserva` fallback, and stored in the
-  `RUAS` global. Rendered as a collapsed "Ruas atendidas ▾" under each team in `desenhar()`. The `equipe`
-  value in each row must match the `equipe` field used in the `equipe` tab/`equipeReserva` — a mismatch
-  means the streets just don't show up for any team, no error.
+  `RUAS` global. Read twice, in opposite directions: rendered as a collapsed "Ruas atendidas ▾" under
+  each team in `desenhar()`, and searched street-first by the "Minha rua" card (see below). The
+  `equipe` value in each row must match the `equipe` field used in the `equipe` tab/`equipeReserva` —
+  a mismatch means the streets don't show up under any team, and "Minha rua" can only say the team's
+  horário isn't registered (it logs a `console.error` naming the team).
 - `reunioes` holds the recurring-meeting rules described above for `notasRecorrentesReserva` — columns
   `setores` (comma-separated codes), `dia` (`seg`/`ter`/.../`dom`), `ocorrencias` (comma-separated
   1-indexed week numbers, e.g. `2,4`) and `texto`. Rows failing basic shape validation (unknown weekday,
@@ -187,6 +189,43 @@ happened is misleading; the actual date is left to the (bold) `av-quando` line, 
 correctly either way ("Dia 28/08" / "De X até Y"). Always pass `futuro` explicitly at both call sites
 (`ativos.map(function(a){ return cartaoAviso(a, false); })` etc.) — `array.map(cartaoAviso)` directly
 would leak the array index into `futuro` as a truthy number for every item past the first.
+
+### "Minha rua": the inverted lookup (rua → equipe → horário)
+
+The sheet already links rua → equipe (`ruas`) and equipe → turno (`equipe`'s `horario` column), but
+both were only ever rendered team-first: "Quem trabalha aqui" shows a team's badge and a collapsed
+`Ruas atendidas ▾`, which only helps a reader who already knows which team they belong to — the one
+thing a resident does not know. `#minha-rua-secao` runs the same data in the direction they do have:
+they know their street. It needs no new tab and no new column.
+
+`chaveRua()` reduces both sides to one form (lowercase, accents stripped via NFD, a leading
+"rua/av/travessa/…" dropped, the parenthesised stretch dropped), `opcoesDeRua()` groups every street
+under that key, and `acharRuas()` matches by substring — the answer is then picked by *tapping* one
+of the buttons, because an exact-match text field fails on the first typo and this audience types
+"r. 13 de marco". Dropping the parentheses is what makes a street split between two teams
+("Santa Cruz (semáforo até…)") collapse into a single search result carrying both: the card renders
+one block per team, each with its own trecho, and never picks one on its own. The other failure
+modes follow the same rule — an unmatched search says the list may be incomplete and gives the phone
+number, never "you are not served here"; a street saved on the device that has since left the sheet
+says exactly that instead of answering with the team it used to belong to.
+
+Three details are load-bearing:
+
+- `.rua-nota` ("os outros setores da UBS atendem qualquer pessoa") is there because the worst
+  misreading of this card is "so the UBS only opens in the afternoon" — someone skipping a morning
+  vaccination on account of their team's shift. The setores it names are derived from the `setor`
+  column of that team's people, so the sentence stays true in another unidade.
+- The *answer* is redrawn inside `desenhar()`, since it depends on the day (`faltaDe()` for the
+  team's people, `situacao()` for the team's setores); the *search field* is wired once, in
+  `montarBuscaDeRua()`. Rebuilding the field every minute would wipe what someone is typing.
+- The chosen street is kept in `localStorage` (`ubs-minha-rua`) and nowhere else: no cookie, nothing
+  identifying, and deliberately not sent to `CONFIG.medicao` (the delegated listener records only
+  that the card was used, never which street), which is what keeps the ethics answer unchanged.
+
+An `equipe` value in `ruas` that matches no team in the `equipe` tab used to fail silently (the
+street simply never showed up under any team). It now also reaches a resident who searches for that
+street, so `cartaoRuaEquipe()` says the horário is not registered, gives the phone number, and logs
+a `console.error` naming the mismatched team for whoever maintains the sheet.
 
 ### Manual time-travel testing
 

@@ -292,6 +292,102 @@ body.alto-contraste .nav-fab{background:#00E676;color:#000;border-color:#fff}
 .tudo-certo .ok{font-size:calc(28px * var(--esc));line-height:1.1;color:var(--verde);flex:0 0 auto}
 .tudo-certo p{font-size:calc(18px * var(--esc));line-height:1.45}
 
+/* ----------------------------------------------------------- MINHA RUA -- */
+.rua-rotulo{
+  display:block;font-size:calc(15px * var(--esc));font-weight:700;
+  color:var(--tinta2);margin-bottom:6px;
+}
+.rua-campo{
+  width:100%;min-height:var(--toque);
+  background:var(--papel);color:var(--tinta);
+  border:2px solid var(--linha);border-radius:12px;
+  padding:10px 14px;font:inherit;font-size:calc(18px * var(--esc));
+}
+.rua-campo:focus{border-color:var(--verde);outline:3px solid var(--verde);outline-offset:2px}
+
+.rua-sugestoes{display:flex;flex-direction:column;gap:8px}
+.rua-sugestoes:not(:empty){margin-top:10px}
+/* Cada rua é um botão do tamanho do dedo, não um item de lista: quem está
+   procurando a própria rua no celular toca, não digita o nome inteiro. */
+.rua-op{
+  width:100%;min-height:var(--toque);text-align:left;
+  background:var(--papel);color:var(--tinta);
+  border:2px solid var(--linha);border-radius:12px;
+  padding:12px 14px;font:inherit;font-size:calc(17px * var(--esc));
+  font-weight:700;cursor:pointer;
+}
+.rua-op:hover{border-color:var(--verde)}
+.rua-nada,.rua-mais{
+  font-size:calc(15px * var(--esc));color:var(--tinta2);line-height:1.5;
+}
+.rua-nada a{color:var(--verde);font-weight:700}
+
+.rua-cartao{
+  background:var(--papel);border:2px solid var(--verde);
+  border-radius:var(--raio);padding:16px;
+}
+.rua-nome{
+  font-size:calc(21px * var(--esc));font-weight:700;line-height:1.2;
+  margin-bottom:12px;
+}
+.rua-time + .rua-time{margin-top:14px;padding-top:14px;border-top:2px dotted var(--linha)}
+.rua-time-nome{
+  font-size:calc(17px * var(--esc));font-weight:700;color:var(--verde-escuro);
+}
+body.alto-contraste .rua-time-nome{color:var(--tinta)}
+.rua-quando{font-size:calc(17px * var(--esc));margin-top:4px;line-height:1.45}
+.rua-sem-dado{color:var(--tinta2)}
+.rua-sem-dado a{color:var(--verde);font-weight:700}
+
+.rua-pessoas{list-style:none;margin-top:10px;display:flex;flex-direction:column;gap:8px}
+.rua-pessoas li{
+  display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;
+  font-size:calc(16px * var(--esc));line-height:1.35;
+}
+.rua-pessoa-nome{font-weight:700}
+.rua-funcao{color:var(--tinta2);font-size:calc(15px * var(--esc))}
+.rua-falta{
+  flex:1 0 100%;color:var(--alerta);font-weight:700;
+  font-size:calc(15px * var(--esc));
+}
+
+/* Mesma palheta do "sem internet": é uma ressalva sobre o que está na tela,
+   não uma emergência. O trecho da rua e a divisão entre duas equipes são as
+   duas coisas que o site NÃO pode decidir sozinho. */
+.rua-trecho,.rua-duas{
+  background:var(--atencao-claro);border-left:8px solid var(--atencao);
+  border-radius:8px;padding:10px 12px;margin-top:10px;
+  font-size:calc(15px * var(--esc));color:#5A3400;line-height:1.5;
+}
+.rua-duas{margin-top:0;margin-bottom:12px}
+body.alto-contraste .rua-trecho,
+body.alto-contraste .rua-duas{color:var(--tinta)}
+.rua-duas a{color:inherit;font-weight:700}
+
+.rua-fechado{
+  background:var(--alerta-claro);border-left:8px solid var(--alerta);
+  border-radius:8px;padding:10px 12px;margin-top:10px;
+  font-size:calc(15px * var(--esc));color:var(--alerta);line-height:1.5;
+}
+body.alto-contraste .rua-fechado{color:var(--tinta)}
+.rua-fechado a{color:inherit;font-weight:700}
+
+/* A frase que impede a pior leitura possível deste card ("então a UBS só
+   abre de tarde") — discreta, mas sempre presente. */
+.rua-nota{
+  margin-top:14px;padding-top:12px;border-top:2px solid var(--linha);
+  font-size:calc(15px * var(--esc));color:var(--tinta2);line-height:1.5;
+}
+.rua-nota a{color:var(--verde);font-weight:700}
+
+.rua-trocar{
+  margin-top:14px;min-height:var(--toque);width:100%;
+  background:transparent;color:var(--verde);
+  border:2px solid var(--verde);border-radius:12px;
+  padding:10px 14px;font:inherit;font-size:calc(16px * var(--esc));
+  font-weight:700;cursor:pointer;
+}
+
 /* -------------------------------------------------------------- SETORES -- */
 .setor{
   background:var(--papel);border:2px solid var(--linha);
