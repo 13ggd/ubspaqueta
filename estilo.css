@@ -504,7 +504,7 @@ body.alto-contraste .time-conta{background:#052012;color:#00E676}
 .time-horario{background:transparent;border:2px solid var(--verde-escuro)}
 body.alto-contraste .time-horario{background:transparent;border-color:#00E676}
 
-.pessoas{display:flex;flex-direction:column}
+.pessoas{display:flex;flex-direction:column;gap:8px}
 
 details.ruas-equipe{margin-top:10px;border-top:2px dotted var(--linha)}
 details.ruas-equipe summary{
@@ -524,18 +524,17 @@ details.ruas-equipe[open] summary::after{transform:rotate(180deg)}
 }
 .ruas-lista li{break-inside:avoid;padding:3px 0}
 
-/* Lista compacta: linhas separadas por um traço, não cards. Cada linha
-   continua sendo um alvo de toque do tamanho do dedo (min-height) e abre
-   o painel de detalhe. */
+/* Lista compacta: uma linha por pessoa (nome — função), mas cada linha
+   continua sendo um card com borda, como antes — só sem a foto e a altura
+   toda. Alvo de toque do tamanho do dedo (min-height), abre o painel. */
 .pessoa{
+  background:var(--papel);border:2px solid var(--linha);border-radius:var(--raio);
+  padding:12px 14px;min-height:var(--toque);
   display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px;
-  padding:11px 4px;min-height:var(--toque);
-  border-bottom:2px solid var(--linha);
   cursor:pointer;
 }
-.pessoa:first-child{border-top:2px solid var(--linha)}
-.pessoa:hover .pessoa-nome{text-decoration:underline}
-.pessoa-nome{font-size:calc(17px * var(--esc));font-weight:700;line-height:1.3}
+.pessoa:hover{border-color:var(--verde)}
+.pessoa-nome{font-size:calc(18px * var(--esc));font-weight:700;line-height:1.3}
 .pessoa-funcao{font-size:calc(15px * var(--esc));color:var(--tinta2);line-height:1.3}
 .pessoa-seta{
   margin-left:auto;flex:0 0 auto;
@@ -545,7 +544,7 @@ details.ruas-equipe[open] summary::after{transform:rotate(180deg)}
   flex:1 0 100%;font-size:calc(14px * var(--esc));font-weight:700;
   color:var(--alerta-cartao);line-height:1.35;
 }
-.pessoa-com-falta{border-left:4px solid var(--alerta);padding-left:8px}
+.pessoa-com-falta{border-color:var(--alerta);border-width:3px}
 
 /* Painel de detalhe (abre ao clicar num card da equipe) — mesma "folha"
    deslizante de baixo já usada pra acessibilidade/menu, só que centrado
