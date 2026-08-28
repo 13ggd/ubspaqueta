@@ -1199,22 +1199,17 @@ function cartaoPessoa(p, dataISO){
   }
 
   var falta = dataISO ? faltaDe(p.nome.trim(), dataISO) : null;
-  var nomeHtml = falta
-    ? '<p class="pessoa-nome-linha">' +
-        '<span class="pessoa-nome nome-ausente">' + limpo(p.nome) + '</span>' +
-        '<span class="pessoa-tag-ausente">Ausente hoje</span>' +
-      '</p>'
-    : '<p class="pessoa-nome">' + limpo(p.nome) + '</p>';
-  var motivoFalta = (falta && falta.motivo)
-    ? '<p class="pessoa-ausente-motivo">' + limpo(falta.motivo) + '</p>' : '';
+  var faltaHtml = falta
+    ? '<p class="pessoa-ausente">🔴 Ausente hoje' + (falta.motivo ? ': ' + limpo(falta.motivo) : '') + '</p>'
+    : '';
 
   return '<div class="pessoa' + (falta ? ' pessoa-com-falta' : '') + '" ' +
       'role="button" tabindex="0" aria-haspopup="dialog">' + fotoHtml +
     '<div class="pessoa-txt">' +
-      nomeHtml +
+      '<p class="pessoa-nome">' + limpo(p.nome) + '</p>' +
       '<p class="pessoa-funcao">' + limpo(p.funcao) + '</p>' +
       (p.obs ? '<p class="pessoa-obs">' + limpo(p.obs) + '</p>' : '') +
-      motivoFalta +
+      faltaHtml +
     '</div>' +
   '</div>';
 }
@@ -1240,18 +1235,17 @@ function abrirPessoaPainel(p, horario, dataISO){
   if(horario)  linhas.push('Atendimento: ' + horario);
 
   var falta = dataISO ? faltaDe(p.nome.trim(), dataISO) : null;
-  var seloFalta = falta
-    ? '<p class="pessoa-tag-ausente pessoa-tag-ausente-bloco">Ausente hoje' +
-        (falta.motivo ? ': ' + limpo(falta.motivo) : '') + '</p>'
+  var faltaHtml = falta
+    ? '<p class="pessoa-ausente">🔴 Ausente hoje' + (falta.motivo ? ': ' + limpo(falta.motivo) : '') + '</p>'
     : '';
 
   document.getElementById('pessoa-nome').textContent = p.nome;
   document.getElementById('pessoa-detalhe').innerHTML = fotoHtml +
-    seloFalta +
     '<ul class="pessoa-detalhe-lista">' +
       linhas.map(function(l){ return '<li>' + limpo(l) + '</li>'; }).join('') +
     '</ul>' +
-    (p.obs ? '<p class="pessoa-detalhe-obs">' + limpo(p.obs) + '</p>' : '');
+    (p.obs ? '<p class="pessoa-detalhe-obs">' + limpo(p.obs) + '</p>' : '') +
+    faltaHtml;
 
   if(painelPessoa) painelPessoa.abrir();
 }

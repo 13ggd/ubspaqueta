@@ -542,27 +542,11 @@ body.alto-contraste .pessoa-foto{background:#052012;color:#00E676}
 .pessoa-nome{font-size:calc(19px * var(--esc));font-weight:700;line-height:1.25}
 .pessoa-funcao{font-size:calc(16px * var(--esc));color:var(--tinta2);margin-top:2px;line-height:1.35}
 .pessoa-obs{font-size:calc(14.5px * var(--esc));color:var(--tinta2);margin-top:4px;line-height:1.4}
-/* Quem faltou hoje: o vermelho contorna o NOME (não risca), e o "Ausente
-   hoje" fica ao lado do nome, não numa linha embaixo. */
-.pessoa-nome-linha{
-  display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;line-height:1.25;
-}
-.nome-ausente{
-  border:2px solid var(--alerta);color:var(--alerta);
-  border-radius:8px;padding:1px 8px;
-}
-.pessoa-tag-ausente{
-  font-size:calc(13px * var(--esc));font-weight:700;
-  text-transform:uppercase;letter-spacing:.03em;
-  background:var(--alerta-cartao);color:#fff;
-  border-radius:8px;padding:3px 9px;line-height:1.25;
-}
-.pessoa-tag-ausente-bloco{display:inline-block;margin:0 auto 14px}
-.pessoa-ausente-motivo{
+.pessoa-ausente{
   font-size:calc(14.5px * var(--esc));font-weight:700;color:var(--alerta-cartao);
   margin-top:6px;line-height:1.4;
 }
-.pessoa-com-falta{border-color:var(--alerta)}
+.pessoa-com-falta{border-color:var(--alerta);border-width:3px}
 
 /* Painel de detalhe (abre ao clicar num card da equipe) — mesma "folha"
    deslizante de baixo já usada pra acessibilidade/menu, só que centrado
