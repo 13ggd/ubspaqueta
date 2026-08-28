@@ -264,6 +264,7 @@ body.alto-contraste .nav-fab{background:#00E676;color:#000;border-color:#fff}
 .aviso{
   background:var(--alerta-claro);border:3px solid var(--alerta);
   border-radius:var(--raio);padding:16px;margin-bottom:12px;
+  text-align:center;
 }
 .aviso.atencao{background:var(--atencao-claro);border-color:var(--atencao)}
 .aviso.recado{background:var(--verde-claro);border-color:var(--verde)}
@@ -328,14 +329,15 @@ body.alto-contraste .nav-fab{background:#00E676;color:#000;border-color:#fff}
 }
 .rua-nome{
   font-size:calc(21px * var(--esc));font-weight:700;line-height:1.2;
-  margin-bottom:12px;
+  margin-bottom:12px;text-align:center;
 }
 .rua-time + .rua-time{margin-top:14px;padding-top:14px;border-top:2px dotted var(--linha)}
 .rua-time-nome{
   font-size:calc(17px * var(--esc));font-weight:700;color:var(--verde-escuro);
+  text-align:center;
 }
 body.alto-contraste .rua-time-nome{color:var(--tinta)}
-.rua-quando{font-size:calc(17px * var(--esc));margin-top:4px;line-height:1.45}
+.rua-quando{font-size:calc(17px * var(--esc));margin-top:4px;line-height:1.45;text-align:center}
 .rua-sem-dado{color:var(--tinta2)}
 .rua-sem-dado a{color:var(--verde);font-weight:700}
 
@@ -401,11 +403,12 @@ body.alto-contraste .rua-fechado{color:var(--tinta)}
 }
 .setor.fechado-hoje{border-color:var(--alerta);border-width:3px}
 .sv-topo{padding:16px}
-.sv-nome{font-size:calc(21px * var(--esc));font-weight:700;line-height:1.2}
-.sv-para{font-size:calc(16px * var(--esc));color:var(--tinta2);margin-top:5px;line-height:1.4}
+.sv-nome{font-size:calc(21px * var(--esc));font-weight:700;line-height:1.2;text-align:center}
+.sv-para{font-size:calc(16px * var(--esc));color:var(--tinta2);margin-top:5px;line-height:1.4;text-align:center}
 .sv-levar{
   font-size:calc(15px * var(--esc));color:var(--verde-escuro);margin-top:7px;
   line-height:1.4;background:var(--verde-claro);border-radius:8px;padding:7px 10px;
+  text-align:center;
 }
 body.alto-contraste .sv-levar{color:var(--tinta)}
 
@@ -550,7 +553,7 @@ body.alto-contraste .pessoa-detalhe-lista li:first-child{color:var(--tinta)}
 .pessoa-detalhe-obs{font-size:calc(15px * var(--esc));color:var(--tinta2);margin-top:4px;line-height:1.4}
 
 /* ------------------------------------------------------------ URGÊNCIA -- */
-.urgencia{background:var(--verde-escuro);color:#fff;border-radius:16px;padding:20px 16px}
+.urgencia{background:var(--verde-escuro);color:#fff;border-radius:16px;padding:20px 16px;text-align:center}
 .urgencia h2{font-size:calc(22px * var(--esc));font-weight:700;margin-bottom:5px}
 .urgencia .sub{font-size:calc(16px * var(--esc));opacity:.85;margin-bottom:16px;line-height:1.4}
 .urgencia :focus-visible{outline-color:#63D68F}
@@ -585,7 +588,7 @@ body.alto-contraste .lugar-mapa{border:3px solid #000}
   display:block;width:100%;max-height:260px;object-fit:cover;
   border-radius:var(--raio);border:2px solid var(--linha);margin-bottom:14px;
 }
-.cartao{background:var(--papel);border:2px solid var(--linha);border-radius:var(--raio);padding:18px}
+.cartao{background:var(--papel);border:2px solid var(--linha);border-radius:var(--raio);padding:18px;text-align:center}
 .info{padding:13px 0;border-bottom:2px solid var(--linha)}
 .info:first-child{padding-top:0}
 .info:last-child{border-bottom:none;padding-bottom:0}
