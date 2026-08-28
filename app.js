@@ -1183,34 +1183,21 @@ function urlFoto(f){
   return (CONFIG.pastaFotos || 'fotos/') + f;
 }
 
+/* Lista compacta: uma linha por pessoa (nome — função), que abre o painel
+   de detalhe no clique. Foto, equipe, horário e obs ficam no painel — aqui
+   é só pra varrer a lista rápido, sem rolar três equipes de cards. */
 function cartaoPessoa(p, dataISO){
-  var iniciais = iniciaisDe(p.nome);
-  var src = urlFoto(p.foto);
-  var fotoHtml;
-  if(src){
-    /* Mostra a foto; se o arquivo não existir ou o link estiver quebrado,
-       o onerror troca pela bolinha com as iniciais, sem deixar buraco. */
-    fotoHtml =
-      '<img class="pessoa-foto" src="' + limpo(src) + '" alt="" loading="lazy" ' +
-        'onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
-      '<div class="pessoa-foto" aria-hidden="true" style="display:none">' + limpo(iniciais || '?') + '</div>';
-  } else {
-    fotoHtml = '<div class="pessoa-foto" aria-hidden="true">' + limpo(iniciais || '?') + '</div>';
-  }
-
   var falta = dataISO ? faltaDe(p.nome.trim(), dataISO) : null;
   var faltaHtml = falta
-    ? '<p class="pessoa-ausente">🔴 Ausente hoje' + (falta.motivo ? ': ' + limpo(falta.motivo) : '') + '</p>'
+    ? '<span class="pessoa-ausente">🔴 Ausente hoje' + (falta.motivo ? ': ' + limpo(falta.motivo) : '') + '</span>'
     : '';
 
   return '<div class="pessoa' + (falta ? ' pessoa-com-falta' : '') + '" ' +
-      'role="button" tabindex="0" aria-haspopup="dialog">' + fotoHtml +
-    '<div class="pessoa-txt">' +
-      '<p class="pessoa-nome">' + limpo(p.nome) + '</p>' +
-      '<p class="pessoa-funcao">' + limpo(p.funcao) + '</p>' +
-      (p.obs ? '<p class="pessoa-obs">' + limpo(p.obs) + '</p>' : '') +
-      faltaHtml +
-    '</div>' +
+      'role="button" tabindex="0" aria-haspopup="dialog">' +
+    '<span class="pessoa-nome">' + limpo(p.nome) + '</span>' +
+    (p.funcao ? '<span class="pessoa-funcao">' + limpo(p.funcao) + '</span>' : '') +
+    '<span class="pessoa-seta" aria-hidden="true">›</span>' +
+    faltaHtml +
   '</div>';
 }
 

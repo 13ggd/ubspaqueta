@@ -504,7 +504,7 @@ body.alto-contraste .time-conta{background:#052012;color:#00E676}
 .time-horario{background:transparent;border:2px solid var(--verde-escuro)}
 body.alto-contraste .time-horario{background:transparent;border-color:#00E676}
 
-.pessoas{display:flex;flex-direction:column;gap:10px}
+.pessoas{display:flex;flex-direction:column}
 
 details.ruas-equipe{margin-top:10px;border-top:2px dotted var(--linha)}
 details.ruas-equipe summary{
@@ -524,29 +524,28 @@ details.ruas-equipe[open] summary::after{transform:rotate(180deg)}
 }
 .ruas-lista li{break-inside:avoid;padding:3px 0}
 
+/* Lista compacta: linhas separadas por um traço, não cards. Cada linha
+   continua sendo um alvo de toque do tamanho do dedo (min-height) e abre
+   o painel de detalhe. */
 .pessoa{
-  background:var(--papel);border:2px solid var(--linha);border-radius:var(--raio);
-  padding:14px 16px;display:flex;align-items:center;gap:13px;
+  display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px;
+  padding:11px 4px;min-height:var(--toque);
+  border-bottom:2px solid var(--linha);
   cursor:pointer;
 }
-.pessoa:hover{border-color:var(--verde)}
-.pessoa-foto{
-  flex:0 0 auto;width:52px;height:52px;border-radius:50%;
-  background:var(--verde-claro);color:var(--verde-escuro);
-  display:flex;align-items:center;justify-content:center;
-  font-size:calc(18px * var(--esc));font-weight:700;
-  object-fit:cover;               /* só tem efeito na versão <img> (foto de verdade) */
+.pessoa:first-child{border-top:2px solid var(--linha)}
+.pessoa:hover .pessoa-nome{text-decoration:underline}
+.pessoa-nome{font-size:calc(17px * var(--esc));font-weight:700;line-height:1.3}
+.pessoa-funcao{font-size:calc(15px * var(--esc));color:var(--tinta2);line-height:1.3}
+.pessoa-seta{
+  margin-left:auto;flex:0 0 auto;
+  font-size:calc(22px * var(--esc));color:var(--tinta2);line-height:1;
 }
-body.alto-contraste .pessoa-foto{background:#052012;color:#00E676}
-.pessoa-txt{flex:1;min-width:0}
-.pessoa-nome{font-size:calc(19px * var(--esc));font-weight:700;line-height:1.25}
-.pessoa-funcao{font-size:calc(16px * var(--esc));color:var(--tinta2);margin-top:2px;line-height:1.35}
-.pessoa-obs{font-size:calc(14.5px * var(--esc));color:var(--tinta2);margin-top:4px;line-height:1.4}
 .pessoa-ausente{
-  font-size:calc(14.5px * var(--esc));font-weight:700;color:var(--alerta-cartao);
-  margin-top:6px;line-height:1.4;
+  flex:1 0 100%;font-size:calc(14px * var(--esc));font-weight:700;
+  color:var(--alerta-cartao);line-height:1.35;
 }
-.pessoa-com-falta{border-color:var(--alerta);border-width:3px}
+.pessoa-com-falta{border-left:4px solid var(--alerta);padding-left:8px}
 
 /* Painel de detalhe (abre ao clicar num card da equipe) — mesma "folha"
    deslizante de baixo já usada pra acessibilidade/menu, só que centrado
